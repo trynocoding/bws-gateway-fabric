@@ -45,6 +45,11 @@ HELM_SCHEMA_VERSION = 0.23.2
 PREFIX ?= nginx-gateway-fabric## The name of the NGF image. For example, nginx-gateway-fabric
 NGINX_PREFIX ?= $(PREFIX)/nginx## The name of the nginx image. For example: nginx-gateway-fabric/nginx
 NGINX_PLUS_PREFIX ?= $(PREFIX)/nginx-plus## The name of the nginx plus image. For example: nginx-gateway-fabric/nginx-plus
+BWS_PREFIX ?= $(PREFIX)/bws## The name of the BWS data plane image.
+BWS_AGENT_DIR ?= $(abspath $(SELF_DIR)../bws-agent)## Path to the BWS Agent source repository.
+BWS_AGENT_BINARY_DIR ?= $(BWS_AGENT_DIR)/build## Directory containing the built BWS Agent binary.
+BWS_PACKAGE ?= $(abspath $(SELF_DIR)../bws-3.2.0-LINUX-X64.tar_94b299d8d6b5c686ffbe0ee912c79cbb304b93dc.gz)## Path to the BWS distribution archive.
+BWS_PACKAGE_SHA256 ?= 885a2ea9fb91b6837971259dac118854fc5d3b6236a432819f8f1dac6e7fd95f## Expected BWS archive SHA-256.
 BUILD_OS ?= ## The OS of the nginx image. Possible values: ubi and empty string, which defaults to alpine.
 NGINX_SERVICE_TYPE ?= NodePort## The type of the nginx service. Possible values: NodePort, LoadBalancer, ClusterIP
 PULL_POLICY ?= Never## The pull policy of the images. Possible values: Always, IfNotPresent, Never
@@ -99,6 +104,22 @@ build-ngf-image: check-for-docker build ## Build the NGF docker image
 
 .PHONY: build-prod-nginx-image
 build-prod-nginx-image: build-nginx-image ## Build the custom nginx image for production
+
+.PHONY: build-bws-agent
+build-bws-agent:
+	CGO_ENABLED=0 $(MAKE) -C $(BWS_AGENT_DIR) build
+
+.PHONY: build-bws-image
+build-bws-image: check-for-docker build-bws-agent ## Build the BWS data plane image from the vendor archive and BWS Agent.
+	@test -f "$(BWS_PACKAGE)" || (echo "BWS package not found: $(BWS_PACKAGE)"; exit 1)
+	docker build --platform linux/amd64 $(strip $(NGINX_DOCKER_BUILD_OPTIONS)) \
+		--build-context bws-package=$(dir $(BWS_PACKAGE)) \
+		--build-context bws-agent=$(BWS_AGENT_BINARY_DIR) \
+		--build-arg BWS_PACKAGE_FILE=$(notdir $(BWS_PACKAGE)) \
+		--build-arg BWS_PACKAGE_SHA256=$(BWS_PACKAGE_SHA256) \
+		-f $(SELF_DIR)build/Dockerfile.bws \
+		-t $(strip $(BWS_PREFIX)):$(strip $(TAG)) \
+		$(strip $(SELF_DIR))
 
 .PHONY: build-nginx-image
 build-nginx-image: check-for-docker ## Build the custom nginx image

@@ -1,0 +1,89 @@
+# syntax=docker/dockerfile:1.23
+
+ARG ROCKY_VERSION=8-minimal
+FROM rockylinux:${ROCKY_VERSION}
+
+ARG BWS_PACKAGE_FILE
+ARG BWS_PACKAGE_SHA256
+ARG BUILD_AGENT
+ARG NGINX_CONF_DIR
+ARG NJS_DIR
+
+ENV BWS_HOME=/opt/bws \
+    LD_LIBRARY_PATH=/opt/bws/luajit/lib:/opt/bws/modules \
+    LUA_PATH=/opt/bws/lualib/?.lua\;\; \
+    LUA_CPATH=/opt/bws/lualib/?.so\;\;
+
+RUN microdnf update -y \
+    && microdnf install -y bash ca-certificates gd gzip libnsl perl-libs tar \
+    && microdnf clean all
+
+RUN --mount=type=bind,from=bws-package,source=/${BWS_PACKAGE_FILE},target=/tmp/bws.tar.gz,ro \
+    test "$(sha256sum /tmp/bws.tar.gz | awk '{print $1}')" = "${BWS_PACKAGE_SHA256}" \
+    && mkdir -p /opt/bws \
+    && tar -xzf /tmp/bws.tar.gz -C /opt/bws \
+    && unlink /opt/bws/license/bws.lic.txt \
+    && rmdir /opt/bws/license \
+    && rmdir /opt/bws/logs \
+    && sed -i 's|^\./bws "$@"$|exec ./bws "$@"|' /opt/bws/bin/bws.sh \
+    && grep -Fx 'exec ./bws "$@"' /opt/bws/bin/bws.sh
+
+COPY --chmod=0755 --from=bws-agent /nginx-agent /usr/bin/nginx-agent
+COPY --chmod=0755 build/bws-entrypoint.sh /agent/entrypoint.sh
+COPY ${NGINX_CONF_DIR}/nginx.conf /etc/nginx/nginx.conf
+COPY ${NGINX_CONF_DIR}/grpc-error-locations.conf /etc/nginx/grpc-error-locations.conf
+COPY ${NGINX_CONF_DIR}/grpc-error-pages.conf /etc/nginx/grpc-error-pages.conf
+COPY ${NJS_DIR}/ /opt/bws/modules/njs/
+COPY build/bws/bootstrap/ /etc/nginx/
+
+RUN cp /opt/bws/conf/mime.types /etc/nginx/mime.types \
+    && mkdir -p \
+        /etc/nginx-agent \
+        /etc/nginx/certs \
+        /etc/nginx/conf.d \
+        /etc/nginx/events-includes \
+        /etc/nginx/includes \
+        /etc/nginx/main-includes \
+        /etc/nginx/secrets \
+        /etc/nginx/stream-conf.d \
+        /run \
+        /var/cache/nginx \
+        /var/cache/nginx/ajp_temp \
+        /var/cache/nginx/bws-logs \
+        /var/cache/nginx/bws-license \
+        /var/cache/nginx/temp/client_body_temp \
+        /var/cache/nginx/temp/fastcgi_temp \
+        /var/cache/nginx/temp/proxy_temp \
+        /var/cache/nginx/temp/scgi_temp \
+        /var/cache/nginx/temp/uwsgi_temp \
+        /var/lib/nginx-agent \
+        /var/log/nginx-agent \
+        /var/run/nginx \
+        /var/run/secrets/bws \
+        /var/run/secrets/ngf \
+    && touch /run/.containerenv \
+    && touch /var/cache/nginx/bws-logs/access.log /var/cache/nginx/bws-logs/error.log \
+    && ln -s /opt/bws/modules /etc/nginx/modules \
+    && ln -s /var/cache/nginx/ajp_temp /opt/bws/ajp_temp \
+    && ln -s /var/cache/nginx/bws-license /opt/bws/license \
+    && ln -s /var/cache/nginx/bws-logs /opt/bws/logs \
+    && ln -s /var/cache/nginx/temp /opt/bws/temp \
+    && chown -R 101:1001 \
+        /etc/nginx \
+        /etc/nginx-agent \
+        /var/cache/nginx \
+        /var/lib/nginx-agent \
+        /var/log/nginx-agent \
+        /var/run/nginx \
+        /var/run/secrets/bws \
+        /var/run/secrets/ngf
+
+LABEL org.nginx.ngf.image.build.agent="${BUILD_AGENT}" \
+    org.opencontainers.image.title="BWS Gateway Fabric data plane" \
+    org.opencontainers.image.description="BES WebServer data plane with BWS Agent for NGINX Gateway Fabric"
+
+EXPOSE 80 443 8081
+
+USER 101:1001
+
+ENTRYPOINT ["/agent/entrypoint.sh"]

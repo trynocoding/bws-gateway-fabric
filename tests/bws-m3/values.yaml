@@ -1,0 +1,44 @@
+# M3 keeps the upstream NGF API and product names intentionally. Only the
+# data-plane image and pod storage are changed for BWS.
+nginxGateway:
+  name: bws-m3-controller
+  watchNamespaces:
+    - bws-m3
+  gatewayClassName: bws-poc
+  leaderElection:
+    enable: true
+    lockName: bws-m3-leader-election
+  snippets:
+    enable: true
+  image:
+    repository: ghcr.io/nginx/nginx-gateway-fabric
+    tag: 2.6.7
+    pullPolicy: IfNotPresent
+
+nginx:
+  plus: false
+  replicas: 2
+  image:
+    repository: bws-gateway-fabric/bws
+    tag: m3-local
+    pullPolicy: Never
+  service:
+    type: NodePort
+  pod:
+    terminationGracePeriodSeconds: 30
+    volumes:
+      - name: bws-license
+        secret:
+          secretName: bws-license
+          items:
+            - key: bws.lic.txt
+              path: bws.lic.txt
+  container:
+    readinessProbe:
+      port: 8081
+      path: /readyz
+      initialDelaySeconds: 3
+    volumeMounts:
+      - name: bws-license
+        mountPath: /var/run/secrets/bws
+        readOnly: true
