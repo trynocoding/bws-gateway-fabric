@@ -5,6 +5,7 @@ FROM rockylinux:${ROCKY_VERSION}
 
 ARG BWS_PACKAGE_FILE
 ARG BWS_PACKAGE_SHA256
+ARG BWS_INSTALL_DEBUG_TOOLS=true
 ARG BUILD_AGENT
 ARG NGINX_CONF_DIR
 ARG NJS_DIR
@@ -16,6 +17,9 @@ ENV BWS_HOME=/opt/bws \
 
 RUN microdnf update -y \
     && microdnf install -y bash ca-certificates gd gzip libnsl perl-libs tar \
+    && if [ "${BWS_INSTALL_DEBUG_TOOLS}" = "true" ]; then \
+        microdnf install -y bind-utils iproute iputils less lsof net-tools procps-ng vim-minimal; \
+    fi \
     && microdnf clean all
 
 RUN --mount=type=bind,from=bws-package,source=/${BWS_PACKAGE_FILE},target=/tmp/bws.tar.gz,ro \
@@ -79,6 +83,7 @@ RUN cp /opt/bws/conf/mime.types /etc/nginx/mime.types \
         /var/run/secrets/ngf
 
 LABEL org.nginx.ngf.image.build.agent="${BUILD_AGENT}" \
+    org.bws.image.debug-tools="${BWS_INSTALL_DEBUG_TOOLS}" \
     org.opencontainers.image.title="BWS Gateway Fabric data plane" \
     org.opencontainers.image.description="BES WebServer data plane with BWS Agent for NGINX Gateway Fabric"
 

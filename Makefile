@@ -50,6 +50,7 @@ BWS_AGENT_DIR ?= $(abspath $(SELF_DIR)../bws-agent)## Path to the BWS Agent sour
 BWS_AGENT_BINARY_DIR ?= $(BWS_AGENT_DIR)/build## Directory containing the built BWS Agent binary.
 BWS_PACKAGE ?= $(abspath $(SELF_DIR)../bws-3.2.0-LINUX-X64.tar_94b299d8d6b5c686ffbe0ee912c79cbb304b93dc.gz)## Path to the BWS distribution archive.
 BWS_PACKAGE_SHA256 ?= 885a2ea9fb91b6837971259dac118854fc5d3b6236a432819f8f1dac6e7fd95f## Expected BWS archive SHA-256.
+BWS_INSTALL_DEBUG_TOOLS ?= true## Install development troubleshooting tools in the BWS image.
 BUILD_OS ?= ## The OS of the nginx image. Possible values: ubi and empty string, which defaults to alpine.
 NGINX_SERVICE_TYPE ?= NodePort## The type of the nginx service. Possible values: NodePort, LoadBalancer, ClusterIP
 PULL_POLICY ?= Never## The pull policy of the images. Possible values: Always, IfNotPresent, Never
@@ -117,6 +118,7 @@ build-bws-image: check-for-docker build-bws-agent ## Build the BWS data plane im
 		--build-context bws-agent=$(BWS_AGENT_BINARY_DIR) \
 		--build-arg BWS_PACKAGE_FILE=$(notdir $(BWS_PACKAGE)) \
 		--build-arg BWS_PACKAGE_SHA256=$(BWS_PACKAGE_SHA256) \
+		--build-arg BWS_INSTALL_DEBUG_TOOLS=$(BWS_INSTALL_DEBUG_TOOLS) \
 		-f $(SELF_DIR)build/Dockerfile.bws \
 		-t $(strip $(BWS_PREFIX)):$(strip $(TAG)) \
 		$(strip $(SELF_DIR))

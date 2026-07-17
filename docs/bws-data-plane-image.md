@@ -20,6 +20,18 @@ Linux 8 as the glibc runtime. The BWS archive is supplied as a read-only named b
 repository or retained in an image layer. The packaged dynamic-module dependencies, NGF NJS files, and NGF bootstrap
 configuration are included in the image.
 
+Development builds additionally install troubleshooting tools by default: `ps`/`top` (`procps-ng`), `ss`/`ip`
+(`iproute`), `dig`/`nslookup`, `ping`, `lsof`, `netstat`, `less`, and `vi`. Disable those optional packages for a
+production-oriented image:
+
+```shell
+make build-bws-image BWS_INSTALL_DEBUG_TOOLS=false
+```
+
+The image label `org.bws.image.debug-tools` records whether the optional packages were included. Rocky Linux retains
+`curl` in both image variants. Some commands such as `ping` may still be limited by the Pod security context because
+the NGF data plane drops all Linux capabilities.
+
 The vendor `bws.sh` environment initialization is retained. Its final command is changed from `./bws "$@"` to
 `exec ./bws "$@"` so the entrypoint can track and signal the BWS master process directly.
 
