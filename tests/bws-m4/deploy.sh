@@ -56,16 +56,16 @@ kubectl -n "${namespace}" create secret tls bws-m4-tls \
     --key="${tls_dir}/tls.key" \
     --dry-run=client -o yaml | kubectl apply -f -
 
-helm upgrade --install "${release}" "${repo_dir}/charts/nginx-gateway-fabric" \
+helm upgrade --install "${release}" "${repo_dir}/charts/bws-gateway-fabric" \
     --namespace "${control_namespace}" \
     --create-namespace \
     --values "${script_dir}/values.yaml" \
-    --set-string "nginxGateway.image.repository=${control_image_repository}" \
-    --set-string "nginxGateway.image.tag=${control_image_tag}" \
-    --set-string "nginxGateway.image.pullPolicy=${image_pull_policy}" \
-    --set-string "nginx.image.repository=${data_image_repository}" \
-    --set-string "nginx.image.tag=${data_image_tag}" \
-    --set-string "nginx.image.pullPolicy=${image_pull_policy}" \
+    --set-string "bwsGateway.image.repository=${control_image_repository}" \
+    --set-string "bwsGateway.image.tag=${control_image_tag}" \
+    --set-string "bwsGateway.image.pullPolicy=${image_pull_policy}" \
+    --set-string "bws.image.repository=${data_image_repository}" \
+    --set-string "bws.image.tag=${data_image_tag}" \
+    --set-string "bws.image.pullPolicy=${image_pull_policy}" \
     --wait \
     --timeout 5m
 
@@ -74,4 +74,4 @@ kubectl -n "${namespace}" apply -f "${script_dir}/gateway.yaml"
 kubectl -n "${namespace}" rollout status deployment/coffee --timeout=2m
 kubectl -n "${namespace}" rollout status deployment/tea --timeout=2m
 
-echo "M4.1 resources deployed. Run ${script_dir}/verify.sh"
+echo "M4.3 resources deployed. Run ${script_dir}/verify.sh"

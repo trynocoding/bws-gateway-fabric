@@ -6,8 +6,8 @@ spec:
   gatewayClassName: nginx
   infrastructure:
     parametersRef:
-      group: gateway.nginx.org
-      kind: NginxProxy
+      group: gateway.bessystem.com
+      kind: BwsProxy
       name: external-nginx-config
   listeners:
   - name: http
@@ -26,8 +26,8 @@ spec:
         from: All
 
 ---
-apiVersion: gateway.nginx.org/v1alpha2
-kind: NginxProxy
+apiVersion: gateway.bessystem.com/v1alpha2
+kind: BwsProxy
 metadata:
   name: external-nginx-config
 spec:

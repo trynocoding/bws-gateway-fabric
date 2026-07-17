@@ -47,6 +47,37 @@ response_contains() {
     curl "${curl_args[@]}" "${protocol}://${host}:${port}/" | grep -q "Server name: ${expected}-"
 }
 
+validate_dataplane_pods() {
+    local pods=()
+    mapfile -t pods < <(kubectl -n "${namespace}" get pods \
+        -l "gateway.networking.k8s.io/gateway-name=${gateway}" \
+        -o name)
+
+    if [[ "${#pods[@]}" -ne 2 ]]; then
+        return 1
+    fi
+
+    local pod
+    for pod in "${pods[@]}"; do
+        kubectl -n "${namespace}" exec "${pod}" -c bws -- sh -c '
+            test -s /var/run/secrets/bws-gateway/tls.crt
+            test -s /var/run/secrets/bws/bws.lic.txt
+            test -s /etc/bws/nginx.conf
+            test -s /etc/bws-agent/bws-agent.conf
+            test -s /var/run/bws/bws.pid
+            test ! -e /etc/nginx
+            test ! -e /etc/nginx-agent
+            test ! -e /var/run/nginx
+            test ! -e /var/cache/nginx
+            test ! -e /var/lib/nginx-agent
+            test ! -e /var/log/nginx-agent
+            /usr/bin/bws-agent -v | grep -q "bws-agent version"
+            /opt/bws/bin/bws.sh -V 2>&1 | grep -q "BES WebServer 3.2.0.242"
+            /opt/bws/bin/bws.sh -p /opt/bws -c /etc/bws/nginx.conf -t
+        ' || return 1
+    done
+}
+
 control_deployment="$(kubectl -n "${control_namespace}" get deployment \
     -l app.kubernetes.io/instance=bws-m4 \
     -o jsonpath='{.items[0].metadata.name}')"
@@ -63,23 +94,24 @@ container_name="$(kubectl -n "${namespace}" get deployment "${dataplane_deployme
     -o jsonpath='{.spec.template.spec.containers[0].name}')"
 init_command="$(kubectl -n "${namespace}" get deployment "${dataplane_deployment}" \
     -o jsonpath='{.spec.template.spec.initContainers[0].command[0]}')"
+pre_stop_command="$(kubectl -n "${namespace}" get deployment "${dataplane_deployment}" \
+    -o jsonpath='{.spec.template.spec.containers[0].lifecycle.preStop.exec.command[*]}')"
 replicas="$(kubectl -n "${namespace}" get deployment "${dataplane_deployment}" \
     -o jsonpath='{.status.readyReplicas}')"
-if [[ "${container_name}" != "bws" || "${init_command}" != "/usr/bin/bws-gateway" || "${replicas}" != "2" ]]; then
-    echo "unexpected M4.1 data-plane identity or replica state" >&2
+if [[ "${container_name}" != "bws" || "${init_command}" != "/usr/bin/bws-gateway" || \
+    "${pre_stop_command}" != "/usr/bin/sleep 5" || "${replicas}" != "2" ]]; then
+    echo "unexpected M4 data-plane identity or replica state" >&2
     exit 1
 fi
 
-while IFS= read -r pod; do
-    kubectl -n "${namespace}" exec "${pod}" -c bws -- sh -c '
-        test -s /var/run/secrets/ngf/tls.crt
-        test -s /var/run/secrets/bws/bws.lic.txt
-        /usr/bin/bws-agent -v | grep -q "bws-agent version"
-        /opt/bws/bin/bws.sh -V 2>&1 | grep -q "BES WebServer 3.2.0.242"
-    '
-done < <(kubectl -n "${namespace}" get pods \
-    -l "gateway.networking.k8s.io/gateway-name=${gateway}" \
-    -o name)
+volume_names="$(kubectl -n "${namespace}" get deployment "${dataplane_deployment}" \
+    -o jsonpath='{range .spec.template.spec.volumes[*]}{.name}{"\n"}{end}')"
+if grep -q 'nginx' <<<"${volume_names}"; then
+    echo "data-plane volume names still expose the old product identity" >&2
+    exit 1
+fi
+
+retry "two stable M4.3 data-plane pods" validate_dataplane_pods
 
 service="$(kubectl -n "${namespace}" get service \
     -l "gateway.networking.k8s.io/gateway-name=${gateway}" \
@@ -94,7 +126,7 @@ kubectl -n "${namespace}" patch httproute "${route}" --type=json \
     -p='[{"op":"replace","path":"/spec/rules/0/backendRefs/0/name","value":"tea"}]' >/dev/null
 retry "incremental route update to tea" response_contains http "${http_port}" tea
 
-echo "M4.1 smoke verification passed"
+echo "M4.3 smoke verification passed"
 echo "control plane: deployment/${control_deployment}"
 echo "data plane: deployment/${dataplane_deployment}"
-echo "validated: BWS identities, two Agents, readiness, HTTP, HTTPS, and incremental route update"
+echo "validated: BWS identities and directories, two Agents, readiness, HTTP, HTTPS, and incremental route update"

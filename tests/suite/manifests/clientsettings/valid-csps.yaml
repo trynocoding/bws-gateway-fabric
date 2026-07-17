@@ -1,4 +1,4 @@
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ClientSettingsPolicy
 metadata:
   name: tea-route-csp
@@ -10,7 +10,7 @@ spec:
   keepAlive:
     requests: 200
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ClientSettingsPolicy
 metadata:
   name: soda-route-csp
@@ -22,7 +22,7 @@ spec:
   body:
     maxSize: "3000"
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ClientSettingsPolicy
 metadata:
   name: coffee-route-csp
@@ -34,7 +34,7 @@ spec:
   body:
     maxSize: "2000"
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ClientSettingsPolicy
 metadata:
   name: gw-csp
@@ -54,7 +54,7 @@ spec:
       server: 2s
       header: 1s
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ClientSettingsPolicy
 metadata:
   name: grpc-route-csp

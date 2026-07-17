@@ -1,4 +1,4 @@
-nginxGateway:
+bwsGateway:
   replicaCount: 2
   lifecycle:
     preStop:
@@ -8,7 +8,7 @@ nginxGateway:
         - sleep
         - --duration=40s
 
-nginx:
+bws:
   lifecycle:
     preStop:
       exec:

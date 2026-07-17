@@ -44,7 +44,7 @@ const (
 	defaultServiceType   = corev1.ServiceTypeLoadBalancer
 	defaultServicePolicy = corev1.ServiceExternalTrafficPolicyLocal
 
-	defaultNginxImagePath        = "ghcr.io/nginx/nginx-gateway-fabric/nginx"
+	defaultNginxImagePath        = "bws-gateway-fabric/bws"
 	defaultNginxPlusImagePath    = "private-registry.nginx.com/nginx-gateway-fabric/nginx-plus"
 	defaultNginxPlusWAFImagePath = "private-registry.nginx.com/nginx-gateway-fabric/nginx-plus-f5waf"
 	defaultImagePullPolicy       = corev1.PullIfNotPresent
@@ -87,13 +87,13 @@ type resourceNames struct {
 	dataplaneKey           string
 }
 
-// buildNginxResourceObjects builds all the NGINX resource objects for a given Gateway and EffectiveNginxProxy.
+// buildNginxResourceObjects builds all the NGINX resource objects for a given Gateway and EffectiveBwsProxy.
 // The allListeners parameter must include all listeners from both the Gateway and any attached ListenerSets;
 // these are used to determine which ports the Service and container should expose.
 func (p *NginxProvisioner) buildNginxResourceObjects(
 	resourceName string,
 	gateway *gatewayv1.Gateway,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 	allListeners []*graph.Listener,
 ) ([]client.Object, error) {
 	// NOTE: When adding new fields to the generated objects, please ensure to update the corresponding spec
@@ -358,7 +358,7 @@ func isAutoscalingEnabled(dep *ngfAPIv1alpha2.DeploymentSpec) bool {
 
 func (p *NginxProvisioner) buildHPA(
 	objectMeta metav1.ObjectMeta,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 ) client.Object {
 	if nProxyCfg == nil || nProxyCfg.Kubernetes == nil || !isAutoscalingEnabled(nProxyCfg.Kubernetes.Deployment) {
 		return nil
@@ -478,7 +478,7 @@ func (p *NginxProvisioner) getAndUpdateSecret(
 
 func (p *NginxProvisioner) buildNginxConfigMaps(
 	objectMeta metav1.ObjectMeta,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 	names resourceNames,
 	gateway *gatewayv1.Gateway,
 ) ([]client.Object, []error) {
@@ -505,7 +505,7 @@ func (p *NginxProvisioner) buildNginxConfigMaps(
 
 func (p *NginxProvisioner) buildBootstrapConfigMap(
 	objectMeta metav1.ObjectMeta,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 	name string,
 	caSecret bool,
 	clientSSLSecret bool,
@@ -557,11 +557,11 @@ func (p *NginxProvisioner) buildBootstrapConfigMap(
 
 func (p *NginxProvisioner) buildAgentConfigMap(
 	objectMeta metav1.ObjectMeta,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 	name string,
 ) *corev1.ConfigMap {
 	metricsPort := config.DefaultNginxMetricsPort
-	port, enableMetrics := graph.MetricsEnabledForNginxProxy(nProxyCfg)
+	port, enableMetrics := graph.MetricsEnabledForBwsProxy(nProxyCfg)
 	if port != nil {
 		metricsPort = *port
 	}
@@ -588,7 +588,7 @@ func (p *NginxProvisioner) buildAgentConfigMap(
 	}
 
 	if nProxyCfg != nil {
-		if graph.WAFEnabledForNginxProxy(nProxyCfg) {
+		if graph.WAFEnabledForBwsProxy(nProxyCfg) {
 			agentFields["WafEnabled"] = true
 		}
 
@@ -663,7 +663,7 @@ func (p *NginxProvisioner) buildOpenshiftObjects(
 
 func buildNginxService(
 	objectMeta metav1.ObjectMeta,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 	ports []portProtoEntry,
 	healthcheckPort int32,
 	selectorLabels map[string]string,
@@ -773,7 +773,7 @@ func buildServicePorts(
 	return servicePorts
 }
 
-func setIPFamily(nProxyCfg *graph.EffectiveNginxProxy, svc *corev1.Service) {
+func setIPFamily(nProxyCfg *graph.EffectiveBwsProxy, svc *corev1.Service) {
 	if nProxyCfg != nil && nProxyCfg.IPFamily != nil && *nProxyCfg.IPFamily != ngfAPIv1alpha2.Dual {
 		svc.Spec.IPFamilyPolicy = helpers.GetPointer(corev1.IPFamilyPolicySingleStack)
 		if *nProxyCfg.IPFamily == ngfAPIv1alpha2.IPv4 {
@@ -798,7 +798,7 @@ func setSvcLoadBalancerSettings(svcCfg ngfAPIv1alpha2.ServiceSpec, svcSpec *core
 
 func (p *NginxProvisioner) buildNginxDeployment(
 	objectMeta metav1.ObjectMeta,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 	ports []portProtoEntry,
 	selectorLabels map[string]string,
 	names resourceNames,
@@ -974,7 +974,7 @@ func applyPatches(obj client.Object, patches []ngfAPIv1alpha2.Patch) error {
 // buildNginxPodTemplateSpec builds the complete pod template spec.
 func (p *NginxProvisioner) buildNginxPodTemplateSpec(
 	objectMeta metav1.ObjectMeta,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 	ports []portProtoEntry,
 	names resourceNames,
 ) corev1.PodTemplateSpec {
@@ -991,7 +991,7 @@ func (p *NginxProvisioner) buildNginxPodTemplateSpec(
 	containers := []corev1.Container{nginxContainer}
 
 	// Configure WAF if enabled (requires NGINX Plus)
-	if p.cfg.Plus && graph.WAFEnabledForNginxProxy(nProxyCfg) {
+	if p.cfg.Plus && graph.WAFEnabledForBwsProxy(nProxyCfg) {
 		containers, volumes = p.configureWAF(containers, volumes, nProxyCfg)
 	}
 
@@ -1040,7 +1040,7 @@ func (p *NginxProvisioner) buildNginxPodTemplateSpec(
 // buildContainerPortsAndAnnotations builds container ports and pod annotations.
 func (p *NginxProvisioner) buildContainerPortsAndAnnotations(
 	ports []portProtoEntry,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 	baseAnnotations map[string]string,
 ) ([]corev1.ContainerPort, map[string]string) {
 	// Determine which port numbers have multiple protocols for naming.
@@ -1066,7 +1066,7 @@ func (p *NginxProvisioner) buildContainerPortsAndAnnotations(
 	maps.Copy(podAnnotations, baseAnnotations)
 
 	// Add metrics port if enabled
-	if port, enabled := graph.MetricsEnabledForNginxProxy(nProxyCfg); enabled {
+	if port, enabled := graph.MetricsEnabledForBwsProxy(nProxyCfg); enabled {
 		metricsPort := config.DefaultNginxMetricsPort
 		if port != nil {
 			metricsPort = *port
@@ -1096,7 +1096,7 @@ func (p *NginxProvisioner) buildContainerPortsAndAnnotations(
 // buildNginxContainer builds the base NGINX container.
 func (p *NginxProvisioner) buildNginxContainer(
 	containerPorts []corev1.ContainerPort,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 ) corev1.Container {
 	image, pullPolicy := p.buildImage(nProxyCfg)
 
@@ -1119,19 +1119,19 @@ func (p *NginxProvisioner) buildNginxContainer(
 			},
 		},
 		VolumeMounts: []corev1.VolumeMount{
-			{MountPath: "/etc/nginx-agent", Name: "nginx-agent"},
-			{MountPath: "/var/run/secrets/ngf", Name: "bws-agent-tls"},
-			{MountPath: "/var/run/secrets/ngf/serviceaccount", Name: "token"},
-			{MountPath: "/var/log/nginx-agent", Name: "nginx-agent-log"},
-			{MountPath: "/var/lib/nginx-agent", Name: "nginx-agent-lib"},
-			{MountPath: "/etc/nginx/conf.d", Name: "nginx-conf"},
-			{MountPath: "/etc/nginx/stream-conf.d", Name: "nginx-stream-conf"},
-			{MountPath: "/etc/nginx/main-includes", Name: "nginx-main-includes"},
-			{MountPath: "/etc/nginx/events-includes", Name: "nginx-events-includes"},
-			{MountPath: "/etc/nginx/secrets", Name: "nginx-secrets"},
-			{MountPath: "/var/run/nginx", Name: "nginx-run"},
-			{MountPath: "/var/cache/nginx", Name: "nginx-cache"},
-			{MountPath: "/etc/nginx/includes", Name: "nginx-includes"},
+			{MountPath: "/etc/bws-agent", Name: "bws-agent"},
+			{MountPath: "/var/run/secrets/bws-gateway", Name: "bws-agent-tls"},
+			{MountPath: "/var/run/secrets/bws-gateway/serviceaccount", Name: "token"},
+			{MountPath: "/var/log/bws-agent", Name: "bws-agent-log"},
+			{MountPath: "/var/lib/bws-agent", Name: "bws-agent-lib"},
+			{MountPath: "/etc/bws/conf.d", Name: "bws-conf"},
+			{MountPath: "/etc/bws/stream-conf.d", Name: "bws-stream-conf"},
+			{MountPath: "/etc/bws/main-includes", Name: "bws-main-includes"},
+			{MountPath: "/etc/bws/events-includes", Name: "bws-events-includes"},
+			{MountPath: "/etc/bws/secrets", Name: "bws-secrets"},
+			{MountPath: "/var/run/bws", Name: "bws-run"},
+			{MountPath: "/var/cache/bws", Name: "bws-cache"},
+			{MountPath: "/etc/bws/includes", Name: "bws-includes"},
 		},
 	}
 }
@@ -1156,9 +1156,9 @@ func (p *NginxProvisioner) buildBaseVolumes(names resourceNames) []corev1.Volume
 				},
 			},
 		},
-		{Name: "nginx-agent", VolumeSource: emptyDirVolumeSource},
+		{Name: "bws-agent", VolumeSource: emptyDirVolumeSource},
 		{
-			Name: "nginx-agent-config",
+			Name: "bws-agent-config",
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1175,18 +1175,18 @@ func (p *NginxProvisioner) buildBaseVolumes(names resourceNames) []corev1.Volume
 				},
 			},
 		},
-		{Name: "nginx-agent-log", VolumeSource: emptyDirVolumeSource},
-		{Name: "nginx-agent-lib", VolumeSource: emptyDirVolumeSource},
-		{Name: "nginx-conf", VolumeSource: emptyDirVolumeSource},
-		{Name: "nginx-stream-conf", VolumeSource: emptyDirVolumeSource},
-		{Name: "nginx-main-includes", VolumeSource: emptyDirVolumeSource},
-		{Name: "nginx-events-includes", VolumeSource: emptyDirVolumeSource},
-		{Name: "nginx-secrets", VolumeSource: emptyDirVolumeSource},
-		{Name: "nginx-run", VolumeSource: emptyDirVolumeSource},
-		{Name: "nginx-cache", VolumeSource: emptyDirVolumeSource},
-		{Name: "nginx-includes", VolumeSource: emptyDirVolumeSource},
+		{Name: "bws-agent-log", VolumeSource: emptyDirVolumeSource},
+		{Name: "bws-agent-lib", VolumeSource: emptyDirVolumeSource},
+		{Name: "bws-conf", VolumeSource: emptyDirVolumeSource},
+		{Name: "bws-stream-conf", VolumeSource: emptyDirVolumeSource},
+		{Name: "bws-main-includes", VolumeSource: emptyDirVolumeSource},
+		{Name: "bws-events-includes", VolumeSource: emptyDirVolumeSource},
+		{Name: "bws-secrets", VolumeSource: emptyDirVolumeSource},
+		{Name: "bws-run", VolumeSource: emptyDirVolumeSource},
+		{Name: "bws-cache", VolumeSource: emptyDirVolumeSource},
+		{Name: "bws-includes", VolumeSource: emptyDirVolumeSource},
 		{
-			Name: "nginx-includes-bootstrap",
+			Name: "bws-includes-bootstrap",
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -1199,7 +1199,7 @@ func (p *NginxProvisioner) buildBaseVolumes(names resourceNames) []corev1.Volume
 }
 
 // buildInitContainers builds the init containers.
-func (p *NginxProvisioner) buildInitContainers(nProxyCfg *graph.EffectiveNginxProxy) []corev1.Container {
+func (p *NginxProvisioner) buildInitContainers(nProxyCfg *graph.EffectiveBwsProxy) []corev1.Container {
 	_, pullPolicy := p.buildImage(nProxyCfg)
 
 	clusterID := "unknown"
@@ -1215,12 +1215,12 @@ func (p *NginxProvisioner) buildInitContainers(nProxyCfg *graph.EffectiveNginxPr
 			Command: []string{
 				"/usr/bin/bws-gateway",
 				"initialize",
-				"--source", "/agent/nginx-agent.conf",
-				"--destination", "/etc/nginx-agent",
+				"--source", "/agent/bws-agent.conf",
+				"--destination", "/etc/bws-agent",
 				"--source", "/includes/main.conf",
-				"--destination", "/etc/nginx/main-includes",
+				"--destination", "/etc/bws/main-includes",
 				"--source", "/includes/events.conf",
-				"--destination", "/etc/nginx/events-includes",
+				"--destination", "/etc/bws/events-includes",
 			},
 			Env: []corev1.EnvVar{
 				{
@@ -1237,11 +1237,11 @@ func (p *NginxProvisioner) buildInitContainers(nProxyCfg *graph.EffectiveNginxPr
 				},
 			},
 			VolumeMounts: []corev1.VolumeMount{
-				{MountPath: "/agent", Name: "nginx-agent-config"},
-				{MountPath: "/etc/nginx-agent", Name: "nginx-agent"},
-				{MountPath: "/includes", Name: "nginx-includes-bootstrap"},
-				{MountPath: "/etc/nginx/main-includes", Name: "nginx-main-includes"},
-				{MountPath: "/etc/nginx/events-includes", Name: "nginx-events-includes"},
+				{MountPath: "/agent", Name: "bws-agent-config"},
+				{MountPath: "/etc/bws-agent", Name: "bws-agent"},
+				{MountPath: "/includes", Name: "bws-includes-bootstrap"},
+				{MountPath: "/etc/bws/main-includes", Name: "bws-main-includes"},
+				{MountPath: "/etc/bws/events-includes", Name: "bws-events-includes"},
 			},
 			SecurityContext: &corev1.SecurityContext{
 				Capabilities: &corev1.Capabilities{
@@ -1296,7 +1296,7 @@ func (p *NginxProvisioner) buildBasePodTemplateSpec(
 // applyUserConfiguration applies user-defined configuration overrides.
 func (p *NginxProvisioner) applyUserConfiguration(
 	spec *corev1.PodTemplateSpec,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 ) {
 	if nProxyCfg == nil || nProxyCfg.Kubernetes == nil {
 		return
@@ -1375,7 +1375,7 @@ func (p *NginxProvisioner) configureNginxPlus(
 	initCmd := spec.Spec.InitContainers[0].Command
 	initCmd = append(initCmd,
 		"--source", "/includes/mgmt.conf",
-		"--destination", "/etc/nginx/main-includes",
+		"--destination", "/etc/bws/main-includes",
 		"--nginx-plus",
 	)
 	spec.Spec.InitContainers[0].Command = initCmd
@@ -1385,11 +1385,11 @@ func (p *NginxProvisioner) configureNginxPlus(
 
 	// Add nginx-lib volume
 	volumeMounts = append(volumeMounts, corev1.VolumeMount{
-		Name:      "nginx-lib",
-		MountPath: "/var/lib/nginx/state",
+		Name:      "bws-lib",
+		MountPath: "/var/lib/bws/state",
 	})
 	spec.Spec.Volumes = append(spec.Spec.Volumes, corev1.Volume{
-		Name:         "nginx-lib",
+		Name:         "bws-lib",
 		VolumeSource: emptyDirVolumeSource,
 	})
 
@@ -1397,7 +1397,7 @@ func (p *NginxProvisioner) configureNginxPlus(
 	if names.jwt != "" {
 		volumeMounts = append(volumeMounts, corev1.VolumeMount{
 			Name:      "nginx-plus-license",
-			MountPath: "/etc/nginx/" + secrets.LicenseJWTKey,
+			MountPath: "/etc/bws/" + secrets.LicenseJWTKey,
 			SubPath:   secrets.LicenseJWTKey,
 		})
 		spec.Spec.Volumes = append(spec.Spec.Volumes, corev1.Volume{
@@ -1410,7 +1410,7 @@ func (p *NginxProvisioner) configureNginxPlus(
 	if names.ca != "" || names.clientSSL != "" {
 		volumeMounts = append(volumeMounts, corev1.VolumeMount{
 			Name:      "nginx-plus-usage-certs",
-			MountPath: "/etc/nginx/certs-bootstrap/",
+			MountPath: "/etc/bws/certs-bootstrap/",
 		})
 
 		sources := []corev1.VolumeProjection{}
@@ -1451,7 +1451,7 @@ func (p *NginxProvisioner) configureDataplaneKeySecret(
 
 	volumeMounts = append(volumeMounts, corev1.VolumeMount{
 		Name:      "agent-dataplane-key",
-		MountPath: "/etc/nginx-agent/secrets/dataplane.key",
+		MountPath: "/etc/bws-agent/secrets/dataplane.key",
 		SubPath:   "dataplane.key",
 	})
 	spec.Spec.Volumes = append(spec.Spec.Volumes, corev1.Volume{
@@ -1500,7 +1500,7 @@ func (p *NginxProvisioner) configureInferenceExtension(
 	})
 }
 
-func (p *NginxProvisioner) buildImage(nProxyCfg *graph.EffectiveNginxProxy) (string, corev1.PullPolicy) {
+func (p *NginxProvisioner) buildImage(nProxyCfg *graph.EffectiveBwsProxy) (string, corev1.PullPolicy) {
 	return DetermineNginxImageName(nProxyCfg, p.cfg.Plus, p.cfg.GatewayPodConfig.Version)
 }
 
@@ -1569,7 +1569,7 @@ func buildNginxDeploymentHPA(
 func (p *NginxProvisioner) configureWAF(
 	containers []corev1.Container,
 	volumes []corev1.Volume,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 ) ([]corev1.Container, []corev1.Volume) {
 	// Add WAF containers
 	wafContainers := p.buildWAFContainers(nProxyCfg)
@@ -1632,7 +1632,7 @@ func buildNginxWAFVolumeMounts() []corev1.VolumeMount {
 }
 
 // buildWAFContainers creates the WAF enforcer and config manager containers.
-func (p *NginxProvisioner) buildWAFContainers(nProxyCfg *graph.EffectiveNginxProxy) []corev1.Container {
+func (p *NginxProvisioner) buildWAFContainers(nProxyCfg *graph.EffectiveBwsProxy) []corev1.Container {
 	var containers []corev1.Container
 	var wafContainersCfg *ngfAPIv1alpha2.WAFContainerSpec
 
@@ -1883,7 +1883,7 @@ func (p *NginxProvisioner) buildResourcesForInvalidGatewayCleanup(
 }
 
 // buildReadinessProbe creates a readiness probe configuration for the NGINX container.
-func (p *NginxProvisioner) buildReadinessProbe(nProxyCfg *graph.EffectiveNginxProxy) *corev1.Probe {
+func (p *NginxProvisioner) buildReadinessProbe(nProxyCfg *graph.EffectiveBwsProxy) *corev1.Probe {
 	probe := &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
@@ -1916,7 +1916,7 @@ func (p *NginxProvisioner) buildReadinessProbe(nProxyCfg *graph.EffectiveNginxPr
 
 // isNginxReadinessProbeExposed returns true if the readiness probe should be exposed
 // through the Gateway Service object for external load balancer healthchecks.
-func isNginxReadinessProbeExposed(nProxyCfg *graph.EffectiveNginxProxy) bool {
+func isNginxReadinessProbeExposed(nProxyCfg *graph.EffectiveBwsProxy) bool {
 	if nProxyCfg != nil && nProxyCfg.Kubernetes != nil {
 		var containerSpec *ngfAPIv1alpha2.ContainerSpec
 		if nProxyCfg.Kubernetes.Deployment != nil {
@@ -1932,7 +1932,7 @@ func isNginxReadinessProbeExposed(nProxyCfg *graph.EffectiveNginxProxy) bool {
 }
 
 func DetermineNginxImageName(
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 	isPlus bool,
 	version string,
 ) (string, corev1.PullPolicy) {
@@ -1966,9 +1966,9 @@ func DetermineNginxImageName(
 
 	// If Plus is enabled and the resolved image is still the OSS default (either because
 	// no override was specified, or because the Helm chart unconditionally injects the OSS
-	// default into the NginxProxy), correct it to the appropriate Plus image.
+	// default into the BwsProxy), correct it to the appropriate Plus image.
 	if isPlus && image == defaultNginxImagePath {
-		if graph.WAFEnabledForNginxProxy(nProxyCfg) {
+		if graph.WAFEnabledForBwsProxy(nProxyCfg) {
 			image = defaultNginxPlusWAFImagePath
 		} else {
 			image = defaultNginxPlusImagePath

@@ -92,13 +92,13 @@ func (n *NginxUpdaterImpl) UpdateConfig(
 ) {
 	msg := deployment.SetFiles(files, volumeMounts)
 	if msg == nil {
-		n.logger.V(1).Info("No changes to nginx configuration files, not sending to agent")
+		n.logger.V(1).Info("No changes to BWS configuration files, not sending to agent")
 		return
 	}
 
 	applied := deployment.GetBroadcaster().Send(*msg)
 	if applied {
-		n.logger.Info("Sent nginx configuration to agent")
+		n.logger.Info("Sent BWS configuration to agent")
 	}
 
 	deployment.SetLatestConfigError(deployment.GetConfigurationStatus())

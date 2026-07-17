@@ -50,7 +50,7 @@ server {
 {{- end }}
 
 server {
-    listen unix:/var/run/nginx/connection-closed-server.sock;
+    listen unix:/var/run/bws/connection-closed-server.sock;
     return "";
 }
 `

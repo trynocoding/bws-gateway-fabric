@@ -1,0 +1,197 @@
+{{- if eq .Values.bwsGateway.kind "deployment" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bws-gateway.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "bws-gateway.labels" . | nindent 4 }}
+  {{- with .Values.bwsGateway.labels }}
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.bwsGateway.autoscaling.enable }}
+  replicas: {{ .Values.bwsGateway.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+    {{- include "bws-gateway.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+      {{- include "bws-gateway.selectorLabels" . | nindent 8 }}
+      {{- with .Values.bwsGateway.labels }}
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.bwsGateway.podAnnotations .Values.bwsGateway.metrics.enable }}
+      annotations:
+        {{- if .Values.bwsGateway.podAnnotations }}
+        {{- toYaml .Values.bwsGateway.podAnnotations | nindent 8 }}
+        {{- end }}
+        {{- if .Values.bwsGateway.metrics.enable }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.bwsGateway.metrics.port }}"
+        {{- if .Values.bwsGateway.metrics.secure }}
+        prometheus.io/scheme: "https"
+        {{- end }}
+        {{- end }}
+      {{- end }}
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - args:
+        - controller
+        - --gateway-ctlr-name={{ .Values.bwsGateway.gatewayControllerName }}
+        - --gatewayclass={{ .Values.bwsGateway.gatewayClassName }}
+        - --config={{ include "bws-gateway.config-name" . }}
+        - --service={{ include "bws-gateway.fullname" . }}
+        - --agent-tls-secret={{ .Values.certGenerator.agentTLSSecretName }}
+        {{- if .Values.bwsGateway.watchNamespaces }}
+        - --watch-namespaces={{ join "," .Values.bwsGateway.watchNamespaces }}
+        {{- end }}
+        {{- if .Values.bws.imagePullSecret }}
+        - --nginx-docker-secret={{ .Values.bws.imagePullSecret }}
+        {{- end }}
+        {{- if .Values.bws.imagePullSecrets }}
+          {{- range .Values.bws.imagePullSecrets }}
+        - --nginx-docker-secret={{ . }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.bwsGateway.metrics.enable }}
+        - --metrics-port={{ .Values.bwsGateway.metrics.port }}
+        {{- if .Values.bwsGateway.metrics.secure  }}
+        - --metrics-secure-serving
+        {{- end }}
+        {{- else }}
+        - --metrics-disable
+        {{- end }}
+        {{- if .Values.bwsGateway.readinessProbe.enable }}
+        - --health-port={{ .Values.bwsGateway.readinessProbe.port }}
+        {{- else }}
+        - --health-disable
+        {{- end }}
+        {{- if .Values.bwsGateway.leaderElection.enable }}
+        - --leader-election-lock-name={{ include "bws-gateway.leaderElectionName" . }}
+        {{- else }}
+        - --leader-election-disable
+        {{- end }}
+        {{- if not .Values.bwsGateway.productTelemetry.enable }}
+        - --product-telemetry-disable
+        {{- end }}
+        {{- if .Values.bwsGateway.gwAPIExperimentalFeatures.enable }}
+        - --gateway-api-experimental-features
+        {{- end }}
+        {{- if .Values.bwsGateway.gwAPIInferenceExtension.enable }}
+        - --gateway-api-inference-extension
+        {{- if .Values.bwsGateway.gwAPIInferenceExtension.endpointPicker.disableTLS }}
+        - --endpoint-picker-disable-tls
+        {{- end }}
+        - --endpoint-picker-tls-skip-verify={{ .Values.bwsGateway.gwAPIInferenceExtension.endpointPicker.skipVerify }}
+        {{- end }}
+        {{- if .Values.bwsGateway.snippetsFilters.enable }}
+        - --snippets-filters
+        {{- end }}
+        {{- if .Values.bwsGateway.snippets.enable }}
+        - --snippets
+        {{- end }}
+        {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1/SecurityContextConstraints" }}
+        - --nginx-scc={{ include "bws-gateway.scc-name" . }}-nginx
+        {{- end}}
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_UID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: INSTANCE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['app.kubernetes.io/instance']
+        - name: IMAGE_NAME
+          value: {{ .Values.bwsGateway.image.repository }}:{{ default .Chart.AppVersion .Values.bwsGateway.image.tag }}
+        image: {{ .Values.bwsGateway.image.repository }}:{{ default .Chart.AppVersion .Values.bwsGateway.image.tag }}
+        imagePullPolicy: {{ .Values.bwsGateway.image.pullPolicy }}
+        name: bws-gateway
+        {{- if .Values.bwsGateway.lifecycle }}
+        lifecycle:
+        {{- toYaml .Values.bwsGateway.lifecycle | nindent 10 }}
+        {{- end }}
+        {{- if .Values.bwsGateway.resources }}
+        resources:
+        {{- toYaml .Values.bwsGateway.resources | nindent 10 }}
+        {{- end }}
+        ports:
+        - name: agent-grpc
+          containerPort: 8443
+        {{- if .Values.bwsGateway.metrics.enable }}
+        - name: metrics
+          containerPort: {{ .Values.bwsGateway.metrics.port }}
+        {{- end }}
+        {{- if .Values.bwsGateway.readinessProbe.enable }}
+        - name: health
+          containerPort: {{ .Values.bwsGateway.readinessProbe.port }}
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: {{ .Values.bwsGateway.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.bwsGateway.readinessProbe.periodSeconds }}
+          failureThreshold: {{ .Values.bwsGateway.readinessProbe.failureThreshold }}
+          timeoutSeconds: {{ .Values.bwsGateway.readinessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.bwsGateway.readinessProbe.successThreshold }}
+        {{- end }}
+        securityContext:
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+            - ALL
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsUser: 101
+          runAsGroup: 1001
+        volumeMounts:
+        - name: bws-agent-tls
+          mountPath: /var/run/secrets/bws-gateway
+        {{- with .Values.bwsGateway.extraVolumeMounts -}}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
+      {{- if .Values.bwsGateway.priorityClassName }}
+      priorityClassName: {{ .Values.bwsGateway.priorityClassName }}
+      {{- end }}
+      {{- if .Values.bwsGateway.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml .Values.bwsGateway.topologySpreadConstraints | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.bwsGateway.terminationGracePeriodSeconds }}
+      {{- if .Values.bwsGateway.affinity }}
+      affinity:
+      {{- toYaml .Values.bwsGateway.affinity | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "bws-gateway.serviceAccountName" . }}
+      securityContext:
+        fsGroup: 1001
+        runAsNonRoot: true
+      {{- if .Values.bwsGateway.tolerations }}
+      tolerations:
+      {{- toYaml .Values.bwsGateway.tolerations | nindent 6 }}
+      {{- end }}
+      {{- if .Values.bwsGateway.nodeSelector }}
+      nodeSelector:
+      {{- toYaml .Values.bwsGateway.nodeSelector | nindent 8 }}
+      {{- end }}
+      volumes:
+      - name: bws-agent-tls
+        secret:
+          secretName: {{ .Values.certGenerator.serverTLSSecretName }}
+      {{- with .Values.bwsGateway.extraVolumes -}}
+      {{ toYaml . | nindent 6 }}
+      {{- end }}
+{{- end }}

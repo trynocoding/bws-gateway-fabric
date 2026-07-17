@@ -13,7 +13,7 @@ func TestDataAttributes(t *testing.T) {
 	data := Data{
 		ImageSource: "local",
 		Data: tel.Data{
-			ProjectName:         "NGF",
+			ProjectName:         "BWS Gateway Fabric",
 			ProjectVersion:      "edge",
 			ProjectArchitecture: "arm64",
 			ClusterID:           "1",
@@ -37,7 +37,7 @@ func TestDataAttributes(t *testing.T) {
 			GatewayAttachedClientSettingsPolicyCount: 9,
 			RouteAttachedClientSettingsPolicyCount:   10,
 			ObservabilityPolicyCount:                 11,
-			NginxProxyCount:                          12,
+			BwsProxyCount:                            12,
 			SnippetsFilterCount:                      13,
 			UpstreamSettingsPolicyCount:              14,
 			GatewayAttachedNpCount:                   15,
@@ -68,9 +68,9 @@ func TestDataAttributes(t *testing.T) {
 	// Ordered by attributes defined in Data struct
 	expected := []attribute.KeyValue{
 		// Top level attributes
-		attribute.String("dataType", "ngf-product-telemetry"),
+		attribute.String("dataType", "bws-product-telemetry"),
 		attribute.String("ImageSource", "local"),
-		attribute.String("ProjectName", "NGF"),
+		attribute.String("ProjectName", "BWS Gateway Fabric"),
 		attribute.String("ProjectVersion", "edge"),
 		attribute.String("ProjectArchitecture", "arm64"),
 		attribute.String("ClusterID", "1"),
@@ -99,7 +99,7 @@ func TestDataAttributes(t *testing.T) {
 		attribute.Int64("GatewayAttachedClientSettingsPolicyCount", 9),
 		attribute.Int64("RouteAttachedClientSettingsPolicyCount", 10),
 		attribute.Int64("ObservabilityPolicyCount", 11),
-		attribute.Int64("NginxProxyCount", 12),
+		attribute.Int64("BwsProxyCount", 12),
 		attribute.Int64("SnippetsFilterCount", 13),
 		attribute.Int64("UpstreamSettingsPolicyCount", 14),
 		attribute.Int64("GatewayAttachedNpCount", 15),
@@ -143,7 +143,7 @@ func TestDataAttributesWithEmptyData(t *testing.T) {
 	// Ordered by attributes defined in Data struct
 	expected := []attribute.KeyValue{
 		// Top level attributes
-		attribute.String("dataType", "ngf-product-telemetry"),
+		attribute.String("dataType", "bws-product-telemetry"),
 		attribute.String("ImageSource", ""),
 		attribute.String("ProjectName", ""),
 		attribute.String("ProjectVersion", ""),
@@ -171,7 +171,7 @@ func TestDataAttributesWithEmptyData(t *testing.T) {
 		attribute.Int64("GatewayAttachedClientSettingsPolicyCount", 0),
 		attribute.Int64("RouteAttachedClientSettingsPolicyCount", 0),
 		attribute.Int64("ObservabilityPolicyCount", 0),
-		attribute.Int64("NginxProxyCount", 0),
+		attribute.Int64("BwsProxyCount", 0),
 		attribute.Int64("SnippetsFilterCount", 0),
 		attribute.Int64("UpstreamSettingsPolicyCount", 0),
 		attribute.Int64("GatewayAttachedNpCount", 0),

@@ -22,5 +22,7 @@ const (
 	// MgmtConfKey is the key in the bootstrap ConfigMap data for mgmt configuration.
 	MgmtConfKey = "mgmt.conf"
 	// AgentConfKey is the key in the agent ConfigMap data for agent configuration.
-	AgentConfKey = "nginx-agent.conf"
+	AgentConfKey = "bws-agent.conf"
+	// LegacyAgentConfKey is retained only so existing M3/M4.1 ConfigMaps can be updated in place during migration.
+	LegacyAgentConfKey = "nginx-agent.conf"
 )

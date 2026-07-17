@@ -301,10 +301,10 @@ func TestExecuteStreamMaps(t *testing.T) {
 	}
 
 	expSubStrings := map[string]int{
-		"example.com unix:/var/run/nginx/example.com-8081.sock;":           1,
-		"example.com unix:/var/run/nginx/example.com-8080.sock;":           1,
-		"cafe.example.com unix:/var/run/nginx/cafe.example.com-8080.sock;": 1,
-		"app.example.com unix:/var/run/nginx/https8080.sock;":              1,
+		"example.com unix:/var/run/bws/example.com-8081.sock;":           1,
+		"example.com unix:/var/run/bws/example.com-8080.sock;":           1,
+		"cafe.example.com unix:/var/run/bws/cafe.example.com-8080.sock;": 1,
+		"app.example.com unix:/var/run/bws/https8080.sock;":              1,
 		"hostnames": 2,
 		"default":   2,
 	}

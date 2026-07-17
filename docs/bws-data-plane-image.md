@@ -1,7 +1,7 @@
 # BWS data plane image
 
-The BWS data plane image is built from the vendor distribution and the BWS-compatible Agent. It keeps the NGF v2.6.7
-configuration paths and protocol unchanged so that M2 can be validated before the M3 Kubernetes integration.
+The BWS data plane image is built from the vendor distribution and BWS Agent. The M4 image uses BWS-owned runtime
+paths while retaining the Agent/control-plane wire protocol used by the M3 compatibility baseline.
 
 ## Build
 
@@ -44,10 +44,10 @@ The vendor license is deleted while the image is built. Supply it as a read-only
 ```
 
 BWS derives a writable `bws.lic` file from `bws.lic.txt`. The entrypoint therefore copies the read-only Secret into
-`/var/cache/nginx/bws-license`, and `/opt/bws/license` points to that runtime directory. This allows the existing NGF
-`/var/cache/nginx` `emptyDir` and read-only root filesystem to be used without making the Secret writable.
+`/var/cache/bws/license`, and `/opt/bws/license` points to that runtime directory. The `/var/cache/bws` `emptyDir`
+keeps the derived license writable while the root filesystem and Secret mount remain read-only.
 
-M3 must add the Secret volume and container mount through the existing `NginxProxy` pod/volume settings. The license
+M3 must add the Secret volume and container mount through the existing `BwsProxy` pod/volume settings. The license
 must not be mounted directly over `/opt/bws/license`.
 
 ## Runtime
@@ -57,11 +57,11 @@ The image runs as UID `101`, GID `1001`. The entrypoint starts BWS with:
 ```shell
 /opt/bws/bin/bws.sh \
   -p /opt/bws \
-  -c /etc/nginx/nginx.conf \
+  -c /etc/bws/nginx.conf \
   -g "daemon off;"
 ```
 
-It waits for `/var/run/nginx/nginx.pid`, starts BWS Agent, and forwards `SIGTERM`, `SIGQUIT`, and `SIGINT` to both
+It waits for `/var/run/bws/bws.pid`, starts BWS Agent, and forwards `SIGTERM`, `SIGQUIT`, and `SIGINT` to both
 processes. Set `BWS_AGENT_DISABLED=true` only for image-level smoke tests that intentionally run without a control plane.
 
 The bootstrap configuration exposes `GET /readyz` on port `8081`. NGF replaces the generated configuration after the
@@ -73,8 +73,8 @@ The following mirrors the NGF non-root and read-only-root-filesystem settings:
 
 ```shell
 docker run --rm --read-only \
-  --tmpfs /var/cache/nginx:rw,uid=101,gid=1001,mode=0770 \
-  --tmpfs /var/run/nginx:rw,uid=101,gid=1001,mode=0770 \
+  --tmpfs /var/cache/bws:rw,uid=101,gid=1001,mode=0770 \
+  --tmpfs /var/run/bws:rw,uid=101,gid=1001,mode=0770 \
   --tmpfs /tmp:rw,uid=101,gid=1001,mode=0770 \
   -e BWS_AGENT_DISABLED=true \
   -v "$PWD/bws.lic.txt:/var/run/secrets/bws/bws.lic.txt:ro" \

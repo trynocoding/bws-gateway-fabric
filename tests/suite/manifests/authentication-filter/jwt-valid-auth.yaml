@@ -1,5 +1,5 @@
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: jwt-auth-file
@@ -31,6 +31,6 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: AuthenticationFilter
             name: jwt-auth-file

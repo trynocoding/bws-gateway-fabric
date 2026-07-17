@@ -22,7 +22,7 @@ The `NIM`, `N1C`, and `HTTP` source types use GitOps-friendly static policy refe
 
 ## Goals
 
-- Extend NginxProxy resource to enable WAF for GatewayClass/Gateway with multi-container orchestration
+- Extend BwsProxy resource to enable WAF for GatewayClass/Gateway with multi-container orchestration
 - Design WAFPolicy custom resource using inherited policy attachment for hierarchical WAF configuration
 - Define deployment workflows that accommodate NAP v5's external policy compilation requirements
 - Provide secure and automated policy distribution from external sources (HTTP/HTTPS, NIM, F5 NGINX One Console) and from PLM in-cluster storage
@@ -244,7 +244,7 @@ graph TB
         Gateway[Gateway]
         HTTPRoute[HTTPRoute]
         GRPCRoute[GRPCRoute]
-        NginxProxy[NginxProxy<br/>waf.enable=true]
+        BwsProxy[BwsProxy<br/>waf.enable=true]
         GwWAF[WAFPolicy<br/>Gateway-level]
         RtWAF[WAFPolicy<br/>Route override]
         Secret[Secret<br/>Optional auth credentials]
@@ -260,9 +260,9 @@ graph TB
     RtWAF -.->|Targets| HTTPRoute
     Gateway -->|Inherits protection| HTTPRoute
     Gateway -->|Inherits protection| GRPCRoute
-    NginxProxy -.->|Enables WAF| Gateway
+    BwsProxy -.->|Enables WAF| Gateway
 
-    NGFPod -->|Watches| NginxProxy
+    NGFPod -->|Watches| BwsProxy
     NGFPod -->|Watches| GwWAF
     NGFPod -->|Watches| RtWAF
     NGFPod -.->|Reads if needed| Secret
@@ -288,7 +288,7 @@ graph TB
     class PLMCtrl,PLMComp,PLMStore plm
     class APCRDs crd
     class Gateway,HTTPRoute,GRPCRoute gw
-    class GwWAF,RtWAF,NginxProxy policy
+    class GwWAF,RtWAF,BwsProxy policy
     class NGFPod control
     class Secret optional
     class Handoff handoff
@@ -519,7 +519,7 @@ app_protect_security_log log_blocked syslog:server=syslog-svc.default:514;
 
 **First-Time Policy Fetch Failure:**
 
-The behaviour when a WAFPolicy bundle (policy or log profile) has never been successfully fetched is controlled by the `waf.bundleFailOpen` field on the `NginxProxy` resource (default: `false`).
+The behaviour when a WAFPolicy bundle (policy or log profile) has never been successfully fetched is controlled by the `waf.bundleFailOpen` field on the `BwsProxy` resource (default: `false`).
 
 - **Fail-closed (default, `bundleFailOpen: false`):** The NGINX configuration push is withheld entirely until the bundle is available. No config changes — including unrelated route additions — are applied to the data plane while any pending bundle exists for the Gateway. The WAFPolicy directive is **not** emitted, and the Gateway status reflects the withheld push. This is the safe default: the operator must resolve the bundle fetch before traffic is served.
 
@@ -577,7 +577,7 @@ until the bundle is successfully fetched.
 
 - **Single NGF Deployment**: Centralized control plane in `nginx-gateway` namespace manages all WAF operations and policy fetching
 - **Per-Gateway Deployment**: Each Gateway with WAF enabled gets a dedicated multi-container NGINX Pod
-- **Selective WAF Enablement**: Only Gateways configured with WAF-enabled NginxProxy resources deploy NAP v5 containers
+- **Selective WAF Enablement**: Only Gateways configured with WAF-enabled BwsProxy resources deploy NAP v5 containers
 - **Centralized Policy Management**: NGF controllers fetch policies and distribute them to appropriate NGINX Pods via the existing Agent gRPC connection
 - **Bundle Path Convention**: Policy bundles are written to `/etc/app_protect/bundles/<namespace>_<n>.tgz`
 
@@ -657,7 +657,7 @@ data:
 
 ```yaml
 # values.yaml
-nginxGateway:
+bwsGateway:
   plmStorage:
     url: "https://plm-storage-service.plm-system.svc.cluster.local"
     credentialsSecretName: "plm-storage-credentials"  # seaweedfs_admin_secret field
@@ -688,13 +688,13 @@ PLM secrets are watched dynamically by NGF, allowing rotation without pod restar
 - **Development**: HTTP without TLS is acceptable for local clusters only
 - **Never use** `--plm-storage-skip-verify=true` in production
 
-### NginxProxy Resource Extension
+### BwsProxy Resource Extension
 
-Users enable WAF through the NginxProxy resource. This is the same regardless of policy source type:
+Users enable WAF through the BwsProxy resource. This is the same regardless of policy source type:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha2
-kind: NginxProxy
+apiVersion: gateway.bessystem.com/v1alpha2
+kind: BwsProxy
 metadata:
   name: nginx-proxy-waf
   namespace: nginx-gateway
@@ -761,7 +761,7 @@ The following mutual exclusion rules are enforced at admission time:
 #### type: HTTP Example
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: WAFPolicy
 metadata:
   name: gateway-protection-policy
@@ -813,7 +813,7 @@ spec:
 #### type: NIM Example
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: WAFPolicy
 metadata:
   name: nim-gateway-policy
@@ -849,7 +849,7 @@ and base64-decodes `items[0].content` to obtain the bundle. When `policyUID` is 
 #### type: N1C Example
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: WAFPolicy
 metadata:
   name: n1c-gateway-policy
@@ -898,7 +898,7 @@ When `policyObjectID` is set instead of `policyName`, the name lookup step is sk
 For `type: PLM`, `policySource.apPolicyRef` references an `APPolicy` CRD. No `*Source` fields may be set. Log sources use `logSource.apLogConfRef` to reference `APLogConf` CRDs.
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: WAFPolicy
 metadata:
   name: gateway-plm-policy
@@ -932,7 +932,7 @@ spec:
 
 ---
 # Route-level override using PLM
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: WAFPolicy
 metadata:
   name: admin-strict-plm-policy
@@ -1040,7 +1040,7 @@ metadata:
   namespace: security
 spec:
   from:
-  - group: gateway.nginx.org
+  - group: gateway.bessystem.com
     kind: WAFPolicy
     namespace: applications
   to:
@@ -1153,8 +1153,8 @@ spec:
   infrastructure:
     parametersRef:
       name: nginx-proxy-waf
-      group: gateway.nginx.org
-      kind: NginxProxy
+      group: gateway.bessystem.com
+      kind: BwsProxy
   listeners:
   - name: http
     port: 80
@@ -1298,13 +1298,13 @@ NGF sets a `WAFPolicyAffected` condition on all HTTPRoutes and Gateways affected
 
 ```go
 const (
-    WAFPolicyAffected    v1.PolicyConditionType   = "gateway.nginx.org/WAFPolicyAffected"
+    WAFPolicyAffected    v1.PolicyConditionType   = "gateway.bessystem.com/WAFPolicyAffected"
     PolicyAffectedReason v1.PolicyConditionReason = "PolicyAffected"
 )
 ```
 
 ```yaml
-- type: gateway.nginx.org/WAFPolicyAffected
+- type: gateway.bessystem.com/WAFPolicyAffected
   status: "True"
   reason: PolicyAffected
   message: "WAFPolicy is applied to the resource"
@@ -1380,7 +1380,7 @@ For all source types, NGF fetches compiled bundles, verifies integrity, writes t
 
 ### Unit Testing
 
-- NginxProxy WAF enablement configuration parsing and validation
+- BwsProxy WAF enablement configuration parsing and validation
 - WAFPolicy controller CRUD, status management, and policy fetching logic
 - `targetRefs` validation and inheritance resolution
 - Multi-container orchestration: container startup sequences and ephemeral volume management
@@ -1526,7 +1526,7 @@ Cloud-native authentication (IRSA, Workload Identity) is not supported. Operator
 - **Advanced policy inheritance**: Policy merging and composition rather than simple override
 - **Native cloud authentication**: IRSA, Azure Workload Identity, and GCP Workload Identity
 - **PLM integration**: Full implementation of `type: PLM` with APPolicy/APLogConf watch, S3 fetcher, and ReferenceGrant validation
-- **PLM NginxGateway CRD integration**: Move PLM storage configuration to the `NginxGateway` CRD
+- **PLM BwsGateway CRD integration**: Move PLM storage configuration to the `BwsGateway` CRD
 - **NAP apreload support**: In-place policy reload to avoid full NGINX reloads
 
 ---
@@ -1554,9 +1554,9 @@ type: Opaque
 data:
   token: <base64-encoded-token>
 ---
-# 2. NginxProxy with WAF enabled
-apiVersion: gateway.nginx.org/v1alpha2
-kind: NginxProxy
+# 2. BwsProxy with WAF enabled
+apiVersion: gateway.bessystem.com/v1alpha2
+kind: BwsProxy
 metadata:
   name: waf-enabled-proxy
   namespace: nginx-gateway
@@ -1575,15 +1575,15 @@ spec:
   infrastructure:
     parametersRef:
       name: waf-enabled-proxy
-      group: gateway.nginx.org
-      kind: NginxProxy
+      group: gateway.bessystem.com
+      kind: BwsProxy
   listeners:
   - name: http
     port: 80
     protocol: HTTP
 ---
 # 4. Gateway-level WAFPolicy (HTTP source)
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: WAFPolicy
 metadata:
   name: gateway-base-protection
@@ -1612,7 +1612,7 @@ spec:
       defaultProfile: log_blocked
 ---
 # 5. Route-level WAFPolicy override (HTTP source)
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: WAFPolicy
 metadata:
   name: admin-strict-protection
@@ -1643,7 +1643,7 @@ spec:
 ### Example 2: NIM Source
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: WAFPolicy
 metadata:
   name: nim-gateway-protection
@@ -1674,13 +1674,13 @@ spec:
 
 ```yaml
 # 1. NGF configured via Helm:
-# nginxGateway.plmStorage.url: https://plm-storage-service.plm-system.svc.cluster.local
-# nginxGateway.plmStorage.credentialsSecretName: plm-storage-credentials
-# nginxGateway.plmStorage.tls.caSecretName: plm-ca-secret
+# bwsGateway.plmStorage.url: https://plm-storage-service.plm-system.svc.cluster.local
+# bwsGateway.plmStorage.credentialsSecretName: plm-storage-credentials
+# bwsGateway.plmStorage.tls.caSecretName: plm-ca-secret
 ---
-# 2. NginxProxy
-apiVersion: gateway.nginx.org/v1alpha2
-kind: NginxProxy
+# 2. BwsProxy
+apiVersion: gateway.bessystem.com/v1alpha2
+kind: BwsProxy
 metadata:
   name: waf-enabled-proxy
   namespace: nginx-gateway
@@ -1725,7 +1725,7 @@ metadata:
   namespace: security
 spec:
   from:
-  - group: gateway.nginx.org
+  - group: gateway.bessystem.com
     kind: WAFPolicy
     namespace: applications
   to:
@@ -1745,15 +1745,15 @@ spec:
   infrastructure:
     parametersRef:
       name: waf-enabled-proxy
-      group: gateway.nginx.org
-      kind: NginxProxy
+      group: gateway.bessystem.com
+      kind: BwsProxy
   listeners:
   - name: http
     port: 80
     protocol: HTTP
 ---
 # 7. Gateway-level WAFPolicy (PLM source)
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: WAFPolicy
 metadata:
   name: gateway-plm-protection

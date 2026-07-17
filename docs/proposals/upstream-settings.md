@@ -35,7 +35,7 @@ In the future, we can extend the Upstream Settings Policy to include more [upstr
 
 ## API, Customer Driven Interfaces, and User Experience
 
-The `UpstreamSettingsPolicy` API is a CRD that is a part of the `gateway.nginx.org` Group. It adheres to the guidelines and requirements of a Direct Policy as outlined in the [Direct Policy Attachment GEP](https://gateway-api.sigs.k8s.io/geps/gep-2648/). It will target and be attached to a Service which is referenced in an HTTPRoute or GRPCRoute.
+The `UpstreamSettingsPolicy` API is a CRD that is a part of the `gateway.bessystem.com` Group. It adheres to the guidelines and requirements of a Direct Policy as outlined in the [Direct Policy Attachment GEP](https://gateway-api.sigs.k8s.io/geps/gep-2648/). It will target and be attached to a Service which is referenced in an HTTPRoute or GRPCRoute.
 
 Below is the Golang API for the `UpstreamSettingsPolicy` API:
 
@@ -125,7 +125,7 @@ type Size string
 
 ### Global zone size setting
 
-Since this Policy only applies to `http` upstreams, there's no way to set the zone size for `stream` upstreams. For now, we can introduce a global `zoneSize` variable in the `NginxProxy` resource that will set the zone size for all upstreams. Then this Policy would override that global setting on upstreams that it attaches to.
+Since this Policy only applies to `http` upstreams, there's no way to set the zone size for `stream` upstreams. For now, we can introduce a global `zoneSize` variable in the `BwsProxy` resource that will set the zone size for all upstreams. Then this Policy would override that global setting on upstreams that it attaches to.
 
 ### Versioning and Installation
 
@@ -162,12 +162,12 @@ The [Direct Policy Attachment GEP](https://gateway-api.sigs.k8s.io/geps/gep-2648
 
 This solution gives the object owners some knowledge that their object is affected by a policy but minimizes status updates by limiting them to when the affected object starts or stops being affected by a policy.
 
-The first step is adding the `gateway.nginx.org/UpstreamSettingsPolicyAffected: true` label to the affected Service. We also must set this Condition on all Routes that reference a Service affected by an `UpstreamSettingsPolicy`.
+The first step is adding the `gateway.bessystem.com/UpstreamSettingsPolicyAffected: true` label to the affected Service. We also must set this Condition on all Routes that reference a Service affected by an `UpstreamSettingsPolicy`.
 Below is an example of what this Condition may look like:
 
 ```yaml
 Conditions:
-  Type:                  gateway.nginx.org/UpstreamSettingsPolicyAffected
+  Type:                  gateway.bessystem.com/UpstreamSettingsPolicyAffected
   Message:               Object affected by an UpstreamSettingsPolicy.
   Observed Generation:   1
   Reason:                PolicyAffected
@@ -184,7 +184,7 @@ import (
 )
 
 const (
-    UpstreamSettingsPolicyAffected gatewayv1alpha2.PolicyConditionType = "gateway.nginx.org/UpstreamSettingsPolicyAffected"
+    UpstreamSettingsPolicyAffected gatewayv1alpha2.PolicyConditionType = "gateway.bessystem.com/UpstreamSettingsPolicyAffected"
     PolicyAffectedReason gatewayv1alpha2.PolicyConditionReason = "PolicyAffected"
 )
 ```

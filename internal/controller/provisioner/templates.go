@@ -23,14 +23,14 @@ const mgmtTemplateText = `mgmt {
     ssl_verify off;
     {{- end }}
     {{- if .UsageCASecret }}
-    ssl_trusted_certificate /etc/nginx/certs-bootstrap/ca.crt;
+    ssl_trusted_certificate /etc/bws/certs-bootstrap/ca.crt;
     {{- end }}
     {{- if .UsageClientSSLSecret }}
-    ssl_certificate        /etc/nginx/certs-bootstrap/tls.crt;
-    ssl_certificate_key    /etc/nginx/certs-bootstrap/tls.key;
+    ssl_certificate        /etc/bws/certs-bootstrap/tls.crt;
+    ssl_certificate_key    /etc/bws/certs-bootstrap/tls.key;
     {{- end }}
     enforce_initial_report off;
-    deployment_context /etc/nginx/main-includes/deployment_ctx.json;
+    deployment_context /etc/bws/main-includes/deployment_ctx.json;
 }`
 
 const agentTemplateText = `command:
@@ -38,16 +38,21 @@ const agentTemplateText = `command:
         host: {{ .ServiceName }}.{{ .Namespace }}.svc
         port: 443
     auth:
-        tokenpath: /var/run/secrets/ngf/serviceaccount/token
+        tokenpath: /var/run/secrets/bws-gateway/serviceaccount/token
     tls:
-        cert: /var/run/secrets/ngf/tls.crt
-        key: /var/run/secrets/ngf/tls.key
-        ca: /var/run/secrets/ngf/ca.crt
+        cert: /var/run/secrets/bws-gateway/tls.crt
+        key: /var/run/secrets/bws-gateway/tls.key
+        ca: /var/run/secrets/bws-gateway/ca.crt
         server_name: {{ .ServiceName }}.{{ .Namespace }}.svc
 allowed_directories:
-- /etc/nginx
+- /opt/bws
 - /usr/share/nginx
-- /var/run/nginx
+- /etc/bws
+- /var/cache/bws
+- /var/run/bws
+- /var/log/bws-agent
+- /var/run/secrets/bws
+- /var/run/secrets/bws-gateway
 - /etc/app_protect/bundles/
 features:
 - configuration
@@ -77,7 +82,7 @@ auxiliary_command:
         port: {{ .EndpointPort }}
         type: grpc
     auth:
-        tokenpath: /etc/nginx-agent/secrets/dataplane.key
+        tokenpath: /etc/bws-agent/secrets/dataplane.key
     tls:
         skip_verify: {{ .EndpointTLSSkipVerify }}
 {{- end }}

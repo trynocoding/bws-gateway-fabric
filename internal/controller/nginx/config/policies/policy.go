@@ -23,9 +23,9 @@ type Policy interface {
 // GlobalSettings contains global settings from the current state of the graph that may be
 // needed for policy validation or generation if certain policies rely on those global settings.
 type GlobalSettings struct {
-	// TelemetryEnabled is whether telemetry is enabled in the NginxProxy resource.
+	// TelemetryEnabled is whether telemetry is enabled in the BwsProxy resource.
 	TelemetryEnabled bool
-	// WAFEnabled is whether WAF is enabled in the NginxProxy resource.
+	// WAFEnabled is whether WAF is enabled in the BwsProxy resource.
 	WAFEnabled bool
 }
 

@@ -18,14 +18,14 @@ import (
 // updateControlPlane updates the control plane configuration with the given user spec.
 // If any fields are not set within the user spec, the default configuration values are used.
 func updateControlPlane(
-	cfg *ngfAPI.NginxGateway,
+	cfg *ngfAPI.BwsGateway,
 	logger logr.Logger,
 	eventRecorder k8sEvents.EventRecorder,
 	configNSName types.NamespacedName,
 	logLevelSetter logLevelSetter,
 ) error {
 	// build up default configuration
-	controlConfig := ngfAPI.NginxGatewaySpec{
+	controlConfig := ngfAPI.BwsGatewaySpec{
 		Logging: &ngfAPI.Logging{
 			Level: helpers.GetPointer(ngfAPI.ControllerLogLevelInfo),
 		},
@@ -43,10 +43,10 @@ func updateControlPlane(
 			return fmt.Errorf("error unmarshaling control config: %w", err)
 		}
 	} else {
-		msg := "NginxGateway configuration was deleted; using defaults"
+		msg := "BwsGateway configuration was deleted; using defaults"
 		logger.Info(msg)
 		eventRecorder.Eventf(
-			&ngfAPI.NginxGateway{
+			&ngfAPI.BwsGateway{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: configNSName.Namespace,
 					Name:      configNSName.Name,

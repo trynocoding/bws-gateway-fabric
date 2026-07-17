@@ -2,21 +2,21 @@
 
 # Generate deployment files using Helm. This script uses the Helm chart examples in examples/helm
 
-charts=$(find examples/helm -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
-kube_version=$(grep 'kubeVersion' charts/nginx-gateway-fabric/Chart.yaml | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+charts=$(find examples/helm -maxdepth 1 -mindepth 1 -type d ! -name '*nginx-plus*' -exec basename {} \;)
+kube_version=$(grep 'kubeVersion' charts/bws-gateway-fabric/Chart.yaml | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
 
 generate_manifests() {
     chart=$1
     manifest=deploy/${chart}/deploy.yaml
     mkdir -p deploy/${chart}
 
-    helm_parameters="--namespace nginx-gateway --set nginxGateway.name=nginx-gateway --skip-crds"
+    helm_parameters="--namespace bws-gateway --set bwsGateway.name=bws-gateway --skip-crds"
     if [ "${chart}" == "openshift" ]; then
         chart="default"
         helm_parameters="${helm_parameters} --api-versions security.openshift.io/v1/SecurityContextConstraints"
     fi
 
-    helm template nginx-gateway ${helm_parameters} --kube-version "${kube_version}" --values examples/helm/${chart}/values.yaml charts/nginx-gateway-fabric >${manifest} 2>/dev/null
+    helm template bws-gateway ${helm_parameters} --kube-version "${kube_version}" --values examples/helm/${chart}/values.yaml charts/bws-gateway-fabric >${manifest} 2>/dev/null
     sed -i.bak '/app.kubernetes.io\/managed-by: Helm/d' ${manifest}
     sed -i.bak '/helm.sh/d' ${manifest}
     cp ${manifest} config/base

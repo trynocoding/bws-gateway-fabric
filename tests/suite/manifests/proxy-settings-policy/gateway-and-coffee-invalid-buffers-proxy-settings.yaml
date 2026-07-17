@@ -1,4 +1,4 @@
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ProxySettingsPolicy
 metadata:
   name: gateway-proxy-settings
@@ -14,7 +14,7 @@ spec:
       size: "64k"
     busyBuffersSize: "8k" # Invalid: busyBuffersSize less than bufferSize
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ProxySettingsPolicy
 metadata:
   name: coffee-http-proxy-settings

@@ -37,10 +37,10 @@ type ParentRef struct {
 	SectionName *v1.SectionName
 	// Port is the network port this Route targets.
 	Port *v1.PortNumber
-	// EffectiveNginxProxy is the effective NGINX Proxy configuration for this ParentRef.
-	// For Gateway parents, this is the Gateway's EffectiveNginxProxy.
-	// For ListenerSet parents, this is inherited from the parent Gateway's EffectiveNginxProxy.
-	EffectiveNginxProxy *EffectiveNginxProxy
+	// EffectiveBwsProxy is the effective NGINX Proxy configuration for this ParentRef.
+	// For Gateway parents, this is the Gateway's EffectiveBwsProxy.
+	// For ListenerSet parents, this is inherited from the parent Gateway's EffectiveBwsProxy.
+	EffectiveBwsProxy *EffectiveBwsProxy
 	// NamespacedName is the NamespacedName of the ParentRef
 	NamespacedName types.NamespacedName
 	// GatewayNsName is the NamespacedName of the Gateway this ParentRef is associated with.
@@ -418,7 +418,7 @@ func resolveParentRef(
 		if gw == nil {
 			return nil, nil
 		}
-		parentRef.EffectiveNginxProxy = gw.EffectiveNginxProxy
+		parentRef.EffectiveBwsProxy = gw.EffectiveBwsProxy
 		parentRef.NamespacedName = client.ObjectKeyFromObject(gw.Source)
 		parentRef.GatewayNsName = parentRef.NamespacedName
 
@@ -433,7 +433,7 @@ func resolveParentRef(
 			gwKey := client.ObjectKeyFromObject(ls.Gateway)
 			parentRef.GatewayNsName = gwKey
 			if parentGW, ok := gws[gwKey]; ok {
-				parentRef.EffectiveNginxProxy = parentGW.EffectiveNginxProxy
+				parentRef.EffectiveBwsProxy = parentGW.EffectiveBwsProxy
 			}
 		}
 
@@ -1052,7 +1052,7 @@ func bindL7RouteToListeners(
 
 		attachment, attachableListeners := validateParentRef(ref, gw, listenerSets[lsNsName])
 
-		if route.RouteType == RouteTypeGRPC && isHTTP2Disabled(gw.EffectiveNginxProxy) {
+		if route.RouteType == RouteTypeGRPC && isHTTP2Disabled(gw.EffectiveBwsProxy) {
 			msg := "HTTP2 is disabled - cannot configure GRPCRoutes"
 			attachment.FailedConditions = append(
 				attachment.FailedConditions, conditions.NewRouteUnsupportedConfiguration(msg),
@@ -1092,7 +1092,7 @@ func bindL7RouteToListeners(
 	}
 }
 
-func isHTTP2Disabled(npCfg *EffectiveNginxProxy) bool {
+func isHTTP2Disabled(npCfg *EffectiveBwsProxy) bool {
 	if npCfg == nil {
 		return false
 	}

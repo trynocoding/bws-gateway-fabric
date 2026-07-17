@@ -16,7 +16,7 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: SnippetsFilter
             name: limit-except-sf
       backendRefs:

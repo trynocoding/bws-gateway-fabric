@@ -274,7 +274,7 @@ Each Secret reference expects a specific key to be present. For OIDC authenticat
 An authenticationFilter with complete OIDC configuration would look like:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: keycloak-oidc-auth
@@ -394,7 +394,7 @@ spec:
     filters:
     - type: ExtensionRef
       extensionRef:
-        group: gateway.nginx.org
+        group: gateway.bessystem.com
         kind: AuthenticationFilter
         name: keycloak-oidc-auth
 ```

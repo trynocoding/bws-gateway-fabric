@@ -1,8 +1,0 @@
-apiVersion: gateway.nginx.org/v1alpha2
-kind: NginxProxy
-metadata:
-  name: waf-enabled-proxy
-spec:
-  waf:
-    enable: true
-    bundleFailOpen: true

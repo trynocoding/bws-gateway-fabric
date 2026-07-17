@@ -54,7 +54,7 @@ server {
 
 ## API
 
-The `RateLimitPolicy` API is a CRD that is part of the `gateway.nginx.org` Group. It adheres to the guidelines and requirements of an Inherited Policy as defined in the [Policy Attachment GEP (GEP-713)](https://gateway-api.sigs.k8s.io/geps/gep-713/).
+The `RateLimitPolicy` API is a CRD that is part of the `gateway.bessystem.com` Group. It adheres to the guidelines and requirements of an Inherited Policy as defined in the [Policy Attachment GEP (GEP-713)](https://gateway-api.sigs.k8s.io/geps/gep-713/).
 
 The policy uses `targetRefs` (plural) to support targeting multiple resources with a single policy instance. This follows the current GEP-713 guidance and provides better user experience by:
 
@@ -297,7 +297,7 @@ import (
 )
 
 const (
-    RateLimitPolicyAffected v1.PolicyConditionType = "gateway.nginx.org/RateLimitPolicyAffected"
+    RateLimitPolicyAffected v1.PolicyConditionType = "gateway.bessystem.com/RateLimitPolicyAffected"
     PolicyAffectedReason v1.PolicyConditionReason = "RateLimitPolicyAffectedAffected"
 )
 ```
@@ -307,7 +307,7 @@ Below is an example of what this Condition may look like:
 
 ```yaml
 Conditions:
-  Type:                  gateway.nginx.org/RateLimitPolicyAffected
+  Type:                  gateway.bessystem.com/RateLimitPolicyAffected
   Message:               The RateLimitPolicy is applied to the resource.
   Observed Generation:   1
   Reason:                PolicyAffected
@@ -326,7 +326,7 @@ Some additional rules:
 Below is an example of `RateLimitPolicy` YAML definition:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: RateLimitPolicy
 metadata:
   name: example-rl-policy
@@ -369,7 +369,7 @@ status:
 And an example attached to an HTTPRoute and GRPCRoute:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: RateLimitPolicy
 metadata:
   name: example-rl-policy-routes

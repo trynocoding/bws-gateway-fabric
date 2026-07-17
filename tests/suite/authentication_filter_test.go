@@ -695,17 +695,17 @@ var _ = Describe("AuthenticationFilter", Ordered, Label("functional", "auth-filt
 					kubeDNSIP := kubeDNSSvc.Spec.ClusterIP
 					Expect(kubeDNSIP).ToNot(BeEmpty(), "kube-dns ClusterIP should not be empty")
 
-					// Patch NginxProxy with DNS resolver pointing to kube-dns
-					nginxProxyNsName := types.NamespacedName{
+					// Patch BwsProxy with DNS resolver pointing to kube-dns
+					bwsProxyNsName := types.NamespacedName{
 						Name:      fmt.Sprintf("%s-proxy-config", releaseName),
 						Namespace: ngfNamespace,
 					}
-					var nginxProxy ngfAPIv1alpha2.NginxProxy
-					Expect(resourceManager.Get(ctx, nginxProxyNsName, &nginxProxy)).To(Succeed())
+					var bwsProxy ngfAPIv1alpha2.BwsProxy
+					Expect(resourceManager.Get(ctx, bwsProxyNsName, &bwsProxy)).To(Succeed())
 
-					savedDNSResolver = nginxProxy.Spec.DNSResolver
+					savedDNSResolver = bwsProxy.Spec.DNSResolver
 
-					nginxProxy.Spec.DNSResolver = &ngfAPIv1alpha2.DNSResolver{
+					bwsProxy.Spec.DNSResolver = &ngfAPIv1alpha2.DNSResolver{
 						Addresses: []ngfAPIv1alpha2.DNSResolverAddress{
 							{
 								Type:  ngfAPIv1alpha2.DNSResolverIPAddressType,
@@ -713,7 +713,7 @@ var _ = Describe("AuthenticationFilter", Ordered, Label("functional", "auth-filt
 							},
 						},
 					}
-					Expect(resourceManager.Update(ctx, &nginxProxy, nil)).To(Succeed())
+					Expect(resourceManager.Update(ctx, &bwsProxy, nil)).To(Succeed())
 
 					// Deploy OIDC manifests (Gateway, HTTPRoute, AuthenticationFilter, Secrets)
 					Expect(resourceManager.ApplyFromFiles(oidcFiles, namespace)).To(Succeed())
@@ -749,21 +749,21 @@ var _ = Describe("AuthenticationFilter", Ordered, Label("functional", "auth-filt
 				AfterAll(func() {
 					framework.AddNginxLogsAndEventsToReport(resourceManager, namespace)
 
-					// Restore original DNS resolver on NginxProxy
+					// Restore original DNS resolver on BwsProxy
 					ctx, cancel := context.WithTimeout(context.Background(), timeoutConfig.UpdateTimeout)
 					defer cancel()
 
-					nginxProxyNsName := types.NamespacedName{
+					bwsProxyNsName := types.NamespacedName{
 						Name:      fmt.Sprintf("%s-proxy-config", releaseName),
 						Namespace: ngfNamespace,
 					}
 
-					var nginxProxy ngfAPIv1alpha2.NginxProxy
-					Expect(resourceManager.Get(ctx, nginxProxyNsName, &nginxProxy)).To(Succeed())
+					var bwsProxy ngfAPIv1alpha2.BwsProxy
+					Expect(resourceManager.Get(ctx, bwsProxyNsName, &bwsProxy)).To(Succeed())
 
-					nginxProxy.Spec.DNSResolver = savedDNSResolver
+					bwsProxy.Spec.DNSResolver = savedDNSResolver
 
-					Expect(resourceManager.Update(ctx, &nginxProxy, nil)).To(Succeed())
+					Expect(resourceManager.Update(ctx, &bwsProxy, nil)).To(Succeed())
 
 					Expect(resourceManager.DeleteFromFiles(clientPodFiles, namespace)).To(Succeed())
 					Expect(resourceManager.DeleteFromFiles(oidcFiles, namespace)).To(Succeed())

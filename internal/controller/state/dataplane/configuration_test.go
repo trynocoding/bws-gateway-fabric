@@ -3072,7 +3072,7 @@ func TestBuildConfiguration_Plus(t *testing.T) {
 					Valid:       true,
 					Routes:      map[graph.RouteKey]*graph.L7Route{},
 				})
-				gw.EffectiveNginxProxy = &graph.EffectiveNginxProxy{
+				gw.EffectiveBwsProxy = &graph.EffectiveBwsProxy{
 					NginxPlus: &ngfAPIv1alpha2.NginxPlus{
 						AllowedAddresses: []ngfAPIv1alpha2.NginxPlusAllowAddress{
 							{Type: ngfAPIv1alpha2.NginxPlusAllowIPAddressType, Value: "127.0.0.3"},
@@ -3089,7 +3089,7 @@ func TestBuildConfiguration_Plus(t *testing.T) {
 				conf.BaseHTTPConfig.ServerTokens = graph.ServerTokenOff
 				return conf
 			}),
-			msg: "NginxProxy with NginxPlus allowed addresses configured",
+			msg: "BwsProxy with NginxPlus allowed addresses configured",
 		},
 		{
 			graph: getModifiedGraph(func(g *graph.Graph) *graph.Graph {
@@ -4081,10 +4081,10 @@ func TestBuildUpstreamsAlwaysResolvesAllAddressTypes(t *testing.T) {
 	referencedServices := map[types.NamespacedName]*graph.ReferencedService{
 		{Name: "svc", Namespace: "test"}: {},
 	}
-	makeGateway := func(np *graph.EffectiveNginxProxy) *graph.Gateway {
+	makeGateway := func(np *graph.EffectiveBwsProxy) *graph.Gateway {
 		return &graph.Gateway{
-			Source:              &v1.Gateway{ObjectMeta: metav1.ObjectMeta{Namespace: "test", Name: "gateway"}},
-			EffectiveNginxProxy: np,
+			Source:            &v1.Gateway{ObjectMeta: metav1.ObjectMeta{Namespace: "test", Name: "gateway"}},
+			EffectiveBwsProxy: np,
 			Listeners: []*graph.Listener{
 				{
 					Valid: true,
@@ -4104,19 +4104,19 @@ func TestBuildUpstreamsAlwaysResolvesAllAddressTypes(t *testing.T) {
 		name    string
 	}{
 		{
-			name: "NginxProxy configured with IPv4" +
+			name: "BwsProxy configured with IPv4" +
 				" resolver receives both IPv4 and IPv6 address types",
-			gateway: makeGateway(&graph.EffectiveNginxProxy{IPFamily: helpers.GetPointer(ngfAPIv1alpha2.IPv4)}),
+			gateway: makeGateway(&graph.EffectiveBwsProxy{IPFamily: helpers.GetPointer(ngfAPIv1alpha2.IPv4)}),
 		},
 		{
-			name: "NginxProxy configured with IPv6" +
+			name: "BwsProxy configured with IPv6" +
 				" resolver receives both IPv4 and IPv6 address types",
-			gateway: makeGateway(&graph.EffectiveNginxProxy{IPFamily: helpers.GetPointer(ngfAPIv1alpha2.IPv6)}),
+			gateway: makeGateway(&graph.EffectiveBwsProxy{IPFamily: helpers.GetPointer(ngfAPIv1alpha2.IPv6)}),
 		},
 		{
-			name: "NginxProxy configured with Dual" +
+			name: "BwsProxy configured with Dual" +
 				" resolver receives both IPv4 and IPv6 address types",
-			gateway: makeGateway(&graph.EffectiveNginxProxy{IPFamily: helpers.GetPointer(ngfAPIv1alpha2.Dual)}),
+			gateway: makeGateway(&graph.EffectiveBwsProxy{IPFamily: helpers.GetPointer(ngfAPIv1alpha2.Dual)}),
 		},
 	}
 
@@ -4376,7 +4376,7 @@ func TestConvertBackendTLS(t *testing.T) {
 
 func TestBuildTelemetry(t *testing.T) {
 	t.Parallel()
-	telemetryConfigured := &graph.EffectiveNginxProxy{
+	telemetryConfigured := &graph.EffectiveBwsProxy{
 		Telemetry: &ngfAPIv1alpha2.Telemetry{
 			Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 				Endpoint:   helpers.GetPointer("my-otel.svc:4563"),
@@ -4423,17 +4423,17 @@ func TestBuildTelemetry(t *testing.T) {
 			g: &graph.Graph{
 				Gateways: map[types.NamespacedName]*graph.Gateway{
 					{}: {
-						EffectiveNginxProxy: nil,
+						EffectiveBwsProxy: nil,
 					},
 				},
 			},
 			expTelemetry: Telemetry{},
-			msg:          "nil effective NginxProxy",
+			msg:          "nil effective BwsProxy",
 		},
 		{
 			g: &graph.Graph{
 				Gateways: map[types.NamespacedName]*graph.Gateway{
-					{}: {EffectiveNginxProxy: &graph.EffectiveNginxProxy{}},
+					{}: {EffectiveBwsProxy: &graph.EffectiveBwsProxy{}},
 				},
 			},
 			expTelemetry: Telemetry{},
@@ -4443,7 +4443,7 @@ func TestBuildTelemetry(t *testing.T) {
 			g: &graph.Graph{
 				Gateways: map[types.NamespacedName]*graph.Gateway{
 					{}: {
-						EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+						EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 							Telemetry: &ngfAPIv1alpha2.Telemetry{
 								Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 									Endpoint: helpers.GetPointer("my-otel.svc:4563"),
@@ -4463,7 +4463,7 @@ func TestBuildTelemetry(t *testing.T) {
 			g: &graph.Graph{
 				Gateways: map[types.NamespacedName]*graph.Gateway{
 					{}: {
-						EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+						EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 							Telemetry: &ngfAPIv1alpha2.Telemetry{
 								Exporter: nil,
 							},
@@ -4478,7 +4478,7 @@ func TestBuildTelemetry(t *testing.T) {
 			g: &graph.Graph{
 				Gateways: map[types.NamespacedName]*graph.Gateway{
 					{}: {
-						EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+						EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 							Telemetry: &ngfAPIv1alpha2.Telemetry{
 								Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 									Endpoint: nil,
@@ -4501,7 +4501,7 @@ func TestBuildTelemetry(t *testing.T) {
 								Namespace: "ns",
 							},
 						},
-						EffectiveNginxProxy: telemetryConfigured,
+						EffectiveBwsProxy: telemetryConfigured,
 					},
 				},
 			},
@@ -4518,7 +4518,7 @@ func TestBuildTelemetry(t *testing.T) {
 								Namespace: "ns",
 							},
 						},
-						EffectiveNginxProxy: telemetryConfigured,
+						EffectiveBwsProxy: telemetryConfigured,
 					},
 				},
 				NGFPolicies: map[graph.PolicyKey]*graph.Policy{
@@ -4555,7 +4555,7 @@ func TestBuildTelemetry(t *testing.T) {
 								Namespace: "ns",
 							},
 						},
-						EffectiveNginxProxy: telemetryConfigured,
+						EffectiveBwsProxy: telemetryConfigured,
 					},
 				},
 				NGFPolicies: map[graph.PolicyKey]*graph.Policy{
@@ -4627,7 +4627,7 @@ func TestBuildTelemetry(t *testing.T) {
 								Namespace: "ns",
 							},
 						},
-						EffectiveNginxProxy: telemetryConfigured,
+						EffectiveBwsProxy: telemetryConfigured,
 					},
 				},
 				NGFPolicies: map[graph.PolicyKey]*graph.Policy{
@@ -6071,7 +6071,7 @@ func TestBuildRewriteIPSettings(t *testing.T) {
 			g: &graph.Graph{
 				Gateways: map[types.NamespacedName]*graph.Gateway{
 					{}: {
-						EffectiveNginxProxy: &graph.EffectiveNginxProxy{},
+						EffectiveBwsProxy: &graph.EffectiveBwsProxy{},
 					},
 				},
 			},
@@ -6082,7 +6082,7 @@ func TestBuildRewriteIPSettings(t *testing.T) {
 			g: &graph.Graph{
 				Gateways: map[types.NamespacedName]*graph.Gateway{
 					{}: {
-						EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+						EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 							RewriteClientIP: &ngfAPIv1alpha2.RewriteClientIP{
 								Mode: helpers.GetPointer(ngfAPIv1alpha2.RewriteClientIPModeProxyProtocol),
 								TrustedAddresses: []ngfAPIv1alpha2.RewriteClientIPAddress{
@@ -6108,7 +6108,7 @@ func TestBuildRewriteIPSettings(t *testing.T) {
 			g: &graph.Graph{
 				Gateways: map[types.NamespacedName]*graph.Gateway{
 					{}: {
-						EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+						EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 							RewriteClientIP: &ngfAPIv1alpha2.RewriteClientIP{
 								Mode: helpers.GetPointer(ngfAPIv1alpha2.RewriteClientIPModeXForwardedFor),
 								TrustedAddresses: []ngfAPIv1alpha2.RewriteClientIPAddress{
@@ -6134,7 +6134,7 @@ func TestBuildRewriteIPSettings(t *testing.T) {
 			g: &graph.Graph{
 				Gateways: map[types.NamespacedName]*graph.Gateway{
 					{}: {
-						EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+						EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 							RewriteClientIP: &ngfAPIv1alpha2.RewriteClientIP{
 								Mode: helpers.GetPointer(ngfAPIv1alpha2.RewriteClientIPModeXForwardedFor),
 								TrustedAddresses: []ngfAPIv1alpha2.RewriteClientIPAddress{
@@ -6201,25 +6201,25 @@ func TestBuildLogging(t *testing.T) {
 			expLoggingSettings: defaultLogging,
 		},
 		{
-			msg: "Gateway has no effective NginxProxy",
+			msg: "Gateway has no effective BwsProxy",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: nil,
+				EffectiveBwsProxy: nil,
 			},
 			expLoggingSettings: defaultLogging,
 		},
 		{
-			msg: "Effective NginxProxy does not specify log level",
+			msg: "Effective BwsProxy does not specify log level",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					IPFamily: helpers.GetPointer(ngfAPIv1alpha2.Dual),
 				},
 			},
 			expLoggingSettings: defaultLogging,
 		},
 		{
-			msg: "Effective NginxProxy log level set to debug",
+			msg: "Effective BwsProxy log level set to debug",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelDebug),
 					},
@@ -6228,9 +6228,9 @@ func TestBuildLogging(t *testing.T) {
 			expLoggingSettings: Logging{ErrorLevel: "debug"},
 		},
 		{
-			msg: "Effective NginxProxy log level set to info",
+			msg: "Effective BwsProxy log level set to info",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelInfo),
 					},
@@ -6239,9 +6239,9 @@ func TestBuildLogging(t *testing.T) {
 			expLoggingSettings: Logging{ErrorLevel: defaultErrorLogLevel},
 		},
 		{
-			msg: "Effective NginxProxy log level set to notice",
+			msg: "Effective BwsProxy log level set to notice",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelNotice),
 					},
@@ -6250,9 +6250,9 @@ func TestBuildLogging(t *testing.T) {
 			expLoggingSettings: Logging{ErrorLevel: "notice"},
 		},
 		{
-			msg: "Effective NginxProxy log level set to warn",
+			msg: "Effective BwsProxy log level set to warn",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelWarn),
 					},
@@ -6261,9 +6261,9 @@ func TestBuildLogging(t *testing.T) {
 			expLoggingSettings: Logging{ErrorLevel: "warn"},
 		},
 		{
-			msg: "Effective NginxProxy log level set to error",
+			msg: "Effective BwsProxy log level set to error",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelError),
 					},
@@ -6272,9 +6272,9 @@ func TestBuildLogging(t *testing.T) {
 			expLoggingSettings: Logging{ErrorLevel: "error"},
 		},
 		{
-			msg: "Effective NginxProxy log level set to crit",
+			msg: "Effective BwsProxy log level set to crit",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelCrit),
 					},
@@ -6283,9 +6283,9 @@ func TestBuildLogging(t *testing.T) {
 			expLoggingSettings: Logging{ErrorLevel: "crit"},
 		},
 		{
-			msg: "Effective NginxProxy log level set to alert",
+			msg: "Effective BwsProxy log level set to alert",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelAlert),
 					},
@@ -6294,9 +6294,9 @@ func TestBuildLogging(t *testing.T) {
 			expLoggingSettings: Logging{ErrorLevel: "alert"},
 		},
 		{
-			msg: "Effective NginxProxy log level set to emerg",
+			msg: "Effective BwsProxy log level set to emerg",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelEmerg),
 					},
@@ -6307,7 +6307,7 @@ func TestBuildLogging(t *testing.T) {
 		{
 			msg: "AccessLog configured",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelInfo),
 						AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
@@ -6326,7 +6326,7 @@ func TestBuildLogging(t *testing.T) {
 		{
 			msg: "AccessLog is configured and Disable = false",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelInfo),
 						AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
@@ -6348,7 +6348,7 @@ func TestBuildLogging(t *testing.T) {
 		{
 			msg: "Nothing configured if AccessLog Format is missing",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelInfo),
 						AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
@@ -6365,7 +6365,7 @@ func TestBuildLogging(t *testing.T) {
 		{
 			msg: "AccessLog OFF while LogFormat is configured",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelInfo),
 						AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
@@ -6385,7 +6385,7 @@ func TestBuildLogging(t *testing.T) {
 		{
 			msg: "AccessLog OFF",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelInfo),
 						AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
@@ -6404,7 +6404,7 @@ func TestBuildLogging(t *testing.T) {
 		{
 			msg: "AccessLog with escape=json",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelInfo),
 						AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
@@ -6425,7 +6425,7 @@ func TestBuildLogging(t *testing.T) {
 		{
 			msg: "AccessLog with escape=default",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelInfo),
 						AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
@@ -6446,7 +6446,7 @@ func TestBuildLogging(t *testing.T) {
 		{
 			msg: "AccessLog with escape=none",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelInfo),
 						AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
@@ -6467,7 +6467,7 @@ func TestBuildLogging(t *testing.T) {
 		{
 			msg: "AccessLog escape not set when format is missing",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelInfo),
 						AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
@@ -6713,21 +6713,21 @@ func TestBuildNginxPlus(t *testing.T) {
 		expNginxPlus NginxPlus
 	}{
 		{
-			msg:          "NginxProxy is nil",
+			msg:          "BwsProxy is nil",
 			gw:           &graph.Gateway{},
 			expNginxPlus: defaultNginxPlus,
 		},
 		{
-			msg: "NginxPlus default values are used when NginxProxy doesn't specify NginxPlus settings",
+			msg: "NginxPlus default values are used when BwsProxy doesn't specify NginxPlus settings",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{},
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{},
 			},
 			expNginxPlus: defaultNginxPlus,
 		},
 		{
-			msg: "NginxProxy specifies one allowed address",
+			msg: "BwsProxy specifies one allowed address",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					NginxPlus: &ngfAPIv1alpha2.NginxPlus{
 						AllowedAddresses: []ngfAPIv1alpha2.NginxPlusAllowAddress{
 							{Type: ngfAPIv1alpha2.NginxPlusAllowIPAddressType, Value: "127.0.0.3"},
@@ -6738,9 +6738,9 @@ func TestBuildNginxPlus(t *testing.T) {
 			expNginxPlus: NginxPlus{AllowedAddresses: []string{"127.0.0.3"}},
 		},
 		{
-			msg: "NginxProxy specifies multiple allowed addresses",
+			msg: "BwsProxy specifies multiple allowed addresses",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					NginxPlus: &ngfAPIv1alpha2.NginxPlus{
 						AllowedAddresses: []ngfAPIv1alpha2.NginxPlusAllowAddress{
 							{Type: ngfAPIv1alpha2.NginxPlusAllowIPAddressType, Value: "127.0.0.3"},
@@ -6752,9 +6752,9 @@ func TestBuildNginxPlus(t *testing.T) {
 			expNginxPlus: NginxPlus{AllowedAddresses: []string{"127.0.0.3", "25.0.0.3"}},
 		},
 		{
-			msg: "NginxProxy specifies 127.0.0.1 as allowed address",
+			msg: "BwsProxy specifies 127.0.0.1 as allowed address",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					NginxPlus: &ngfAPIv1alpha2.NginxPlus{
 						AllowedAddresses: []ngfAPIv1alpha2.NginxPlusAllowAddress{
 							{Type: ngfAPIv1alpha2.NginxPlusAllowIPAddressType, Value: "127.0.0.1"},
@@ -6785,21 +6785,21 @@ func TestBuildWorkerConnections(t *testing.T) {
 		expWorkerConnections int32
 	}{
 		{
-			msg:                  "NginxProxy is nil",
+			msg:                  "BwsProxy is nil",
 			gw:                   &graph.Gateway{},
 			expWorkerConnections: DefaultWorkerConnections,
 		},
 		{
-			msg: "NginxProxy doesn't specify worker connections",
+			msg: "BwsProxy doesn't specify worker connections",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{},
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{},
 			},
 			expWorkerConnections: DefaultWorkerConnections,
 		},
 		{
-			msg: "NginxProxy specifies worker connections",
+			msg: "BwsProxy specifies worker connections",
 			gw: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					WorkerConnections: helpers.GetPointer(int32(2048)),
 				},
 			},
@@ -6836,14 +6836,14 @@ func TestBuildBaseHTTPConfig_ReadinessProbe(t *testing.T) {
 		{
 			msg: "nginx proxy config is nil",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{},
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{},
 			},
 			expected: baseHTTPConfig,
 		},
 		{
 			msg: "kubernetes spec is nil",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{},
 				},
 			},
@@ -6852,7 +6852,7 @@ func TestBuildBaseHTTPConfig_ReadinessProbe(t *testing.T) {
 		{
 			msg: "readiness probe spec is nil",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 						Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 							Container: ngfAPIv1alpha2.ContainerSpec{
@@ -6867,7 +6867,7 @@ func TestBuildBaseHTTPConfig_ReadinessProbe(t *testing.T) {
 		{
 			msg: "readiness probe spec is empty",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 						Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 							Container: ngfAPIv1alpha2.ContainerSpec{
@@ -6888,7 +6888,7 @@ func TestBuildBaseHTTPConfig_ReadinessProbe(t *testing.T) {
 		{
 			msg: "readiness probe is configured for deployment kind",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 						Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 							Container: ngfAPIv1alpha2.ContainerSpec{
@@ -6911,7 +6911,7 @@ func TestBuildBaseHTTPConfig_ReadinessProbe(t *testing.T) {
 		{
 			msg: "readiness probe is configured for daemonset kind",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 						DaemonSet: &ngfAPIv1alpha2.DaemonSetSpec{
 							Container: ngfAPIv1alpha2.ContainerSpec{
@@ -6934,7 +6934,7 @@ func TestBuildBaseHTTPConfig_ReadinessProbe(t *testing.T) {
 		{
 			msg: "readiness probe is configured for deployment with custom path",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 						Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 							Container: ngfAPIv1alpha2.ContainerSpec{
@@ -6958,7 +6958,7 @@ func TestBuildBaseHTTPConfig_ReadinessProbe(t *testing.T) {
 		{
 			msg: "readiness probe is configured for daemonset with custom path",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 						DaemonSet: &ngfAPIv1alpha2.DaemonSetSpec{
 							Container: ngfAPIv1alpha2.ContainerSpec{
@@ -6982,7 +6982,7 @@ func TestBuildBaseHTTPConfig_ReadinessProbe(t *testing.T) {
 		{
 			msg: "readiness probe is configured with only custom path and no port",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 						Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 							Container: ngfAPIv1alpha2.ContainerSpec{
@@ -7513,13 +7513,13 @@ func TestBuildConfiguration_GatewaysAndListeners(t *testing.T) {
 	}
 }
 
-func TestBuildConfiguration_NginxProxy(t *testing.T) {
+func TestBuildConfiguration_BwsProxy(t *testing.T) {
 	t.Parallel()
 
 	fakeResolver := &resolverfakes.FakeServiceResolver{}
 	fakeResolver.ResolveReturns(fooEndpoints, nil)
 
-	nginxProxy := &graph.EffectiveNginxProxy{
+	bwsProxy := &graph.EffectiveBwsProxy{
 		Telemetry: &ngfAPIv1alpha2.Telemetry{
 			Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 				Endpoint:   helpers.GetPointer("my-otel.svc:4563"),
@@ -7534,11 +7534,11 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 		DisableSNIHostValidation: helpers.GetPointer(true),
 	}
 
-	nginxProxyIPv4 := &graph.EffectiveNginxProxy{
+	bwsProxyIPv4 := &graph.EffectiveBwsProxy{
 		IPFamily: helpers.GetPointer(ngfAPIv1alpha2.IPv4),
 	}
 
-	nginxProxyIPv6 := &graph.EffectiveNginxProxy{
+	bwsProxyIPv6 := &graph.EffectiveBwsProxy{
 		IPFamily: helpers.GetPointer(ngfAPIv1alpha2.IPv6),
 	}
 
@@ -7557,7 +7557,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 					Valid:       true,
 					Routes:      map[graph.RouteKey]*graph.L7Route{},
 				})
-				gw.EffectiveNginxProxy = nginxProxy
+				gw.EffectiveBwsProxy = bwsProxy
 				return g
 			}),
 			expConf: getModifiedExpectedConfiguration(func(conf Configuration) Configuration {
@@ -7582,7 +7582,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 				}
 				return conf
 			}),
-			msg: "EffectiveNginxProxy with tracing config and http2 disabled",
+			msg: "EffectiveBwsProxy with tracing config and http2 disabled",
 		},
 		{
 			graph: getModifiedGraph(func(g *graph.Graph) *graph.Graph {
@@ -7598,7 +7598,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 					Valid:       true,
 					Routes:      map[graph.RouteKey]*graph.L7Route{},
 				})
-				gw.EffectiveNginxProxy = nginxProxyIPv4
+				gw.EffectiveBwsProxy = bwsProxyIPv4
 				return g
 			}),
 			expConf: getModifiedExpectedConfiguration(func(conf Configuration) Configuration {
@@ -7613,7 +7613,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 				}
 				return conf
 			}),
-			msg: "GatewayClass has NginxProxy with IPv4 IPFamily and no routes",
+			msg: "GatewayClass has BwsProxy with IPv4 IPFamily and no routes",
 		},
 		{
 			graph: getModifiedGraph(func(g *graph.Graph) *graph.Graph {
@@ -7629,7 +7629,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 					Valid:       true,
 					Routes:      map[graph.RouteKey]*graph.L7Route{},
 				})
-				gw.EffectiveNginxProxy = nginxProxyIPv6
+				gw.EffectiveBwsProxy = bwsProxyIPv6
 				return g
 			}),
 			expConf: getModifiedExpectedConfiguration(func(conf Configuration) Configuration {
@@ -7644,7 +7644,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 				}
 				return conf
 			}),
-			msg: "GatewayClass has NginxProxy with IPv6 IPFamily and no routes",
+			msg: "GatewayClass has BwsProxy with IPv6 IPFamily and no routes",
 		},
 		{
 			graph: getModifiedGraph(func(g *graph.Graph) *graph.Graph {
@@ -7660,7 +7660,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 					Valid:       true,
 					Routes:      map[graph.RouteKey]*graph.L7Route{},
 				})
-				gw.EffectiveNginxProxy = &graph.EffectiveNginxProxy{
+				gw.EffectiveBwsProxy = &graph.EffectiveBwsProxy{
 					RewriteClientIP: &ngfAPIv1alpha2.RewriteClientIP{
 						SetIPRecursively: helpers.GetPointer(true),
 						TrustedAddresses: []ngfAPIv1alpha2.RewriteClientIPAddress{
@@ -7691,7 +7691,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 				}
 				return conf
 			}),
-			msg: "GatewayClass has NginxProxy with rewriteClientIP details set",
+			msg: "GatewayClass has BwsProxy with rewriteClientIP details set",
 		},
 		{
 			graph: getModifiedGraph(func(g *graph.Graph) *graph.Graph {
@@ -7707,7 +7707,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 					Valid:       true,
 					Routes:      map[graph.RouteKey]*graph.L7Route{},
 				})
-				gw.EffectiveNginxProxy = &graph.EffectiveNginxProxy{
+				gw.EffectiveBwsProxy = &graph.EffectiveBwsProxy{
 					Logging: &ngfAPIv1alpha2.NginxLogging{
 						ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelDebug),
 					},
@@ -7721,7 +7721,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 				conf.BaseHTTPConfig.ServerTokens = graph.ServerTokenOff
 				return conf
 			}),
-			msg: "GatewayClass has NginxProxy with error log level set to debug",
+			msg: "GatewayClass has BwsProxy with error log level set to debug",
 		},
 		{
 			graph: getModifiedGraph(func(g *graph.Graph) *graph.Graph {
@@ -7737,7 +7737,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 					Valid:       true,
 					Routes:      map[graph.RouteKey]*graph.L7Route{},
 				})
-				gw.EffectiveNginxProxy = &graph.EffectiveNginxProxy{
+				gw.EffectiveBwsProxy = &graph.EffectiveBwsProxy{
 					NginxPlus: &ngfAPIv1alpha2.NginxPlus{
 						AllowedAddresses: []ngfAPIv1alpha2.NginxPlusAllowAddress{
 							{Type: ngfAPIv1alpha2.NginxPlusAllowIPAddressType, Value: "127.0.0.3"},
@@ -7753,7 +7753,7 @@ func TestBuildConfiguration_NginxProxy(t *testing.T) {
 				conf.BaseHTTPConfig.ServerTokens = graph.ServerTokenOff
 				return conf
 			}),
-			msg: "NginxProxy with NginxPlus allowed addresses configured but running on nginx oss",
+			msg: "BwsProxy with NginxPlus allowed addresses configured but running on nginx oss",
 		},
 	}
 
@@ -8141,25 +8141,25 @@ func TestBuildServerTokens(t *testing.T) {
 			expectedServerTokens: graph.ServerTokenOff,
 		},
 		{
-			name: "default server tokens is set for empty EffectiveNginxProxy",
+			name: "default server tokens is set for empty EffectiveBwsProxy",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{},
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{},
 			},
 			expectedServerTokens: graph.ServerTokenOff,
 		},
 		{
-			name: "keyword server token is set properly when EffectiveNginxProxy is set",
+			name: "keyword server token is set properly when EffectiveBwsProxy is set",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					ServerTokens: helpers.GetPointer("build"),
 				},
 			},
 			expectedServerTokens: "build",
 		},
 		{
-			name: "custom string value server token is set with quotes when EffectiveNginxProxy is set",
+			name: "custom string value server token is set with quotes when EffectiveBwsProxy is set",
 			gateway: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					ServerTokens: helpers.GetPointer("custom_value"),
 				},
 			},
@@ -9318,9 +9318,9 @@ func TestBuildWAF(t *testing.T) {
 		{
 			name: "WAF disabled, no bundles",
 			gateway: &graph.Gateway{
-				Source:              &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-disabled"}},
-				EffectiveNginxProxy: nil,
-				Policies:            []*graph.Policy{},
+				Source:            &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-disabled"}},
+				EffectiveBwsProxy: nil,
+				Policies:          []*graph.Policy{},
 			},
 			expWAFConfig: WAFConfig{
 				Enabled:    false,
@@ -9331,9 +9331,9 @@ func TestBuildWAF(t *testing.T) {
 		{
 			name: "WAF enabled, no bundles",
 			gateway: &graph.Gateway{
-				Source:              &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-enabled"}},
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
-				Policies:            []*graph.Policy{},
+				Source:            &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-enabled"}},
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
+				Policies:          []*graph.Policy{},
 			},
 			expWAFConfig: WAFConfig{
 				Enabled:    true,
@@ -9344,8 +9344,8 @@ func TestBuildWAF(t *testing.T) {
 		{
 			name: "WAF disabled, with bundles on policy",
 			gateway: &graph.Gateway{
-				Source:              &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-disabled-bundles"}},
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(false)}},
+				Source:            &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-disabled-bundles"}},
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(false)}},
 				Policies: []*graph.Policy{
 					{
 						WAFState: &graph.PolicyWAFState{
@@ -9367,8 +9367,8 @@ func TestBuildWAF(t *testing.T) {
 		{
 			name: "WAF enabled, with bundles on gateway-targeted policy",
 			gateway: &graph.Gateway{
-				Source:              &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-gw-policy"}},
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
+				Source:            &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-gw-policy"}},
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
 				Policies: []*graph.Policy{
 					{
 						WAFState: &graph.PolicyWAFState{
@@ -9392,8 +9392,8 @@ func TestBuildWAF(t *testing.T) {
 		{
 			name: "WAF enabled, policy with nil WAFState",
 			gateway: &graph.Gateway{
-				Source:              &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-nil-state"}},
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
+				Source:            &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-nil-state"}},
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
 				Policies: []*graph.Policy{
 					{
 						WAFState: nil, // Non-WAF policy.
@@ -9409,8 +9409,8 @@ func TestBuildWAF(t *testing.T) {
 		{
 			name: "WAF enabled, multiple policies with bundles",
 			gateway: &graph.Gateway{
-				Source:              &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-multi-policy"}},
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
+				Source:            &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-multi-policy"}},
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
 				Policies: []*graph.Policy{
 					{
 						WAFState: &graph.PolicyWAFState{
@@ -9440,9 +9440,9 @@ func TestBuildWAF(t *testing.T) {
 		{
 			name: "WAF enabled, bundles on route-targeted policy",
 			gateway: &graph.Gateway{
-				Source:              &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-route-policy"}},
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
-				Policies:            []*graph.Policy{},
+				Source:            &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-route-policy"}},
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
+				Policies:          []*graph.Policy{},
 				Listeners: []*graph.Listener{
 					{
 						Routes: map[graph.RouteKey]*graph.L7Route{
@@ -9472,8 +9472,8 @@ func TestBuildWAF(t *testing.T) {
 		{
 			name: "WAF enabled, bundles on both gateway and route policies",
 			gateway: &graph.Gateway{
-				Source:              &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-gw-route"}},
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
+				Source:            &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-gw-route"}},
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
 				Policies: []*graph.Policy{
 					{
 						WAFState: &graph.PolicyWAFState{
@@ -9513,9 +9513,9 @@ func TestBuildWAF(t *testing.T) {
 		{
 			name: "nil gateway source",
 			gateway: &graph.Gateway{
-				Source:              nil,
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
-				Policies:            []*graph.Policy{},
+				Source:            nil,
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)}},
+				Policies:          []*graph.Policy{},
 			},
 			expWAFConfig: WAFConfig{
 				Enabled:    true,
@@ -9527,7 +9527,7 @@ func TestBuildWAF(t *testing.T) {
 			name: "WAF enabled, cookie seed disabled",
 			gateway: &graph.Gateway{
 				Source: &v1.Gateway{ObjectMeta: metav1.ObjectMeta{UID: "uid-disable-seed"}},
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true), DisableCookieSeed: helpers.GetPointer(true)},
 				},
 				Policies: []*graph.Policy{},

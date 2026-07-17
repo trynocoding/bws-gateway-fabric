@@ -1,6 +1,6 @@
 # CRD Versioning
 
-This document discusses how we version our CustomResourceDefinitions (CRDs) that define Policies, Filters, or other configuration objects. NGINX Gateway Fabric distributes a few CRDs, such as NginxGateway, NginxProxy, ClientSettingsPolicy, and ObservabilityPolicy. More will inevitably be added over time.
+This document discusses how we version our CustomResourceDefinitions (CRDs) that define Policies, Filters, or other configuration objects. NGINX Gateway Fabric distributes a few CRDs, such as BwsGateway, BwsProxy, ClientSettingsPolicy, and ObservabilityPolicy. More will inevitably be added over time.
 
 ## Initial Version
 

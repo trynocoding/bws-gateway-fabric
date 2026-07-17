@@ -9,12 +9,12 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:categories=nginx-gateway-fabric,shortName=cspolicy
+// +kubebuilder:resource:categories=bws-gateway-fabric,shortName=cspolicy
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:metadata:labels="gateway.networking.k8s.io/policy=inherited"
 
 // ClientSettingsPolicy is an Inherited Attached Policy. It provides a way to configure the behavior of the connection
-// between the client and NGINX Gateway Fabric.
+// between the client and BWS Gateway Fabric.
 type ClientSettingsPolicy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

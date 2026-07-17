@@ -1,4 +1,4 @@
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: UpstreamSettingsPolicy
 metadata:
   name: merge-usp-1
@@ -11,7 +11,7 @@ spec:
     time: 1m
     timeout: 5h
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: UpstreamSettingsPolicy
 metadata:
   name: merge-usp-2
@@ -24,7 +24,7 @@ spec:
     connections: 100
     requests: 55
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: UpstreamSettingsPolicy
 metadata:
   name: z-merge-usp-3
@@ -37,7 +37,7 @@ spec:
     connections: 11
     requests: 15
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: UpstreamSettingsPolicy
 metadata:
   name: z-usp
@@ -48,7 +48,7 @@ spec:
       kind: Service
       name: tea
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: UpstreamSettingsPolicy
 metadata:
   name: a-usp-wins

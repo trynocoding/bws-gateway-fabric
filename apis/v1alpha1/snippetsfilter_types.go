@@ -9,7 +9,7 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:categories=nginx-gateway-fabric,shortName=snippetsfilter
+// +kubebuilder:resource:categories=bws-gateway-fabric,shortName=snippetsfilter
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 
 // SnippetsFilter is a filter that allows inserting NGINX configuration into the

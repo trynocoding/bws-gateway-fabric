@@ -18,7 +18,7 @@ type Config struct {
 	Logger logr.Logger
 	// NGINXSCCName is the name of the SecurityContextConstraints for the NGINX Pods. Only applicable in OpenShift.
 	NGINXSCCName string
-	// ConfigName is the name of the NginxGateway resource for this controller.
+	// ConfigName is the name of the BwsGateway resource for this controller.
 	ConfigName string
 	// AgentTLSSecretName is the name of the TLS Secret used by NGINX Agent to communicate with the control plane.
 	AgentTLSSecretName string

@@ -31,8 +31,8 @@ var gatewayCRDs = map[string]apiVersion{
 type GatewayClass struct {
 	// Source is the source resource.
 	Source *v1.GatewayClass
-	// NginxProxy is the NginxProxy resource referenced by this GatewayClass.
-	NginxProxy *NginxProxy
+	// BwsProxy is the BwsProxy resource referenced by this GatewayClass.
+	BwsProxy *BwsProxy
 	// Conditions include Conditions for the GatewayClass.
 	Conditions []conditions.Condition
 	// Valid shows whether the GatewayClass is valid.
@@ -82,7 +82,7 @@ func processGatewayClasses(
 
 func buildGatewayClass(
 	gc *v1.GatewayClass,
-	nps map[types.NamespacedName]*NginxProxy,
+	nps map[types.NamespacedName]*BwsProxy,
 	crdVersions map[types.NamespacedName]*metav1.PartialObjectMetadata,
 	experimentalEnabled bool,
 ) *GatewayClass {
@@ -90,9 +90,9 @@ func buildGatewayClass(
 		return nil
 	}
 
-	var np *NginxProxy
+	var np *BwsProxy
 	if gc.Spec.ParametersRef != nil {
-		np = getNginxProxyForGatewayClass(*gc.Spec.ParametersRef, nps)
+		np = getBwsProxyForGatewayClass(*gc.Spec.ParametersRef, nps)
 	}
 
 	conds, valid, crdExperimental, bestEffort := validateGatewayClass(gc, np, crdVersions)
@@ -102,7 +102,7 @@ func buildGatewayClass(
 
 	return &GatewayClass{
 		Source:                gc,
-		NginxProxy:            np,
+		BwsProxy:              np,
 		Valid:                 valid,
 		Conditions:            conds,
 		ExperimentalSupported: experimental,
@@ -110,10 +110,10 @@ func buildGatewayClass(
 	}
 }
 
-func getNginxProxyForGatewayClass(
+func getBwsProxyForGatewayClass(
 	ref v1.ParametersReference,
-	nps map[types.NamespacedName]*NginxProxy,
-) *NginxProxy {
+	nps map[types.NamespacedName]*BwsProxy,
+) *BwsProxy {
 	if ref.Namespace == nil {
 		return nil
 	}
@@ -129,7 +129,7 @@ func validateGatewayClassParametersRef(path *field.Path, ref v1.ParametersRefere
 	if _, ok := supportedParamKinds[string(ref.Kind)]; !ok {
 		errs = append(
 			errs,
-			field.NotSupported(path.Child("kind"), string(ref.Kind), []string{kinds.NginxProxy}),
+			field.NotSupported(path.Child("kind"), string(ref.Kind), []string{kinds.BwsProxy}),
 		)
 	}
 
@@ -150,7 +150,7 @@ func validateGatewayClassParametersRef(path *field.Path, ref v1.ParametersRefere
 
 func validateGatewayClass(
 	gc *v1.GatewayClass,
-	npCfg *NginxProxy,
+	npCfg *BwsProxy,
 	crdVersions map[types.NamespacedName]*metav1.PartialObjectMetadata,
 ) ([]conditions.Condition, bool, bool, bool) {
 	var conds []conditions.Condition
@@ -196,7 +196,7 @@ func validateGatewayClass(
 }
 
 var supportedParamKinds = map[string]struct{}{
-	kinds.NginxProxy: {},
+	kinds.BwsProxy: {},
 }
 
 type apiVersion struct {

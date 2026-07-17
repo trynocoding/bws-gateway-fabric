@@ -2,19 +2,19 @@
 # This file is used to track the info used to scaffold your project
 # and allow the plugins properly work.
 # More info: https://book.kubebuilder.io/reference/project-config.html
-domain: nginx.org
+domain: bessystem.com
 layout:
 - helm.sdk.operatorframework.io/v1
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
-projectName: nginx-gateway-fabric
+projectName: bws-gateway-fabric
 resources:
 - api:
     crdVersion: v1
     namespaced: true
-  domain: nginx.org
+  domain: bessystem.com
   group: gateway
-  kind: NginxGatewayFabric
+  kind: BwsGatewayFabric
   version: v1alpha1
 version: "3"

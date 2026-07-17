@@ -1,14 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - bases/gateway.nginx.org_authenticationfilters.yaml
-  - bases/gateway.nginx.org_clientsettingspolicies.yaml
-  - bases/gateway.nginx.org_nginxgateways.yaml
-  - bases/gateway.nginx.org_nginxproxies.yaml
-  - bases/gateway.nginx.org_observabilitypolicies.yaml
-  - bases/gateway.nginx.org_proxysettingspolicies.yaml
-  - bases/gateway.nginx.org_snippetsfilters.yaml
-  - bases/gateway.nginx.org_snippetspolicies.yaml
-  - bases/gateway.nginx.org_upstreamsettingspolicies.yaml
-  - bases/gateway.nginx.org_ratelimitpolicies.yaml
-  - bases/gateway.nginx.org_wafpolicies.yaml
+  - bases/gateway.bessystem.com_authenticationfilters.yaml
+  - bases/gateway.bessystem.com_clientsettingspolicies.yaml
+  - bases/gateway.bessystem.com_bwsgateways.yaml
+  - bases/gateway.bessystem.com_bwsproxies.yaml
+  - bases/gateway.bessystem.com_observabilitypolicies.yaml
+  - bases/gateway.bessystem.com_proxysettingspolicies.yaml
+  - bases/gateway.bessystem.com_snippetsfilters.yaml
+  - bases/gateway.bessystem.com_snippetspolicies.yaml
+  - bases/gateway.bessystem.com_upstreamsettingspolicies.yaml
+  - bases/gateway.bessystem.com_ratelimitpolicies.yaml

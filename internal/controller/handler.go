@@ -81,7 +81,7 @@ type eventHandlerConfig struct {
 	logger logr.Logger
 	// gatewayPodConfig contains information about this Pod.
 	gatewayPodConfig ngfConfig.GatewayPodConfig
-	// controlConfigNSName is the NamespacedName of the NginxGateway config for this controller.
+	// controlConfigNSName is the NamespacedName of the BwsGateway config for this controller.
 	controlConfigNSName types.NamespacedName
 	// gatewayCtlrName is the name of the NGF controller.
 	gatewayCtlrName string
@@ -140,10 +140,10 @@ func newEventHandlerImpl(cfg eventHandlerConfig) *eventHandlerImpl {
 	}
 
 	handler.objectFilters = map[filterKey]objectFilter{
-		// NginxGateway CRD
-		objectFilterKey(&ngfAPI.NginxGateway{}, handler.cfg.controlConfigNSName): {
-			upsert: handler.nginxGatewayCRDUpsert,
-			delete: handler.nginxGatewayCRDDelete,
+		// BwsGateway CRD
+		objectFilterKey(&ngfAPI.BwsGateway{}, handler.cfg.controlConfigNSName): {
+			upsert: handler.bwsGatewayCRDUpsert,
+			delete: handler.bwsGatewayCRDDelete,
 		},
 	}
 
@@ -230,7 +230,7 @@ func (h *eventHandlerImpl) sendNginxConfig(ctx context.Context, logger logr.Logg
 			continue
 		}
 
-		if gatewayHasPendingWAFBundle(gr, gw) && !graph.WAFBundleFailOpenForNginxProxy(gw.EffectiveNginxProxy) {
+		if gatewayHasPendingWAFBundle(gr, gw) && !graph.WAFBundleFailOpenForBwsProxy(gw.EffectiveBwsProxy) {
 			// Fail-closed (default): a pending bundle blocks the config push until the bundle is available.
 			// Enqueue a status update because the config is being withheld in this fail-closed case,
 			// making the pending condition visible to the operator.
@@ -240,7 +240,7 @@ func (h *eventHandlerImpl) sendNginxConfig(ctx context.Context, logger logr.Logg
 					NamespacedName: gw.DeploymentName,
 					GatewayName:    gw.Source.GetName(),
 				},
-				Error: errors.New("NGINX configuration update withheld: WAF bundle for Gateway is still pending"),
+				Error: errors.New("BWS configuration update withheld: WAF bundle for Gateway is still pending"),
 			}
 			h.cfg.statusQueue.Enqueue(obj)
 			continue
@@ -252,7 +252,7 @@ func (h *eventHandlerImpl) sendNginxConfig(ctx context.Context, logger logr.Logg
 		}
 
 		nginxImage, _ := provisioner.DetermineNginxImageName(
-			gw.EffectiveNginxProxy,
+			gw.EffectiveBwsProxy,
 			h.cfg.plus,
 			h.cfg.gatewayPodConfig.Version,
 		)
@@ -268,14 +268,14 @@ func (h *eventHandlerImpl) sendNginxConfig(ctx context.Context, logger logr.Logg
 		h.setLatestConfiguration(gw, &cfg)
 
 		vm := []v1.VolumeMount{}
-		if gw.EffectiveNginxProxy != nil &&
-			gw.EffectiveNginxProxy.Kubernetes != nil {
-			if gw.EffectiveNginxProxy.Kubernetes.Deployment != nil {
-				vm = gw.EffectiveNginxProxy.Kubernetes.Deployment.Container.VolumeMounts
+		if gw.EffectiveBwsProxy != nil &&
+			gw.EffectiveBwsProxy.Kubernetes != nil {
+			if gw.EffectiveBwsProxy.Kubernetes.Deployment != nil {
+				vm = gw.EffectiveBwsProxy.Kubernetes.Deployment.Container.VolumeMounts
 			}
 
-			if gw.EffectiveNginxProxy.Kubernetes.DaemonSet != nil {
-				vm = gw.EffectiveNginxProxy.Kubernetes.DaemonSet.Container.VolumeMounts
+			if gw.EffectiveBwsProxy.Kubernetes.DaemonSet != nil {
+				vm = gw.EffectiveBwsProxy.Kubernetes.DaemonSet.Container.VolumeMounts
 			}
 		}
 
@@ -512,10 +512,10 @@ func (h *eventHandlerImpl) waitForStatusUpdates(ctx context.Context) {
 
 		switch {
 		case item.Error != nil:
-			h.cfg.logger.Error(item.Error, "Failed to update NGINX configuration")
+			h.cfg.logger.Error(item.Error, "Failed to update BWS configuration")
 			nginxReloadRes.Error = item.Error
 		case gw != nil && item.NginxConfigPushed:
-			h.cfg.logger.Info("NGINX configuration was successfully updated")
+			h.cfg.logger.Info("BWS configuration was successfully updated")
 		}
 		// Only update LatestReloadResult when a config push was actually attempted.
 		// Status-only queue items (e.g., WAF poll callbacks) have NginxConfigPushed=false
@@ -854,7 +854,7 @@ func (h *eventHandlerImpl) updateNginxConf(
 func (h *eventHandlerImpl) updateControlPlaneAndSetStatus(
 	ctx context.Context,
 	logger logr.Logger,
-	cfg *ngfAPI.NginxGateway,
+	cfg *ngfAPI.BwsGateway,
 ) {
 	var cpUpdateRes status.ControlPlaneUpdateResult
 
@@ -881,7 +881,7 @@ func (h *eventHandlerImpl) updateControlPlaneAndSetStatus(
 
 	var reqs []status.UpdateRequest
 
-	req := status.PrepareNginxGatewayStatus(cfg, metav1.Now(), cpUpdateRes)
+	req := status.PrepareBwsGatewayStatus(cfg, metav1.Now(), cpUpdateRes)
 	if req != nil {
 		reqs = append(reqs, *req)
 	}
@@ -1137,16 +1137,16 @@ treatment other than the typical Capture() call that leads to generating nginx c
 
 */
 
-func (h *eventHandlerImpl) nginxGatewayCRDUpsert(ctx context.Context, logger logr.Logger, obj client.Object) {
-	cfg, ok := obj.(*ngfAPI.NginxGateway)
+func (h *eventHandlerImpl) bwsGatewayCRDUpsert(ctx context.Context, logger logr.Logger, obj client.Object) {
+	cfg, ok := obj.(*ngfAPI.BwsGateway)
 	if !ok {
-		panic(fmt.Errorf("obj type mismatch: got %T, expected %T", obj, &ngfAPI.NginxGateway{}))
+		panic(fmt.Errorf("obj type mismatch: got %T, expected %T", obj, &ngfAPI.BwsGateway{}))
 	}
 
 	h.updateControlPlaneAndSetStatus(ctx, logger, cfg)
 }
 
-func (h *eventHandlerImpl) nginxGatewayCRDDelete(
+func (h *eventHandlerImpl) bwsGatewayCRDDelete(
 	ctx context.Context,
 	logger logr.Logger,
 	_ types.NamespacedName,

@@ -4,7 +4,7 @@
 # WHY THIS SCRIPT IS NECESSARY:
 #
 # The operator RBAC (operators/config/rbac/role.yaml) must be a superset of the NGF Helm chart
-# RBAC (charts/nginx-gateway-fabric/templates/clusterrole.yaml) because:
+# RBAC (charts/bws-gateway-fabric/templates/clusterrole.yaml) because:
 #
 # 1. The operator deploys NGF, so it needs all permissions NGF requires to function
 # 2. The operator needs additional permissions to manage Deployments, Services, CRDs, etc.
@@ -31,7 +31,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OPERATOR_RBAC="$SCRIPT_DIR/../config/rbac/role.yaml"
-HELM_CHART_DIR="$SCRIPT_DIR/../../charts/nginx-gateway-fabric"
+HELM_CHART_DIR="$SCRIPT_DIR/../../charts/bws-gateway-fabric"
 
 echo "Verifying RBAC synchronization..."
 echo "Operator RBAC: $OPERATOR_RBAC"
@@ -57,12 +57,11 @@ kube_version=$(grep 'kubeVersion' "$HELM_CHART_DIR/Chart.yaml" | grep -Eo '[0-9]
 
 HELM_RENDERED=$(helm template test "$HELM_CHART_DIR" \
     --kube-version "${kube_version}" \
-    --set nginxGateway.gwAPIExperimentalFeatures.enable=true \
-    --set nginxGateway.gwAPIInferenceExtension.enable=true \
-    --set nginxGateway.snippets.enable=true \
-    --set nginxGateway.leaderElection.enable=true \
-    --set nginxGateway.productTelemetry.enable=true \
-    --set nginx.plus=true \
+    --set bwsGateway.gwAPIExperimentalFeatures.enable=true \
+    --set bwsGateway.gwAPIInferenceExtension.enable=true \
+    --set bwsGateway.snippets.enable=true \
+    --set bwsGateway.leaderElection.enable=true \
+    --set bwsGateway.productTelemetry.enable=true \
     2>/dev/null)
 
 # Extract ClusterRole rules from rendered template

@@ -1360,7 +1360,7 @@ func TestCreateBackend(t *testing.T) {
 	}
 
 	tests := []struct {
-		nginxProxySpec               *EffectiveNginxProxy
+		bwsProxySpec                 *EffectiveBwsProxy
 		parentRefKind                string
 		name                         string
 		expectedServicePortReference string
@@ -1525,7 +1525,7 @@ func TestCreateBackend(t *testing.T) {
 				Valid:       true,
 				InvalidForGateways: map[types.NamespacedName]conditions.Condition{
 					{Namespace: "test", Name: "gateway"}: conditions.NewRouteBackendRefUnsupportedValue(
-						"ExternalName service requires DNS resolver configuration in Gateway's NginxProxy",
+						"ExternalName service requires DNS resolver configuration in Gateway's BwsProxy",
 					),
 				},
 				SessionPersistence: &expectedSPConfig,
@@ -1541,7 +1541,7 @@ func TestCreateBackend(t *testing.T) {
 					return backend
 				}),
 			},
-			nginxProxySpec: &EffectiveNginxProxy{
+			bwsProxySpec: &EffectiveBwsProxy{
 				DNSResolver: &ngfAPIv1alpha2.DNSResolver{
 					Addresses: []ngfAPIv1alpha2.DNSResolverAddress{
 						{Type: ngfAPIv1alpha2.DNSResolverIPAddressType, Value: "8.8.8.8"},
@@ -1574,7 +1574,7 @@ func TestCreateBackend(t *testing.T) {
 				Valid:       true,
 				InvalidForGateways: map[types.NamespacedName]conditions.Condition{
 					{Namespace: "test", Name: "gateway2"}: conditions.NewRouteBackendRefUnsupportedValue(
-						"ExternalName service requires DNS resolver configuration in Gateway's NginxProxy",
+						"ExternalName service requires DNS resolver configuration in Gateway's BwsProxy",
 					),
 				},
 				SessionPersistence: &expectedSPConfig,
@@ -1597,7 +1597,7 @@ func TestCreateBackend(t *testing.T) {
 				Valid:       false,
 				InvalidForGateways: map[types.NamespacedName]conditions.Condition{
 					{Namespace: "test", Name: "gateway"}: conditions.NewRouteBackendRefUnsupportedValue(
-						"ExternalName service requires DNS resolver configuration in Gateway's NginxProxy",
+						"ExternalName service requires DNS resolver configuration in Gateway's BwsProxy",
 					),
 				},
 			},
@@ -1623,7 +1623,7 @@ func TestCreateBackend(t *testing.T) {
 				Valid:       false,
 				InvalidForGateways: map[types.NamespacedName]conditions.Condition{
 					{Namespace: "test", Name: "gateway"}: conditions.NewRouteBackendRefUnsupportedValue(
-						"ExternalName service requires DNS resolver configuration in Gateway's NginxProxy",
+						"ExternalName service requires DNS resolver configuration in Gateway's BwsProxy",
 					),
 				},
 			},
@@ -1650,7 +1650,7 @@ func TestCreateBackend(t *testing.T) {
 				Valid:       true,
 				InvalidForGateways: map[types.NamespacedName]conditions.Condition{
 					{Namespace: "test", Name: "gateway"}: conditions.NewRouteBackendRefUnsupportedValue(
-						"ExternalName service requires DNS resolver configuration in Gateway's NginxProxy",
+						"ExternalName service requires DNS resolver configuration in Gateway's BwsProxy",
 					),
 				},
 				SessionPersistence: &expectedSPConfig,
@@ -1706,10 +1706,10 @@ func TestCreateBackend(t *testing.T) {
 				},
 				ParentRefs: []ParentRef{
 					{
-						Kind:                kinds.Gateway,
-						NamespacedName:      types.NamespacedName{Namespace: "test", Name: "gateway"},
-						GatewayNsName:       types.NamespacedName{Namespace: "test", Name: "gateway"},
-						EffectiveNginxProxy: test.nginxProxySpec,
+						Kind:              kinds.Gateway,
+						NamespacedName:    types.NamespacedName{Namespace: "test", Name: "gateway"},
+						GatewayNsName:     types.NamespacedName{Namespace: "test", Name: "gateway"},
+						EffectiveBwsProxy: test.bwsProxySpec,
 					},
 				},
 			}
@@ -1733,7 +1733,7 @@ func TestCreateBackend(t *testing.T) {
 					GatewayNsName:  types.NamespacedName{Namespace: "test", Name: "gateway2"},
 				})
 				// For this test, the first gateway should have DNS resolver
-				route.ParentRefs[0].EffectiveNginxProxy = &EffectiveNginxProxy{
+				route.ParentRefs[0].EffectiveBwsProxy = &EffectiveBwsProxy{
 					DNSResolver: &ngfAPIv1alpha2.DNSResolver{
 						Addresses: []ngfAPIv1alpha2.DNSResolverAddress{
 							{Type: ngfAPIv1alpha2.DNSResolverIPAddressType, Value: "8.8.8.8"},

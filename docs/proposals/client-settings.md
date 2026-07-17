@@ -48,7 +48,7 @@ In the future, we can extend the Client Settings Policy to include more client-r
 
 ## API
 
-The `ClientSettingsPolicy` API is a CRD that is a part of the `gateway.nginx.org` Group. It adheres to the guidelines and requirements of an Inherited Policy as outlined in the [Policy and Metaresources GEP](https://gateway-api.sigs.k8s.io/geps/gep-713/).
+The `ClientSettingsPolicy` API is a CRD that is a part of the `gateway.bessystem.com` Group. It adheres to the guidelines and requirements of an Inherited Policy as outlined in the [Policy and Metaresources GEP](https://gateway-api.sigs.k8s.io/geps/gep-713/).
 
 Below is the Golang API for the `ClientSettingsPolicy` API:
 
@@ -184,7 +184,7 @@ import (
 
 
 const (
-    ClientSettingsPolicyAffected gatewayv1alpha2.PolicyConditionType = "gateway.nginx.org/ClientSettingsPolicyAffected"
+    ClientSettingsPolicyAffected gatewayv1alpha2.PolicyConditionType = "gateway.bessystem.com/ClientSettingsPolicyAffected"
     PolicyAffectedReason gatewayv1alpha2.PolicyConditionReason = "PolicyAffected"
 )
 
@@ -195,7 +195,7 @@ Below is an example of what this Condition may look like:
 
 ```yaml
 Conditions:
-  Type:                  gateway.nginx.org/ClientSettingsPolicyAffected
+  Type:                  gateway.bessystem.com/ClientSettingsPolicyAffected
   Message:               Object affected by a ClientSettingsPolicy.
   Observed Generation:   1
   Reason:                PolicyAffected
@@ -233,7 +233,7 @@ This topic is currently up for discussion, and more solutions may be added to th
 Below is an example of `ClientSettingsPolicy` YAML definition:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ClientSettingsPolicy
 metadata:
   name: example-client-settings
@@ -291,7 +291,7 @@ status:
     status: "True"
     reason: Programmed
     message: Gateway is programmed
-  - type: gateway.nginx.org/ClientSettingsPolicyAffected # new condition
+  - type: gateway.bessystem.com/ClientSettingsPolicyAffected # new condition
     status: "True"
     reason: PolicyAffected
     message: Object affected by a ClientSettingsPolicy.

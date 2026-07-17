@@ -1,4 +1,4 @@
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: RateLimitPolicy
 metadata:
   name: rlp-multiple-targets

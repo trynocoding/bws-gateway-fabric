@@ -186,30 +186,30 @@ func TestExecuteServers(t *testing.T) {
 	}
 
 	expSubStrings := map[string]int{
-		"listen 8080 default_server;":                              1,
-		"listen 8080;":                                             2,
-		"listen 8443 ssl;":                                         2,
-		"listen 8443 ssl default_server;":                          1,
-		"server_name example.com;":                                 2,
-		"server_name cafe.example.com;":                            2,
-		"ssl_certificate /etc/nginx/secrets/test-keypair.pem;":     2,
-		"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;": 2,
-		"ssl_protocols TLSv1.2 TLSv1.3;":                           1,
+		"listen 8080 default_server;":                            1,
+		"listen 8080;":                                           2,
+		"listen 8443 ssl;":                                       2,
+		"listen 8443 ssl default_server;":                        1,
+		"server_name example.com;":                               2,
+		"server_name cafe.example.com;":                          2,
+		"ssl_certificate /etc/bws/secrets/test-keypair.pem;":     2,
+		"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;": 2,
+		"ssl_protocols TLSv1.2 TLSv1.3;":                         1,
 		"ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:HIGH:!aNULL:!MD5;": 1,
-		"ssl_prefer_server_ciphers on;":                     1,
-		"proxy_ssl_server_name on;":                         1,
-		"proxy_ssl_verify on;":                              1,
-		"proxy_ssl_verify_depth 4;":                         1,
-		"status_zone":                                       0,
-		"include /etc/nginx/includes/location-snippet.conf": 1,
-		"include /etc/nginx/includes/server-snippet.conf":   1,
-		"auth_basic \"Basic Restricted\";":                  1,
-		"auth_basic_user_file /etc/nginx/secrets/basic_auth_test-ns_auth-basic-filter;": 1,
-		"auth_jwt \"JWT Restricted\";":                                           1,
-		"auth_jwt_key_file /etc/nginx/secrets/jwt_auth_test-ns_auth-jwt-filter;": 1,
-		"auth_jwt_key_cache 10s;":                                                1,
-		"mirror /_ngf-internal-mirror-my-backend-test/route1-0;":                 1,
-		"if ($__ngf_internal_mirror_my_backend_test_route1_0_50_00 = \"\")":      1,
+		"ssl_prefer_server_ciphers on;":                   1,
+		"proxy_ssl_server_name on;":                       1,
+		"proxy_ssl_verify on;":                            1,
+		"proxy_ssl_verify_depth 4;":                       1,
+		"status_zone":                                     0,
+		"include /etc/bws/includes/location-snippet.conf": 1,
+		"include /etc/bws/includes/server-snippet.conf":   1,
+		"auth_basic \"Basic Restricted\";":                1,
+		"auth_basic_user_file /etc/bws/secrets/basic_auth_test-ns_auth-basic-filter;": 1,
+		"auth_jwt \"JWT Restricted\";":                                         1,
+		"auth_jwt_key_file /etc/bws/secrets/jwt_auth_test-ns_auth-jwt-filter;": 1,
+		"auth_jwt_key_cache 10s;":                                              1,
+		"mirror /_ngf-internal-mirror-my-backend-test/route1-0;":               1,
+		"if ($__ngf_internal_mirror_my_backend_test_route1_0_50_00 = \"\")":    1,
 		"return 204": 1,
 	}
 
@@ -315,10 +315,10 @@ func TestExecuteServers_TLSOptions(t *testing.T) {
 		"ssl_prefer_server_ciphers on;":                                                         2,
 		"ssl_protocols TLSv1.2 TLSv1.3;":                                                        1,
 		"ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:HIGH:!aNULL:!MD5;": 1,
-		"ssl_certificate /etc/nginx/secrets/test-keypair-1.pem;":                                1,
-		"ssl_certificate /etc/nginx/secrets/test-keypair-2.pem;":                                1,
-		"ssl_certificate /etc/nginx/secrets/test-keypair-3.pem;":                                1,
-		"ssl_certificate /etc/nginx/secrets/test-keypair-4.pem;":                                1,
+		"ssl_certificate /etc/bws/secrets/test-keypair-1.pem;":                                  1,
+		"ssl_certificate /etc/bws/secrets/test-keypair-2.pem;":                                  1,
+		"ssl_certificate /etc/bws/secrets/test-keypair-3.pem;":                                  1,
+		"ssl_certificate /etc/bws/secrets/test-keypair-4.pem;":                                  1,
 	}
 
 	type assertion func(g *WithT, data string)
@@ -366,10 +366,10 @@ func TestExecuteServers_MultiCertSNI(t *testing.T) {
 	}
 
 	expSubStrings := map[string]int{
-		"ssl_certificate /etc/nginx/secrets/keypair-rsa.pem;":       1,
-		"ssl_certificate /etc/nginx/secrets/keypair-ecdsa.pem;":     1,
-		"ssl_certificate_key /etc/nginx/secrets/keypair-rsa.pem;":   1,
-		"ssl_certificate_key /etc/nginx/secrets/keypair-ecdsa.pem;": 1,
+		"ssl_certificate /etc/bws/secrets/keypair-rsa.pem;":       1,
+		"ssl_certificate /etc/bws/secrets/keypair-ecdsa.pem;":     1,
+		"ssl_certificate_key /etc/bws/secrets/keypair-rsa.pem;":   1,
+		"ssl_certificate_key /etc/bws/secrets/keypair-ecdsa.pem;": 1,
 	}
 
 	fakeGenerator := &policiesfakes.FakeGenerator{}
@@ -454,14 +454,14 @@ func TestExecuteServers_IPFamily(t *testing.T) {
 				},
 			},
 			expectedHTTPConfig: map[string]int{
-				"listen 8080 default_server;":                              1,
-				"listen 8080;":                                             1,
-				"listen 8443 ssl default_server;":                          1,
-				"listen 8443 ssl;":                                         1,
-				"server_name example.com;":                                 2,
-				"ssl_certificate /etc/nginx/secrets/test-keypair.pem;":     1,
-				"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;": 1,
-				"ssl_reject_handshake on;":                                 1,
+				"listen 8080 default_server;":                            1,
+				"listen 8080;":                                           1,
+				"listen 8443 ssl default_server;":                        1,
+				"listen 8443 ssl;":                                       1,
+				"server_name example.com;":                               2,
+				"ssl_certificate /etc/bws/secrets/test-keypair.pem;":     1,
+				"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;": 1,
+				"ssl_reject_handshake on;":                               1,
 			},
 		},
 		{
@@ -475,16 +475,16 @@ func TestExecuteServers_IPFamily(t *testing.T) {
 				TLSPassthroughServers: passThroughServers,
 			},
 			expectedHTTPConfig: map[string]int{
-				"listen [::]:8080 default_server;":                              1,
-				"listen [::]:8080;":                                             1,
-				"listen [::]:443 ssl default_server;":                           1,
-				"listen [::]:443 ssl;":                                          1,
-				"listen unix:/var/run/nginx/https8443.sock ssl;":                1,
-				"listen unix:/var/run/nginx/https8443.sock ssl default_server;": 1,
-				"server_name example.com;":                                      3,
-				"ssl_certificate /etc/nginx/secrets/test-keypair.pem;":          2,
-				"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;":      2,
-				"ssl_reject_handshake on;":                                      2,
+				"listen [::]:8080 default_server;":                            1,
+				"listen [::]:8080;":                                           1,
+				"listen [::]:443 ssl default_server;":                         1,
+				"listen [::]:443 ssl;":                                        1,
+				"listen unix:/var/run/bws/https8443.sock ssl;":                1,
+				"listen unix:/var/run/bws/https8443.sock ssl default_server;": 1,
+				"server_name example.com;":                                    3,
+				"ssl_certificate /etc/bws/secrets/test-keypair.pem;":          2,
+				"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;":      2,
+				"ssl_reject_handshake on;":                                    2,
 			},
 		},
 		{
@@ -497,21 +497,21 @@ func TestExecuteServers_IPFamily(t *testing.T) {
 				},
 			},
 			expectedHTTPConfig: map[string]int{
-				"listen 8080 default_server;":                              1,
-				"listen 8080;":                                             1,
-				"listen 8443 ssl default_server;":                          1,
-				"listen 8443 ssl;":                                         1,
-				"server_name example.com;":                                 2,
-				"ssl_certificate /etc/nginx/secrets/test-keypair.pem;":     1,
-				"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;": 1,
-				"ssl_reject_handshake on;":                                 1,
-				"listen [::]:8080 default_server;":                         1,
-				"listen [::]:8080;":                                        1,
-				"listen [::]:8443 ssl default_server;":                     1,
-				"listen [::]:8443 ssl;":                                    1,
-				"status_zone":                                              0,
-				"real_ip_header proxy-protocol;":                           0,
-				"real_ip_recursive on;":                                    0,
+				"listen 8080 default_server;":                            1,
+				"listen 8080;":                                           1,
+				"listen 8443 ssl default_server;":                        1,
+				"listen 8443 ssl;":                                       1,
+				"server_name example.com;":                               2,
+				"ssl_certificate /etc/bws/secrets/test-keypair.pem;":     1,
+				"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;": 1,
+				"ssl_reject_handshake on;":                               1,
+				"listen [::]:8080 default_server;":                       1,
+				"listen [::]:8080;":                                      1,
+				"listen [::]:8443 ssl default_server;":                   1,
+				"listen [::]:8443 ssl;":                                  1,
+				"status_zone":                                            0,
+				"real_ip_header proxy-protocol;":                         0,
+				"real_ip_recursive on;":                                  0,
 			},
 		},
 	}
@@ -582,21 +582,21 @@ func TestExecuteServers_RewriteClientIP(t *testing.T) {
 				},
 			},
 			expectedHTTPConfig: map[string]int{
-				"set_real_ip_from 10.56.73.51/32;":                         4,
-				"real_ip_header proxy_protocol;":                           4,
-				"listen 8080 default_server proxy_protocol;":               1,
-				"listen 8080 proxy_protocol;":                              1,
-				"listen 8443 ssl default_server proxy_protocol;":           1,
-				"listen 8443 ssl proxy_protocol;":                          1,
-				"server_name example.com;":                                 2,
-				"ssl_certificate /etc/nginx/secrets/test-keypair.pem;":     1,
-				"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;": 1,
-				"ssl_reject_handshake on;":                                 1,
-				"listen [::]:8080 default_server proxy_protocol;":          1,
-				"listen [::]:8080 proxy_protocol;":                         1,
-				"listen [::]:8443 ssl default_server proxy_protocol;":      1,
-				"listen [::]:8443 ssl proxy_protocol;":                     1,
-				"real_ip_recursive on;":                                    0,
+				"set_real_ip_from 10.56.73.51/32;":                       4,
+				"real_ip_header proxy_protocol;":                         4,
+				"listen 8080 default_server proxy_protocol;":             1,
+				"listen 8080 proxy_protocol;":                            1,
+				"listen 8443 ssl default_server proxy_protocol;":         1,
+				"listen 8443 ssl proxy_protocol;":                        1,
+				"server_name example.com;":                               2,
+				"ssl_certificate /etc/bws/secrets/test-keypair.pem;":     1,
+				"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;": 1,
+				"ssl_reject_handshake on;":                               1,
+				"listen [::]:8080 default_server proxy_protocol;":        1,
+				"listen [::]:8080 proxy_protocol;":                       1,
+				"listen [::]:8443 ssl default_server proxy_protocol;":    1,
+				"listen [::]:8443 ssl proxy_protocol;":                   1,
+				"real_ip_recursive on;":                                  0,
 			},
 		},
 		{
@@ -614,23 +614,23 @@ func TestExecuteServers_RewriteClientIP(t *testing.T) {
 				},
 			},
 			expectedHTTPConfig: map[string]int{
-				"set_real_ip_from 10.1.1.3/32;":                            4,
-				"set_real_ip_from 2.2.2.2;":                                4,
-				"set_real_ip_from 2001:db8::/32;":                          4,
-				"real_ip_header X-Forwarded-For;":                          4,
-				"real_ip_recursive on;":                                    4,
-				"listen 8080 default_server;":                              1,
-				"listen 8080;":                                             1,
-				"listen 8443 ssl default_server;":                          1,
-				"listen 8443 ssl;":                                         1,
-				"server_name example.com;":                                 2,
-				"ssl_certificate /etc/nginx/secrets/test-keypair.pem;":     1,
-				"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;": 1,
-				"ssl_reject_handshake on;":                                 1,
-				"listen [::]:8080 default_server;":                         1,
-				"listen [::]:8080;":                                        1,
-				"listen [::]:8443 ssl default_server;":                     1,
-				"listen [::]:8443 ssl;":                                    1,
+				"set_real_ip_from 10.1.1.3/32;":                          4,
+				"set_real_ip_from 2.2.2.2;":                              4,
+				"set_real_ip_from 2001:db8::/32;":                        4,
+				"real_ip_header X-Forwarded-For;":                        4,
+				"real_ip_recursive on;":                                  4,
+				"listen 8080 default_server;":                            1,
+				"listen 8080;":                                           1,
+				"listen 8443 ssl default_server;":                        1,
+				"listen 8443 ssl;":                                       1,
+				"server_name example.com;":                               2,
+				"ssl_certificate /etc/bws/secrets/test-keypair.pem;":     1,
+				"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;": 1,
+				"ssl_reject_handshake on;":                               1,
+				"listen [::]:8080 default_server;":                       1,
+				"listen [::]:8080;":                                      1,
+				"listen [::]:8443 ssl default_server;":                   1,
+				"listen [::]:8443 ssl;":                                  1,
 			},
 		},
 	}
@@ -1547,11 +1547,11 @@ func TestCreateServers(t *testing.T) {
 	}
 
 	externalIncludes := []shared.Include{
-		{Name: "/etc/nginx/includes/include-1.conf", Content: []byte("include-1")},
+		{Name: "/etc/bws/includes/include-1.conf", Content: []byte("include-1")},
 	}
 
 	internalIncludes := []shared.Include{
-		{Name: "/etc/nginx/includes/internal-include-1.conf", Content: []byte("include-1")},
+		{Name: "/etc/bws/includes/internal-include-1.conf", Content: []byte("include-1")},
 	}
 
 	getExpectedLocations := func(isHTTPS bool) []http.Location {
@@ -1623,7 +1623,7 @@ func TestCreateServers(t *testing.T) {
 				ProxySetHeaders: httpBaseHeaders,
 				ProxySSLVerify: &http.ProxySSLVerify{
 					Name:               "test-btp.example.com",
-					TrustedCertificate: "/etc/nginx/secrets/test-btp.crt",
+					TrustedCertificate: "/etc/bws/secrets/test-btp.crt",
 				},
 				Type:     http.ExternalLocationType,
 				Includes: externalIncludes,
@@ -1634,7 +1634,7 @@ func TestCreateServers(t *testing.T) {
 				ProxySetHeaders: httpBaseHeaders,
 				ProxySSLVerify: &http.ProxySSLVerify{
 					Name:               "test-btp.example.com",
-					TrustedCertificate: "/etc/nginx/secrets/test-btp.crt",
+					TrustedCertificate: "/etc/bws/secrets/test-btp.crt",
 				},
 				Type:     http.ExternalLocationType,
 				Includes: externalIncludes,
@@ -1949,7 +1949,7 @@ func TestCreateServers(t *testing.T) {
 				ProxyPass: "grpcs://test_btp_80",
 				ProxySSLVerify: &http.ProxySSLVerify{
 					Name:               "test-btp.example.com",
-					TrustedCertificate: "/etc/nginx/secrets/test-btp.crt",
+					TrustedCertificate: "/etc/bws/secrets/test-btp.crt",
 				},
 				GRPC:            true,
 				ProxySetHeaders: grpcBaseHeaders,
@@ -2006,7 +2006,7 @@ func TestCreateServers(t *testing.T) {
 		}
 	}
 
-	expectedPEMPath := fmt.Sprintf("/etc/nginx/secrets/%s.pem", sslKeyPairID)
+	expectedPEMPath := fmt.Sprintf("/etc/bws/secrets/%s.pem", sslKeyPairID)
 
 	expectedServers := []http.Server{
 		{
@@ -4942,7 +4942,7 @@ func TestConvertBackendTLSFromGroup(t *testing.T) {
 				},
 			},
 			expected: &http.ProxySSLVerify{
-				TrustedCertificate: "/etc/nginx/secrets/default-my-cert.crt",
+				TrustedCertificate: "/etc/bws/secrets/default-my-cert.crt",
 				Name:               "my-hostname",
 			},
 		},
@@ -4977,7 +4977,7 @@ func TestConvertBackendTLSFromGroup(t *testing.T) {
 				},
 			},
 			expected: &http.ProxySSLVerify{
-				TrustedCertificate: "/etc/nginx/secrets/default-my-cert.crt",
+				TrustedCertificate: "/etc/bws/secrets/default-my-cert.crt",
 				Name:               "my-hostname",
 			},
 		},
@@ -5609,7 +5609,7 @@ func TestExtractUniqueJWKSLocations(t *testing.T) {
 				{
 					Path: "/path1",
 					AuthJWT: &http.AuthJWT{
-						File: "/etc/nginx/secrets/jwt-keys",
+						File: "/etc/bws/secrets/jwt-keys",
 					},
 				},
 			},
@@ -5624,7 +5624,7 @@ func TestExtractUniqueJWKSLocations(t *testing.T) {
 						Remote: &http.AuthJWTRemote{
 							URI:                "https://example.com/jwks",
 							Path:               "/_ngf-internal-default_jwt-filter_jwks_uri",
-							TrustedCertificate: "/etc/nginx/certs/ca.crt",
+							TrustedCertificate: "/etc/bws/certs/ca.crt",
 						},
 					},
 				},
@@ -5635,7 +5635,7 @@ func TestExtractUniqueJWKSLocations(t *testing.T) {
 					Type:      http.InternalLocationType,
 					ProxyPass: "https://example.com/jwks",
 					ProxySSLVerify: &http.ProxySSLVerify{
-						TrustedCertificate: "/etc/nginx/certs/ca.crt",
+						TrustedCertificate: "/etc/bws/certs/ca.crt",
 					},
 				},
 			},
@@ -5865,7 +5865,7 @@ func TestUpdateLocationAuthenticationFilter(t *testing.T) {
 				Type: http.ExternalLocationType,
 				AuthBasic: &http.AuthBasic{
 					Realm: "Restricted",
-					File:  "/etc/nginx/secrets/basic_auth_test-ns_auth-secret",
+					File:  "/etc/bws/secrets/basic_auth_test-ns_auth-secret",
 				},
 			},
 		},
@@ -6852,8 +6852,8 @@ func TestExecuteServers_FrontendTLS(t *testing.T) {
 				KeyPairIDs: []dataplane.SSLKeyPairID{"test-keypair"},
 			},
 			expectedPresent: []string{
-				"ssl_certificate /etc/nginx/secrets/test-keypair.pem;",
-				"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;",
+				"ssl_certificate /etc/bws/secrets/test-keypair.pem;",
+				"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;",
 			},
 			expectedAbsent: []string{
 				"ssl_client_certificate ",
@@ -6874,8 +6874,8 @@ func TestExecuteServers_FrontendTLS(t *testing.T) {
 				RequireVerifiedCert: true,
 			},
 			expectedPresent: []string{
-				"ssl_certificate /etc/nginx/secrets/test-keypair.pem;",
-				"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;",
+				"ssl_certificate /etc/bws/secrets/test-keypair.pem;",
+				"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;",
 				"ssl_client_certificate " + generateCertBundleFileName(dataplane.CertBundleID("test-ca-bundle")) + ";",
 				"ssl_verify_client on;",
 				"ssl_verify_depth ",
@@ -6892,8 +6892,8 @@ func TestExecuteServers_FrontendTLS(t *testing.T) {
 				VerifyClient: dataplane.SSLVerifyClientOptionalNoCA,
 			},
 			expectedPresent: []string{
-				"ssl_certificate /etc/nginx/secrets/test-keypair.pem;",
-				"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;",
+				"ssl_certificate /etc/bws/secrets/test-keypair.pem;",
+				"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;",
 				"ssl_verify_client optional_no_ca;",
 			},
 			expectedAbsent: []string{
@@ -6912,8 +6912,8 @@ func TestExecuteServers_FrontendTLS(t *testing.T) {
 			},
 			expectedPresent: []string{
 				"listen 8443 ssl default_server;",
-				"ssl_certificate /etc/nginx/secrets/test-keypair.pem;",
-				"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;",
+				"ssl_certificate /etc/bws/secrets/test-keypair.pem;",
+				"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;",
 			},
 			expectedAbsent: []string{
 				"ssl_client_certificate ",
@@ -6935,8 +6935,8 @@ func TestExecuteServers_FrontendTLS(t *testing.T) {
 			},
 			expectedPresent: []string{
 				"listen 8443 ssl default_server;",
-				"ssl_certificate /etc/nginx/secrets/test-keypair.pem;",
-				"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;",
+				"ssl_certificate /etc/bws/secrets/test-keypair.pem;",
+				"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;",
 				"ssl_client_certificate " + generateCertBundleFileName(dataplane.CertBundleID("test-ca-bundle")) + ";",
 				"ssl_verify_client on;",
 				"ssl_verify_depth ",
@@ -6955,8 +6955,8 @@ func TestExecuteServers_FrontendTLS(t *testing.T) {
 			},
 			expectedPresent: []string{
 				"listen 8443 ssl default_server;",
-				"ssl_certificate /etc/nginx/secrets/test-keypair.pem;",
-				"ssl_certificate_key /etc/nginx/secrets/test-keypair.pem;",
+				"ssl_certificate /etc/bws/secrets/test-keypair.pem;",
+				"ssl_certificate_key /etc/bws/secrets/test-keypair.pem;",
 				"ssl_verify_client optional_no_ca;",
 			},
 			expectedAbsent: []string{

@@ -55,8 +55,8 @@ const (
 	ClientSettingsPolicy = "ClientSettingsPolicy"
 	// ObservabilityPolicy is the ObservabilityPolicy kind.
 	ObservabilityPolicy = "ObservabilityPolicy"
-	// NginxProxy is the NginxProxy kind.
-	NginxProxy = "NginxProxy"
+	// BwsProxy is the BwsProxy kind.
+	BwsProxy = "BwsProxy"
 	// ProxySettingsPolicy is the ProxySettingsPolicy kind.
 	ProxySettingsPolicy = "ProxySettingsPolicy"
 	// SnippetsFilter is the SnippetsFilter kind.

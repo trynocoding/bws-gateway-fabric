@@ -5,10 +5,10 @@ metadata:
     alm-examples: |-
       [
         {
-          "apiVersion": "gateway.nginx.org/v1alpha1",
-          "kind": "NginxGatewayFabric",
+          "apiVersion": "gateway.bessystem.com/v1alpha1",
+          "kind": "BwsGatewayFabric",
           "metadata": {
-            "name": "nginxgatewayfabric-sample"
+            "name": "bwsgatewayfabric-sample"
           },
           "spec": {
             "certGenerator": {
@@ -82,7 +82,7 @@ metadata:
                 "skipVerify": false
               }
             },
-            "nginxGateway": {
+            "bwsGateway": {
               "affinity": {},
               "autoscaling": {
                 "annotations": {},
@@ -104,7 +104,7 @@ metadata:
               "extraVolumes": [],
               "gatewayClassAnnotations": {},
               "gatewayClassName": "nginx",
-              "gatewayControllerName": "gateway.nginx.org/nginx-gateway-controller",
+              "gatewayControllerName": "gateway.bessystem.com/nginx-gateway-controller",
               "gwAPIExperimentalFeatures": {
                 "enable": false
               },
@@ -201,8 +201,8 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-      - kind: NginxGatewayFabric
-        name: nginxgatewayfabrics.gateway.nginx.org
+      - kind: BwsGatewayFabric
+        name: bwsgatewayfabrics.gateway.bessystem.com
         version: v1alpha1
         resources:
           - kind: Deployment
@@ -232,7 +232,7 @@ spec:
             description: The DNS cluster domain of your Kubernetes cluster
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:text
-          - path: nginxGateway
+          - path: bwsGateway
             displayName: NGINX Gateway Configuration
             description: Configuration for the NGINX Gateway Fabric control plane
             x-descriptors:
@@ -401,17 +401,17 @@ spec:
               verbs:
                 - update
             - apiGroups:
-                - gateway.nginx.org
+                - gateway.bessystem.com
               resources:
-                - nginxgatewayfabrics
-                - nginxgatewayfabrics/status
-                - nginxgatewayfabrics/finalizers
-                - nginxgateways
-                - nginxgateways/status
-                - nginxgateways/finalizers
-                - nginxproxies
-                - nginxproxies/status
-                - nginxproxies/finalizers
+                - bwsgatewayfabrics
+                - bwsgatewayfabrics/status
+                - bwsgatewayfabrics/finalizers
+                - bwsgateways
+                - bwsgateways/status
+                - bwsgateways/finalizers
+                - bwsproxies
+                - bwsproxies/status
+                - bwsproxies/finalizers
                 - clientsettingspolicies
                 - observabilitypolicies
                 - proxysettingspolicies
@@ -420,7 +420,6 @@ spec:
                 - snippetsfilters
                 - authenticationfilters
                 - snippetspolicies
-                - wafpolicies
               verbs:
                 - create
                 - delete
@@ -430,7 +429,7 @@ spec:
                 - update
                 - watch
             - apiGroups:
-                - gateway.nginx.org
+                - gateway.bessystem.com
               resources:
                 - clientsettingspolicies/status
                 - observabilitypolicies/status
@@ -440,7 +439,6 @@ spec:
                 - snippetsfilters/status
                 - authenticationfilters/status
                 - snippetspolicies/status
-                - wafpolicies/status
               verbs:
                 - update
             - apiGroups:

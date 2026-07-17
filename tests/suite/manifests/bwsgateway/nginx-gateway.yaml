@@ -1,0 +1,8 @@
+apiVersion: gateway.bessystem.com/v1alpha1
+kind: BwsGateway
+metadata:
+  name: ngf-test-config
+  namespace: nginx-gateway
+spec:
+  logging:
+    level: debug

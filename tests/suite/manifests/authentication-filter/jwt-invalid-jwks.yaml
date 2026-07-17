@@ -7,7 +7,7 @@ type: Opaque
 stringData:
   auth: "invalid-jwks-data"
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: jwt-auth-invalid-jwks
@@ -39,6 +39,6 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: AuthenticationFilter
             name: jwt-auth-invalid-jwks

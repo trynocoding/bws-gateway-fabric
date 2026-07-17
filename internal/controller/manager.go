@@ -56,7 +56,6 @@ import (
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/nginx/config/policies/ratelimit"
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/nginx/config/policies/snippetspolicy"
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/nginx/config/policies/upstreamsettings"
-	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/nginx/config/policies/waf"
 	ngxvalidation "github.com/nginx/nginx-gateway-fabric/v2/internal/controller/nginx/config/validation"
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/provisioner"
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/controller/state"
@@ -285,7 +284,7 @@ func createAgentServices(
 ) (*agent.NginxUpdaterImpl, error) {
 	resetConnChan := make(chan struct{})
 	nginxUpdater := agent.NewNginxUpdater(
-		cfg.Logger.WithName("nginxUpdater"),
+		cfg.Logger.WithName("bwsUpdater"),
 		mgr.GetAPIReader(),
 		statusQueue,
 		resetConnChan,
@@ -459,10 +458,6 @@ func createPolicyManager(
 		{
 			GVK:       mustExtractGVK(&ngfAPIv1alpha1.RateLimitPolicy{}),
 			Validator: ratelimit.NewValidator(validator),
-		},
-		{
-			GVK:       mustExtractGVK(&ngfAPIv1alpha1.WAFPolicy{}),
-			Validator: waf.NewValidator(),
 		},
 	}
 
@@ -743,7 +738,7 @@ func registerControllers(
 			},
 		},
 		{
-			objectType: &ngfAPIv1alpha2.NginxProxy{},
+			objectType: &ngfAPIv1alpha2.BwsProxy{},
 			options: []controller.Option{
 				controller.WithK8sPredicate(k8spredicate.GenerationChangedPredicate{}),
 			},
@@ -786,12 +781,6 @@ func registerControllers(
 		},
 		{
 			objectType: &ngfAPIv1alpha1.RateLimitPolicy{},
-			options: []controller.Option{
-				controller.WithK8sPredicate(k8spredicate.GenerationChangedPredicate{}),
-			},
-		},
-		{
-			objectType: &ngfAPIv1alpha1.WAFPolicy{},
 			options: []controller.Option{
 				controller.WithK8sPredicate(k8spredicate.GenerationChangedPredicate{}),
 			},
@@ -887,7 +876,7 @@ func registerControllers(
 	if cfg.ConfigName != "" {
 		controllerRegCfgs = append(controllerRegCfgs,
 			ctlrCfg{
-				objectType: &ngfAPIv1alpha1.NginxGateway{},
+				objectType: &ngfAPIv1alpha1.BwsGateway{},
 				options: []controller.Option{
 					controller.WithNamespacedNameFilter(filter.CreateSingleResourceFilter(controlConfigNSName)),
 					controller.WithK8sPredicate(k8spredicate.GenerationChangedPredicate{}),
@@ -1151,7 +1140,7 @@ func prepareFirstEventBatchPreparerArgs(
 		&discoveryV1.EndpointSliceList{},
 		&gatewayv1.HTTPRouteList{},
 		&apiv1.ConfigMapList{},
-		&ngfAPIv1alpha2.NginxProxyList{},
+		&ngfAPIv1alpha2.BwsProxyList{},
 		&gatewayv1.GRPCRouteList{},
 		&ngfAPIv1alpha1.ClientSettingsPolicyList{},
 		&ngfAPIv1alpha2.ObservabilityPolicyList{},
@@ -1159,7 +1148,6 @@ func prepareFirstEventBatchPreparerArgs(
 		&ngfAPIv1alpha1.UpstreamSettingsPolicyList{},
 		&ngfAPIv1alpha1.AuthenticationFilterList{},
 		&ngfAPIv1alpha1.RateLimitPolicyList{},
-		&ngfAPIv1alpha1.WAFPolicyList{},
 		partialObjectMetadataList,
 	}
 
@@ -1224,7 +1212,7 @@ func setInitialConfig(
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var conf ngfAPIv1alpha1.NginxGateway
+	var conf ngfAPIv1alpha1.BwsGateway
 	// Polling to wait for CRD to exist if the Deployment is created first.
 	if err := wait.PollUntilContextCancel(
 		ctx,
@@ -1240,7 +1228,7 @@ func setInitialConfig(
 			return true, nil
 		},
 	); err != nil {
-		return fmt.Errorf("NginxGateway %s not found: %w", configName, err)
+		return fmt.Errorf("BwsGateway %s not found: %w", configName, err)
 	}
 
 	// status is not updated until the status updater's cache is started and the

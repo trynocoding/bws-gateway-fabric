@@ -7,7 +7,7 @@ data:
   # Base64 of "htpasswd -bn user1 password1"
   auth: dXNlcjE6JGFwcjEkWEFKeU5yekgkY0Rjdy9YMVBCZTFmTjltQVBweXpxMA==
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: basic-auth

@@ -32,10 +32,10 @@ func TestServiceSpecSetter_PreservesExternalAnnotations(t *testing.T) {
 				"custom.annotation": "from-gateway-infrastructure",
 			},
 			expectedAnnotations: map[string]string{
-				"metallb.universe.tf/ip-allocated-from-pool":         "production-public-ips",
-				"metallb.universe.tf/loadBalancerIPs":                "192.168.1.100",
-				"custom.annotation":                                  "from-gateway-infrastructure",
-				"gateway.nginx.org/internal-managed-annotation-keys": "custom.annotation",
+				"metallb.universe.tf/ip-allocated-from-pool":             "production-public-ips",
+				"metallb.universe.tf/loadBalancerIPs":                    "192.168.1.100",
+				"custom.annotation":                                      "from-gateway-infrastructure",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "custom.annotation",
 			},
 		},
 		{
@@ -48,9 +48,9 @@ func TestServiceSpecSetter_PreservesExternalAnnotations(t *testing.T) {
 				"custom.annotation": "new-value",
 			},
 			expectedAnnotations: map[string]string{
-				"custom.annotation":                                  "new-value",
-				"metallb.universe.tf/address-pool":                   "staging",
-				"gateway.nginx.org/internal-managed-annotation-keys": "custom.annotation",
+				"custom.annotation":                                      "new-value",
+				"metallb.universe.tf/address-pool":                       "staging",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "custom.annotation",
 			},
 		},
 		{
@@ -61,15 +61,15 @@ func TestServiceSpecSetter_PreservesExternalAnnotations(t *testing.T) {
 			},
 			expectedAnnotations: map[string]string{
 				"custom.annotation": "value",
-				"gateway.nginx.org/internal-managed-annotation-keys": "custom.annotation",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "custom.annotation",
 			},
 		},
 		{
 			name: "removes NGF-managed annotations when no longer desired",
 			existingAnnotations: map[string]string{
-				"custom.annotation":                                  "should-be-removed",
-				"metallb.universe.tf/ip-allocated-from-pool":         "production",
-				"gateway.nginx.org/internal-managed-annotation-keys": "custom.annotation",
+				"custom.annotation":                                      "should-be-removed",
+				"metallb.universe.tf/ip-allocated-from-pool":             "production",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "custom.annotation",
 			},
 			desiredAnnotations: map[string]string{},
 			expectedAnnotations: map[string]string{
@@ -89,24 +89,24 @@ func TestServiceSpecSetter_PreservesExternalAnnotations(t *testing.T) {
 				"service.beta.kubernetes.io/aws-load-balancer-type":   "nlb",
 				"service.beta.kubernetes.io/aws-load-balancer-scheme": "internet-facing",
 				"custom.annotation": "from-nginxproxy-patch",
-				"gateway.nginx.org/internal-managed-annotation-keys": "custom.annotation",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "custom.annotation",
 			},
 		},
 		{
 			name: "updates tracking annotation when managed keys change",
 			existingAnnotations: map[string]string{
-				"annotation-to-keep":                                 "value1",
-				"annotation-to-remove":                               "value2",
-				"metallb.universe.tf/address-pool":                   "production",
-				"gateway.nginx.org/internal-managed-annotation-keys": "annotation-to-keep,annotation-to-remove",
+				"annotation-to-keep":                                     "value1",
+				"annotation-to-remove":                                   "value2",
+				"metallb.universe.tf/address-pool":                       "production",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "annotation-to-keep,annotation-to-remove",
 			},
 			desiredAnnotations: map[string]string{
 				"annotation-to-keep": "value1",
 			},
 			expectedAnnotations: map[string]string{
-				"annotation-to-keep":                                 "value1",
-				"metallb.universe.tf/address-pool":                   "production",
-				"gateway.nginx.org/internal-managed-annotation-keys": "annotation-to-keep",
+				"annotation-to-keep":                                     "value1",
+				"metallb.universe.tf/address-pool":                       "production",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "annotation-to-keep",
 			},
 		},
 	}
@@ -183,35 +183,35 @@ func TestDeploymentAndDaemonSetSpecSetter(t *testing.T) {
 				"custom.annotation": "from-ngf",
 			},
 			expectedAnnotations: map[string]string{
-				"deployment.kubernetes.io/revision":                  "1",
-				"field.cattle.io/publicEndpoints":                    "192.61.0.19",
-				"field.cattle.io/ports":                              "80/tcp",
-				"custom.annotation":                                  "from-ngf",
-				"gateway.nginx.org/internal-managed-annotation-keys": "custom.annotation",
+				"deployment.kubernetes.io/revision":                      "1",
+				"field.cattle.io/publicEndpoints":                        "192.61.0.19",
+				"field.cattle.io/ports":                                  "80/tcp",
+				"custom.annotation":                                      "from-ngf",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "custom.annotation",
 			},
 		},
 		{
 			name: "preserves existing NGF-managed annotations when still desired",
 			existingAnnotations: map[string]string{
-				"custom.annotation":                                  "keep-me",
-				"argocd.argoproj.io/sync-options":                    "Prune=false",
-				"gateway.nginx.org/internal-managed-annotation-keys": "custom.annotation",
+				"custom.annotation":                                      "keep-me",
+				"argocd.argoproj.io/sync-options":                        "Prune=false",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "custom.annotation",
 			},
 			desiredAnnotations: map[string]string{
 				"custom.annotation": "keep-me",
 			},
 			expectedAnnotations: map[string]string{
-				"custom.annotation":                                  "keep-me",
-				"argocd.argoproj.io/sync-options":                    "Prune=false",
-				"gateway.nginx.org/internal-managed-annotation-keys": "custom.annotation",
+				"custom.annotation":                                      "keep-me",
+				"argocd.argoproj.io/sync-options":                        "Prune=false",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "custom.annotation",
 			},
 		},
 		{
 			name: "removes NGF-managed annotations when no longer desired",
 			existingAnnotations: map[string]string{
-				"custom.annotation":                                  "should-be-removed",
-				"deployment.kubernetes.io/revision":                  "2",
-				"gateway.nginx.org/internal-managed-annotation-keys": "custom.annotation",
+				"custom.annotation":                                      "should-be-removed",
+				"deployment.kubernetes.io/revision":                      "2",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "custom.annotation",
 			},
 			desiredAnnotations: map[string]string{},
 			expectedAnnotations: map[string]string{
@@ -228,9 +228,9 @@ func TestDeploymentAndDaemonSetSpecSetter(t *testing.T) {
 				"custom.annotation": "new-value",
 			},
 			expectedAnnotations: map[string]string{
-				"custom.annotation":                                  "new-value",
-				"daemonSet.kubernetes.io/revision":                   "7",
-				"gateway.nginx.org/internal-managed-annotation-keys": "custom.annotation",
+				"custom.annotation":                                      "new-value",
+				"daemonSet.kubernetes.io/revision":                       "7",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "custom.annotation",
 			},
 		},
 		{
@@ -241,24 +241,24 @@ func TestDeploymentAndDaemonSetSpecSetter(t *testing.T) {
 			},
 			expectedAnnotations: map[string]string{
 				"custom.annotation": "value",
-				"gateway.nginx.org/internal-managed-annotation-keys": "custom.annotation",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "custom.annotation",
 			},
 		},
 		{
 			name: "updates tracking annotation when managed keys change",
 			existingAnnotations: map[string]string{
-				"annotation-to-keep":                                 "keep-value",
-				"annotation-to-remove":                               "remove-value",
-				"argocd.argoproj.io/sync-options":                    "Validate=true",
-				"gateway.nginx.org/internal-managed-annotation-keys": "annotation-to-keep,annotation-to-remove",
+				"annotation-to-keep":                                     "keep-value",
+				"annotation-to-remove":                                   "remove-value",
+				"argocd.argoproj.io/sync-options":                        "Validate=true",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "annotation-to-keep,annotation-to-remove",
 			},
 			desiredAnnotations: map[string]string{
 				"annotation-to-keep": "updated-keep-value",
 			},
 			expectedAnnotations: map[string]string{
-				"annotation-to-keep":                                 "updated-keep-value",
-				"argocd.argoproj.io/sync-options":                    "Validate=true",
-				"gateway.nginx.org/internal-managed-annotation-keys": "annotation-to-keep",
+				"annotation-to-keep":                                     "updated-keep-value",
+				"argocd.argoproj.io/sync-options":                        "Validate=true",
+				"gateway.bessystem.com/internal-managed-annotation-keys": "annotation-to-keep",
 			},
 		},
 	}

@@ -1,4 +1,4 @@
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsFilter
 metadata:
   name: all-contexts
@@ -13,7 +13,7 @@ spec:
     - context: http.server.location
       value: keepalive_time 1h;
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsFilter
 metadata:
   name: grpc-all-contexts
@@ -46,7 +46,7 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: SnippetsFilter
             name: all-contexts
       backendRefs:
@@ -69,7 +69,7 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: SnippetsFilter
             name: grpc-all-contexts
       backendRefs:

@@ -20,7 +20,7 @@ This Enhancement Proposal introduces the `ObservabilityPolicy` API, which allows
 
 ### Observability Policy
 
-The Observability Policy contains settings to configure NGINX to expose information through tracing, metrics, and/or logging. This is a Direct Policy that is attached to an HTTPRoute by an Application Developer. It works in conjunction with an [NginxProxy](gateway-settings.md) configuration that contains higher level settings to enable Observability at this lower level. The [NginxProxy](gateway-settings.md) configuration is managed by a Cluster Operator.
+The Observability Policy contains settings to configure NGINX to expose information through tracing, metrics, and/or logging. This is a Direct Policy that is attached to an HTTPRoute by an Application Developer. It works in conjunction with an [BwsProxy](gateway-settings.md) configuration that contains higher level settings to enable Observability at this lower level. The [BwsProxy](gateway-settings.md) configuration is managed by a Cluster Operator.
 
 Since this policy is attached to an HTTPRoute, the Observability settings should just apply to the relevant `location` contexts of the NGINX config for that route.
 
@@ -29,9 +29,9 @@ To begin, the Observability Policy will include the following NGINX directives (
 - [`otel_trace`](https://nginx.org/en/docs/ngx_otel_module.html#otel_trace): enable tracing and set sampler rate
 - [`otel_trace_context`](https://nginx.org/en/docs/ngx_otel_module.html#otel_trace_context): export, inject, propagate, ignore.
 - [`otel_span_name`](https://nginx.org/en/docs/ngx_otel_module.html#otel_span_name)
-- [`otel_span_attr`](https://nginx.org/en/docs/ngx_otel_module.html#otel_span_attr): these span attributes will be merged with any set at the global level in the `NginxProxy` config.
+- [`otel_span_attr`](https://nginx.org/en/docs/ngx_otel_module.html#otel_span_attr): these span attributes will be merged with any set at the global level in the `BwsProxy` config.
 
-Tracing will be disabled by default. The Application Developer will be able to use this Policy to enable and configure tracing for their routes. This Policy will only be applied if the OTel endpoint has been set by the Cluster Operator on the [NginxProxy](gateway-settings.md).
+Tracing will be disabled by default. The Application Developer will be able to use this Policy to enable and configure tracing for their routes. This Policy will only be applied if the OTel endpoint has been set by the Cluster Operator on the [BwsProxy](gateway-settings.md).
 
 Ratio and parent-based tracing should be supported as shown in the [nginx-otel examples](https://github.com/nginxinc/nginx-otel?tab=readme-ov-file#examples).
 
@@ -39,7 +39,7 @@ In the future, this config will be extended to support other functionality, such
 
 ## API, Customer Driven Interfaces, and User Experience
 
-The `ObservabilityPolicy` API is a CRD that is a part of the `gateway.nginx.org` Group. It is a namespaced resource that will reference an HTTPRoute as its target.
+The `ObservabilityPolicy` API is a CRD that is a part of the `gateway.bessystem.com` Group. It is a namespaced resource that will reference an HTTPRoute as its target.
 
 ### Go
 
@@ -148,7 +148,7 @@ type SpanAttribute struct {
 Below is an example YAML version of an `ObservabilityPolicy`:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha2
+apiVersion: gateway.bessystem.com/v1alpha2
 kind: ObservabilityPolicy
 metadata:
   name: example-observability-policy
@@ -195,7 +195,7 @@ According to the [Policy and Metaresources GEP](https://gateway-api.sigs.k8s.io/
 
 The `Accepted` Condition must be populated on the `ObservabilityPolicy` CRD using the reasons defined in the [PolicyCondition API](https://github.com/kubernetes-sigs/gateway-api/blob/main/apis/v1alpha2/policy_types.go). If these reasons are not sufficient, we can add implementation-specific reasons.
 
-One reason for being `not Accepted` would be the fact that the `NginxProxy` Policy is not configured, which is a requirement in order for the `ObservabilityPolicy` to work. This will be a custom reason `NginxProxyConfigNotSet`.
+One reason for being `not Accepted` would be the fact that the `BwsProxy` Policy is not configured, which is a requirement in order for the `ObservabilityPolicy` to work. This will be a custom reason `BwsProxyConfigNotSet`.
 
 The Condition stanza may need to be namespaced using the `controllerName` if more than one controller could reconcile the Policy.
 
@@ -221,7 +221,7 @@ import (
 
 
 const (
-    ObservabilityPolicyAffected gatewayv1alpha2.PolicyConditionType = "gateway.nginx.org/ObservabilityPolicyAffected"
+    ObservabilityPolicyAffected gatewayv1alpha2.PolicyConditionType = "gateway.bessystem.com/ObservabilityPolicyAffected"
     PolicyAffectedReason gatewayv1alpha2.PolicyConditionReason = "PolicyAffected"
 )
 
@@ -232,7 +232,7 @@ Below is an example of what this Condition may look like:
 
 ```yaml
 Conditions:
-  Type:                  gateway.nginx.org/ObservabilityPolicyAffected
+  Type:                  gateway.bessystem.com/ObservabilityPolicyAffected
   Message:               Object affected by a ObservabilityPolicy.
   Observed Generation:   1
   Reason:                PolicyAffected
@@ -249,7 +249,7 @@ Some additional rules:
 
 An `ObservabilityPolicy` can be attached to an HTTPRoute.
 
-The policy will only take effect if an [NginxProxy](gateway-settings.md) configuration has been linked to the GatewayClass. Otherwise, the `ObservabilityPolicy` should not be `Accepted`.
+The policy will only take effect if an [BwsProxy](gateway-settings.md) configuration has been linked to the GatewayClass. Otherwise, the `ObservabilityPolicy` should not be `Accepted`.
 
 Future: Attached to an HTTPRoute rule, using a [sectionName](https://gateway-api.sigs.k8s.io/geps/gep-713/#apply-policies-to-sections-of-a-resource).
 
@@ -289,7 +289,7 @@ RBAC via the Kubernetes API server will ensure that only authorized users can up
 
 ## Alternatives
 
-- Combine with OTel settings in `NginxProxy` for one OTel Policy: Rather than splitting tracing across two Policies, we could create a single tracing Policy. The issue with this approach is that some tracing settings -- such as exporter endpoint -- should be restricted to Cluster Operators, while settings like attributes should be available to Application Developers. If we combine these settings, RBAC will not be sufficient to restrict access across the settings. We will have to disallow certain fields based on the resource the Policy is attached to. This is a bad user experience.
+- Combine with OTel settings in `BwsProxy` for one OTel Policy: Rather than splitting tracing across two Policies, we could create a single tracing Policy. The issue with this approach is that some tracing settings -- such as exporter endpoint -- should be restricted to Cluster Operators, while settings like attributes should be available to Application Developers. If we combine these settings, RBAC will not be sufficient to restrict access across the settings. We will have to disallow certain fields based on the resource the Policy is attached to. This is a bad user experience.
 - Inherited Policy: An Inherited Policy would be useful if there is a use case for the Cluster Operator enforcing or defaulting the OTel tracing settings included in this policy.
 
 

@@ -15,38 +15,38 @@ import (
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/framework/kinds"
 )
 
-func TestNewNginxGatewayStatusSetter(t *testing.T) {
+func TestNewBwsGatewayStatusSetter(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name              string
-		status, newStatus ngfAPI.NginxGatewayStatus
+		status, newStatus ngfAPI.BwsGatewayStatus
 		expStatusSet      bool
 	}{
 		{
-			name:         "NginxGateway has no status",
+			name:         "BwsGateway has no status",
 			expStatusSet: true,
-			newStatus: ngfAPI.NginxGatewayStatus{
+			newStatus: ngfAPI.BwsGatewayStatus{
 				Conditions: []metav1.Condition{{Message: "some condition"}},
 			},
-			status: ngfAPI.NginxGatewayStatus{},
+			status: ngfAPI.BwsGatewayStatus{},
 		},
 		{
-			name:         "NginxGateway has old status",
+			name:         "BwsGateway has old status",
 			expStatusSet: true,
-			newStatus: ngfAPI.NginxGatewayStatus{
+			newStatus: ngfAPI.BwsGatewayStatus{
 				Conditions: []metav1.Condition{{Message: "new condition"}},
 			},
-			status: ngfAPI.NginxGatewayStatus{
+			status: ngfAPI.BwsGatewayStatus{
 				Conditions: []metav1.Condition{{Message: "old condition"}},
 			},
 		},
 		{
-			name:         "NginxGateway has same status",
+			name:         "BwsGateway has same status",
 			expStatusSet: false,
-			newStatus: ngfAPI.NginxGatewayStatus{
+			newStatus: ngfAPI.BwsGatewayStatus{
 				Conditions: []metav1.Condition{{Message: "same condition"}},
 			},
-			status: ngfAPI.NginxGatewayStatus{
+			status: ngfAPI.BwsGatewayStatus{
 				Conditions: []metav1.Condition{{Message: "same condition"}},
 			},
 		},
@@ -57,8 +57,8 @@ func TestNewNginxGatewayStatusSetter(t *testing.T) {
 			t.Parallel()
 			g := NewWithT(t)
 
-			setter := newNginxGatewayStatusSetter(test.newStatus)
-			obj := &ngfAPI.NginxGateway{Status: test.status}
+			setter := newBwsGatewayStatusSetter(test.newStatus)
+			obj := &ngfAPI.BwsGateway{Status: test.status}
 
 			statusSet := setter(obj)
 

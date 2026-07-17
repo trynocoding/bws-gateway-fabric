@@ -52,26 +52,6 @@ func TestAuthenticationFilterTypeBasic(t *testing.T) {
 			wantErrors: []string{expectedBasicRequiredError},
 		},
 		{
-			name: "Validate: type=Basic with basic and OIDC set is rejected",
-			spec: ngfAPIv1alpha1.AuthenticationFilterSpec{
-				Type: ngfAPIv1alpha1.AuthTypeBasic,
-				Basic: &ngfAPIv1alpha1.BasicAuth{
-					SecretRef: ngfAPIv1alpha1.LocalObjectReference{
-						Name: uniqueResourceName("auth-secret"),
-					},
-					Realm: "Restricted Area",
-				},
-				OIDC: &ngfAPIv1alpha1.OIDCAuth{
-					Issuer:   "https://example.com",
-					ClientID: "client-id",
-					ClientSecretRef: ngfAPIv1alpha1.LocalObjectReference{
-						Name: uniqueResourceName("auth-secret"),
-					},
-				},
-			},
-			wantErrors: []string{expectedBasicOnlyNoOIDCError},
-		},
-		{
 			name: "Validate: type=Basic with spec.jwt set is rejected",
 			spec: ngfAPIv1alpha1.AuthenticationFilterSpec{
 				Type: ngfAPIv1alpha1.AuthTypeBasic,
@@ -84,26 +64,6 @@ func TestAuthenticationFilterTypeBasic(t *testing.T) {
 				},
 			},
 			wantErrors: []string{expectedBasicRequiredError},
-		},
-		{
-			name: "Validate: type=Basic with spec.basic and spec.jwt set is rejected",
-			spec: ngfAPIv1alpha1.AuthenticationFilterSpec{
-				Type: ngfAPIv1alpha1.AuthTypeBasic,
-				Basic: &ngfAPIv1alpha1.BasicAuth{
-					SecretRef: ngfAPIv1alpha1.LocalObjectReference{
-						Name: uniqueResourceName("auth-secret"),
-					},
-					Realm: "Restricted Area",
-				},
-				JWT: &ngfAPIv1alpha1.JWTAuth{
-					Source: ngfAPIv1alpha1.JWTKeySourceFile,
-					File: &ngfAPIv1alpha1.JWTFileKeySource{
-						SecretRef: ngfAPIv1alpha1.LocalObjectReference{Name: uniqueResourceName("jwt-secret")},
-					},
-					Realm: "Restricted Area",
-				},
-			},
-			wantErrors: []string{expectedBasicOnlyNoJWTError},
 		},
 	}
 
@@ -125,6 +85,7 @@ func TestAuthenticationFilterTypeBasic(t *testing.T) {
 }
 
 func TestAuthenticationFilterTypeOIDC(t *testing.T) {
+	t.Skip("OIDC is an upstream NGINX Plus compatibility type and is not exposed by the BWS CRD")
 	t.Parallel()
 	k8sClient := getKubernetesClient(t)
 
@@ -240,6 +201,7 @@ func TestAuthenticationFilterTypeOIDC(t *testing.T) {
 }
 
 func TestAuthenticationFilterValidateJWTAccepted(t *testing.T) {
+	t.Skip("JWT is an upstream NGINX Plus compatibility type and is not exposed by the BWS CRD")
 	t.Parallel()
 	k8sClient := getKubernetesClient(t)
 
@@ -294,6 +256,7 @@ func TestAuthenticationFilterValidateJWTAccepted(t *testing.T) {
 }
 
 func TestAuthenticationFilterValidateJWTRejected(t *testing.T) {
+	t.Skip("JWT is an upstream NGINX Plus compatibility type and is not exposed by the BWS CRD")
 	t.Parallel()
 	k8sClient := getKubernetesClient(t)
 
@@ -484,6 +447,7 @@ func TestAuthenticationFilterValidateJWTRejected(t *testing.T) {
 }
 
 func TestAuthenticationFilterExtraAuthArgs(t *testing.T) {
+	t.Skip("OIDC is an upstream NGINX Plus compatibility type and is not exposed by the BWS CRD")
 	t.Parallel()
 	k8sClient := getKubernetesClient(t)
 

@@ -129,10 +129,10 @@ jobs:
         with:
           filters: |
             charts:
-            - charts/nginx-gateway-fabric/**/*
+            - charts/bws-gateway-fabric/**/*
             rbac:
             - operators/**/*
-            - charts/nginx-gateway-fabric/**/*
+            - charts/bws-gateway-fabric/**/*
 
       - name: Output Variables
         id: vars
@@ -614,7 +614,7 @@ jobs:
       - name: Package
         id: package
         run: |
-          output=$(helm package ${{ !inputs.is_production_release && '--app-version edge --version 0.0.0-edge' || '' }} charts/nginx-gateway-fabric)
+          output=$(helm package ${{ !inputs.is_production_release && '--app-version edge --version 0.0.0-edge' || '' }} charts/bws-gateway-fabric)
           echo "path=$(basename -- $(echo $output | cut -d: -f2))" >> $GITHUB_OUTPUT
 
       - name: Push to GitHub Container Registry

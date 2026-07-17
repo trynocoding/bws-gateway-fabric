@@ -161,7 +161,7 @@ var _ = Describe("Collector", Ordered, func() {
 	BeforeEach(func() {
 		expData = telemetry.Data{
 			Data: tel.Data{
-				ProjectName:         "NGF",
+				ProjectName:         "BWS Gateway Fabric",
 				ProjectVersion:      version,
 				ProjectArchitecture: runtime.GOARCH,
 				ClusterID:           string(kubeNamespace.GetUID()),
@@ -295,17 +295,17 @@ var _ = Describe("Collector", Ordered, func() {
 				svc2 := &v1.Service{ObjectMeta: metav1.ObjectMeta{Name: "svc2"}}
 				nilsvc := &v1.Service{ObjectMeta: metav1.ObjectMeta{Name: "nilsvc"}}
 
-				gcNP := graph.NginxProxy{
+				gcNP := graph.BwsProxy{
 					Source:  nil,
 					ErrMsgs: nil,
 					Valid:   false,
 				}
 
 				graph := &graph.Graph{
-					GatewayClass: &graph.GatewayClass{NginxProxy: &gcNP},
+					GatewayClass: &graph.GatewayClass{BwsProxy: &gcNP},
 					Gateways: map[types.NamespacedName]*graph.Gateway{
 						{Name: "gateway1"}: {
-							EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+							EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 								Kubernetes: &v1alpha2.KubernetesSpec{
 									Deployment: &v1alpha2.DeploymentSpec{
 										Replicas: helpers.GetPointer(int32(1)),
@@ -314,7 +314,7 @@ var _ = Describe("Collector", Ordered, func() {
 							},
 						},
 						{Name: "gateway2"}: {
-							EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+							EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 								Kubernetes: &v1alpha2.KubernetesSpec{
 									Deployment: &v1alpha2.DeploymentSpec{
 										Replicas: helpers.GetPointer(int32(3)),
@@ -324,14 +324,14 @@ var _ = Describe("Collector", Ordered, func() {
 						},
 						{Name: "gateway3"}: {},
 						{Name: "gateway4"}: {
-							EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+							EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 								Kubernetes: &v1alpha2.KubernetesSpec{
 									DaemonSet: &v1alpha2.DaemonSetSpec{},
 								},
 							},
 						},
 						{Name: "WAFGateway"}: {
-							EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+							EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 								WAF: &v1alpha2.WAFSpec{Enable: helpers.GetPointer(true)},
 							},
 						},
@@ -550,10 +550,10 @@ var _ = Describe("Collector", Ordered, func() {
 							GVK:    schema.GroupVersionKind{Kind: kinds.WAFPolicy},
 						}: {TargetRefs: []graph.PolicyTargetRef{{Kind: kinds.Gateway}}},
 					},
-					ReferencedNginxProxies: map[types.NamespacedName]*graph.NginxProxy{
-						{Namespace: "test", Name: "NginxProxy-1"}: &gcNP,
-						{Namespace: "test", Name: "NginxProxy-2"}: {Valid: true},
-						{Namespace: "test", Name: "NginxProxy-3"}: {Valid: true},
+					ReferencedBwsProxies: map[types.NamespacedName]*graph.BwsProxy{
+						{Namespace: "test", Name: "BwsProxy-1"}: &gcNP,
+						{Namespace: "test", Name: "BwsProxy-2"}: {Valid: true},
+						{Namespace: "test", Name: "BwsProxy-3"}: {Valid: true},
 					},
 					SnippetsFilters: map[types.NamespacedName]*graph.SnippetsFilter{
 						{Namespace: "test", Name: "sf-1"}: {
@@ -681,7 +681,7 @@ var _ = Describe("Collector", Ordered, func() {
 					GatewayAttachedClientSettingsPolicyCount: 1,
 					RouteAttachedClientSettingsPolicyCount:   2,
 					ObservabilityPolicyCount:                 1,
-					NginxProxyCount:                          3,
+					BwsProxyCount:                            3,
 					SnippetsFilterCount:                      3,
 					UpstreamSettingsPolicyCount:              1,
 					GatewayAttachedNpCount:                   2,
@@ -869,9 +869,9 @@ var _ = Describe("Collector", Ordered, func() {
 			svc := &v1.Service{ObjectMeta: metav1.ObjectMeta{Name: "svc1"}}
 
 			graph1 = &graph.Graph{
-				GatewayClass: &graph.GatewayClass{NginxProxy: &graph.NginxProxy{Valid: true}},
+				GatewayClass: &graph.GatewayClass{BwsProxy: &graph.BwsProxy{Valid: true}},
 				Gateways: map[types.NamespacedName]*graph.Gateway{
-					{Name: "gateway1"}: {EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+					{Name: "gateway1"}: {EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 						WAF: &v1alpha2.WAFSpec{Enable: helpers.GetPointer(true)},
 					}},
 				},
@@ -950,8 +950,8 @@ var _ = Describe("Collector", Ordered, func() {
 						GVK:    schema.GroupVersionKind{Kind: kinds.WAFPolicy},
 					}: {TargetRefs: []graph.PolicyTargetRef{{Kind: kinds.Gateway}}},
 				},
-				ReferencedNginxProxies: map[types.NamespacedName]*graph.NginxProxy{
-					{Namespace: "test", Name: "NginxProxy-1"}: {Valid: true},
+				ReferencedBwsProxies: map[types.NamespacedName]*graph.BwsProxy{
+					{Namespace: "test", Name: "BwsProxy-1"}: {Valid: true},
 				},
 				SnippetsFilters: map[types.NamespacedName]*graph.SnippetsFilter{
 					{Namespace: "test", Name: "sf-1"}: {},
@@ -1051,7 +1051,7 @@ var _ = Describe("Collector", Ordered, func() {
 					GatewayAttachedClientSettingsPolicyCount: 1,
 					RouteAttachedClientSettingsPolicyCount:   1,
 					ObservabilityPolicyCount:                 1,
-					NginxProxyCount:                          1,
+					BwsProxyCount:                            1,
 					SnippetsFilterCount:                      1,
 					UpstreamSettingsPolicyCount:              1,
 					GatewayAttachedNpCount:                   1,

@@ -24,7 +24,7 @@ func (d *NGFResourceCounts) Attributes() []attribute.KeyValue {
 	attrs = append(attrs, attribute.Int64("GatewayAttachedClientSettingsPolicyCount", d.GatewayAttachedClientSettingsPolicyCount))
 	attrs = append(attrs, attribute.Int64("RouteAttachedClientSettingsPolicyCount", d.RouteAttachedClientSettingsPolicyCount))
 	attrs = append(attrs, attribute.Int64("ObservabilityPolicyCount", d.ObservabilityPolicyCount))
-	attrs = append(attrs, attribute.Int64("NginxProxyCount", d.NginxProxyCount))
+	attrs = append(attrs, attribute.Int64("BwsProxyCount", d.BwsProxyCount))
 	attrs = append(attrs, attribute.Int64("SnippetsFilterCount", d.SnippetsFilterCount))
 	attrs = append(attrs, attribute.Int64("UpstreamSettingsPolicyCount", d.UpstreamSettingsPolicyCount))
 	attrs = append(attrs, attribute.Int64("GatewayAttachedNpCount", d.GatewayAttachedNpCount))

@@ -44,20 +44,20 @@ func (v *Validator) Validate(policy policies.Policy) []conditions.Condition {
 	return nil
 }
 
-// ValidateGlobalSettings validates an ObservabilityPolicy with respect to the NginxProxy global settings.
+// ValidateGlobalSettings validates an ObservabilityPolicy with respect to the BwsProxy global settings.
 func (v *Validator) ValidateGlobalSettings(
 	_ policies.Policy,
 	globalSettings *policies.GlobalSettings,
 ) []conditions.Condition {
 	if globalSettings == nil {
 		return []conditions.Condition{
-			conditions.NewPolicyNotAcceptedNginxProxyNotSet(conditions.PolicyMessageNginxProxyInvalid),
+			conditions.NewPolicyNotAcceptedBwsProxyNotSet(conditions.PolicyMessageBwsProxyInvalid),
 		}
 	}
 
 	if !globalSettings.TelemetryEnabled {
 		return []conditions.Condition{
-			conditions.NewPolicyNotAcceptedNginxProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
+			conditions.NewPolicyNotAcceptedBwsProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
 		}
 	}
 

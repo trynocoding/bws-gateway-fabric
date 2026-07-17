@@ -1,6 +1,6 @@
 # Use the 'create api' subcommand to add watches to this file.
-- group: gateway.nginx.org
+- group: gateway.bessystem.com
   version: v1alpha1
-  kind: NginxGatewayFabric
-  chart: helm-charts/nginx-gateway-fabric
+  kind: BwsGatewayFabric
+  chart: helm-charts/bws-gateway-fabric
 # +kubebuilder:scaffold:watch

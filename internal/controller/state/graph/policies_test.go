@@ -164,8 +164,8 @@ func TestAttachPolicies(t *testing.T) {
 						Namespace: testNs,
 					},
 				},
-				Valid:               true,
-				EffectiveNginxProxy: &EffectiveNginxProxy{},
+				Valid:             true,
+				EffectiveBwsProxy: &EffectiveBwsProxy{},
 			},
 			{Namespace: testNs, Name: "gateway1"}: {
 				Source: &v1.Gateway{
@@ -174,8 +174,8 @@ func TestAttachPolicies(t *testing.T) {
 						Namespace: testNs,
 					},
 				},
-				Valid:               true,
-				EffectiveNginxProxy: &EffectiveNginxProxy{},
+				Valid:             true,
+				EffectiveBwsProxy: &EffectiveBwsProxy{},
 			},
 		}
 	}
@@ -310,7 +310,7 @@ func TestAttachPolicyToRoute(t *testing.T) {
 		ValidateGlobalSettingsStub: func(_ policies.Policy, gs *policies.GlobalSettings) []conditions.Condition {
 			if !gs.TelemetryEnabled {
 				return []conditions.Condition{
-					conditions.NewPolicyNotAcceptedNginxProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
+					conditions.NewPolicyNotAcceptedBwsProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
 				}
 			}
 			return nil
@@ -424,7 +424,7 @@ func TestAttachPolicyToRoute(t *testing.T) {
 					{
 						Kind:           kinds.Gateway,
 						NamespacedName: types.NamespacedName{Name: "gateway1", Namespace: "test"},
-						EffectiveNginxProxy: &EffectiveNginxProxy{
+						EffectiveBwsProxy: &EffectiveBwsProxy{
 							Telemetry: &ngfAPIv1alpha2.Telemetry{
 								Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 									Endpoint: helpers.GetPointer("test-endpoint"),
@@ -436,9 +436,9 @@ func TestAttachPolicyToRoute(t *testing.T) {
 						},
 					},
 					{
-						Kind:                kinds.Gateway,
-						NamespacedName:      types.NamespacedName{Name: "gateway2", Namespace: "test"},
-						EffectiveNginxProxy: &EffectiveNginxProxy{},
+						Kind:              kinds.Gateway,
+						NamespacedName:    types.NamespacedName{Name: "gateway2", Namespace: "test"},
+						EffectiveBwsProxy: &EffectiveBwsProxy{},
 						Attachment: &ParentRefAttachmentStatus{
 							Attached: true,
 						},
@@ -454,7 +454,7 @@ func TestAttachPolicyToRoute(t *testing.T) {
 				{
 					Ancestor: createExpAncestor(kinds.HTTPRoute),
 					Conditions: []conditions.Condition{
-						conditions.NewPolicyNotAcceptedNginxProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
+						conditions.NewPolicyNotAcceptedBwsProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
 					},
 				},
 			},
@@ -474,9 +474,9 @@ func TestAttachPolicyToRoute(t *testing.T) {
 				RouteType:  RouteTypeHTTP,
 				ParentRefs: []ParentRef{
 					{
-						Kind:                kinds.Gateway,
-						NamespacedName:      types.NamespacedName{Name: "gateway1", Namespace: "test"},
-						EffectiveNginxProxy: &EffectiveNginxProxy{},
+						Kind:              kinds.Gateway,
+						NamespacedName:    types.NamespacedName{Name: "gateway1", Namespace: "test"},
+						EffectiveBwsProxy: &EffectiveBwsProxy{},
 						Attachment: &ParentRefAttachmentStatus{
 							Attached: true,
 						},
@@ -492,7 +492,7 @@ func TestAttachPolicyToRoute(t *testing.T) {
 				{
 					Ancestor: createExpAncestor(kinds.HTTPRoute),
 					Conditions: []conditions.Condition{
-						conditions.NewPolicyNotAcceptedNginxProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
+						conditions.NewPolicyNotAcceptedBwsProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
 					},
 				},
 			},
@@ -533,17 +533,17 @@ func TestAttachPolicyToGateway(t *testing.T) {
 						Namespace: name.Namespace,
 					},
 				},
-				Valid:               valid,
-				EffectiveNginxProxy: &EffectiveNginxProxy{},
+				Valid:             valid,
+				EffectiveBwsProxy: &EffectiveBwsProxy{},
 			}
 		}
 		return gws
 	}
 
-	newGatewayMapWithNginxProxy := func(
+	newGatewayMapWithBwsProxy := func(
 		valid bool,
 		nsname []types.NamespacedName,
-		effectiveNginxProxy *EffectiveNginxProxy,
+		effectiveBwsProxy *EffectiveBwsProxy,
 	) map[types.NamespacedName]*Gateway {
 		gws := make(map[types.NamespacedName]*Gateway)
 		for _, name := range nsname {
@@ -554,8 +554,8 @@ func TestAttachPolicyToGateway(t *testing.T) {
 						Namespace: name.Namespace,
 					},
 				},
-				Valid:               valid,
-				EffectiveNginxProxy: effectiveNginxProxy,
+				Valid:             valid,
+				EffectiveBwsProxy: effectiveBwsProxy,
 			}
 		}
 		return gws
@@ -565,7 +565,7 @@ func TestAttachPolicyToGateway(t *testing.T) {
 		ValidateGlobalSettingsStub: func(_ policies.Policy, gs *policies.GlobalSettings) []conditions.Condition {
 			if !gs.TelemetryEnabled {
 				return []conditions.Condition{
-					conditions.NewPolicyNotAcceptedNginxProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
+					conditions.NewPolicyNotAcceptedBwsProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
 				}
 			}
 			return nil
@@ -700,12 +700,12 @@ func TestAttachPolicyToGateway(t *testing.T) {
 				},
 				InvalidForGateways: map[types.NamespacedName]struct{}{},
 			},
-			gws: newGatewayMapWithNginxProxy(true, []types.NamespacedName{gatewayNsName}, &EffectiveNginxProxy{}),
+			gws: newGatewayMapWithBwsProxy(true, []types.NamespacedName{gatewayNsName}, &EffectiveBwsProxy{}),
 			expAncestors: []PolicyAncestor{
 				{
 					Ancestor: getGatewayParentRef(gatewayNsName),
 					Conditions: []conditions.Condition{
-						conditions.NewPolicyNotAcceptedNginxProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
+						conditions.NewPolicyNotAcceptedBwsProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
 					},
 				},
 			},
@@ -724,7 +724,7 @@ func TestAttachPolicyToGateway(t *testing.T) {
 				},
 				InvalidForGateways: map[types.NamespacedName]struct{}{},
 			},
-			gws: newGatewayMapWithNginxProxy(true, []types.NamespacedName{gatewayNsName}, &EffectiveNginxProxy{
+			gws: newGatewayMapWithBwsProxy(true, []types.NamespacedName{gatewayNsName}, &EffectiveBwsProxy{
 				Telemetry: &ngfAPIv1alpha2.Telemetry{
 					Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 						Endpoint: helpers.GetPointer("test-endpoint"),

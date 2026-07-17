@@ -1,153 +1,45 @@
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/nginx/nginx-gateway-fabric/badge)](https://scorecard.dev/viewer/?uri=github.com/nginx/nginx-gateway-fabric)
-[![Continuous Integration](https://github.com/nginx/nginx-gateway-fabric/actions/workflows/ci.yml/badge.svg)](https://github.com/nginx/nginx-gateway-fabric/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nginx/nginx-gateway-fabric)](https://goreportcard.com/report/github.com/nginx/nginx-gateway-fabric)
-[![codecov](https://codecov.io/gh/nginx/nginx-gateway-fabric/graph/badge.svg?token=32ULC8F13Z)](https://codecov.io/gh/nginx/nginx-gateway-fabric)
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nginx/nginx-gateway-fabric?logo=github&sort=semver)](https://github.com/nginx/nginx-gateway-fabric/releases/latest)
-[![Forum](https://img.shields.io/badge/nginx--community--forum-green)](https://community.nginx.org/c/projects/nginx-gateway-fabric/25)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-3.0-4baaaa.svg)](/CODE_OF_CONDUCT.md)
-[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+# BWS Gateway Fabric
 
-# NGINX Gateway Fabric
+BWS Gateway Fabric is a Kubernetes Gateway API implementation that uses BES WebServer (BWS) as its data plane. The
+control plane watches standard Gateway API resources, generates BWS configuration, and delivers it to BWS Agent over
+the existing mTLS gRPC protocol.
 
-NGINX Gateway Fabric is an open-source project that provides an implementation of
-the [Gateway API](https://gateway-api.sigs.k8s.io/) using [NGINX](https://nginx.org/) as the data plane. The goal of
-this project is to implement the core Gateway APIs -- `Gateway`, `GatewayClass`, `HTTPRoute`, `GRPCRoute`, `TCPRoute`, `TLSRoute`,
-and `UDPRoute` -- to configure an HTTP or TCP/UDP load balancer, reverse-proxy, or API gateway for applications running
-on Kubernetes.
+This repository is derived from NGINX Gateway Fabric v2.6.7. The BWS productization branch provides its own control-plane
+and data-plane images, BWS process and Agent identity, and the BWS runtime directory contract.
 
-For a list of supported Gateway API resources and features, see
-the [Gateway API Compatibility](https://docs.nginx.com/nginx-gateway-fabric/overview/gateway-api-compatibility/) doc.
+## Current product contract
 
-Learn about our [design principles](/docs/developer/design-principles.md) and [architecture](https://docs.nginx.com/nginx-gateway-fabric/overview/gateway-architecture/).
+- Controller: `gateway.bessystem.com/bws-gateway-controller`
+- GatewayClass: `bws`
+- Helm Chart and values: `bws-gateway-fabric`, `bwsGateway`, and `bws`
+- Custom APIs: `gateway.bessystem.com`, `BwsGateway`, and `BwsProxy`
+- Control-plane binary and container: `bws-gateway`
+- Data-plane container: `bws`
+- Agent binary: `bws-agent`
+- Configuration root: `/etc/bws`
+- Runtime directory: `/var/run/bws`
+- Cache directory: `/var/cache/bws`
 
-NGINX Gateway Fabric uses [NGINX Agent](https://github.com/nginx/agent) to configure NGINX.
+Standard Gateway API kinds remain unchanged. New installations do not require or render the transitional
+`nginxGateway`/`nginx` values or `gateway.nginx.org` custom resources. NGINX Plus, NGINX One, and F5 WAF fields are not
+part of the BWS Chart or generated CRD schemas.
 
-## Getting Started
+## Build and test
 
-1. [Get started using a kind cluster](https://docs.nginx.com/nginx-gateway-fabric/get-started/).
-2. [Install](https://docs.nginx.com/nginx-gateway-fabric/install/) NGINX Gateway Fabric.
-3. Deploy various [examples](examples).
-4. Follow instructions for common use cases such as [routing](https://docs.nginx.com/nginx-gateway-fabric/traffic-management/) and [securing](https://docs.nginx.com/nginx-gateway-fabric/traffic-security/) traffic, or [monitoring](https://docs.nginx.com/nginx-gateway-fabric//monitoring/) your cluster.
-
-You can find the comprehensive NGINX Gateway Fabric user documentation on the [NGINX Documentation](https://docs.nginx.com/nginx-gateway-fabric/) website.
-
-## NGINX Gateway Fabric Releases
-
-We publish NGINX Gateway Fabric releases on GitHub. See
-our [releases page](https://github.com/nginx/nginx-gateway-fabric/releases).
-
-The latest release is [2.6.7](https://github.com/nginx/nginx-gateway-fabric/releases/tag/v2.6.7).
-
-The edge version is useful for experimenting with new features that are not yet published in a release. To use, choose
-the _edge_ version built from the [latest commit](https://github.com/nginx/nginx-gateway-fabric/commits/main)
-from the main branch.
-
-The table below summarizes the options regarding the images, manifests, documentation and examples and gives your links
-to the correct versions:
-
-| Version | Description | Installation Manifests | Documentation and Examples |
-| ------- | ----------- | ---------------------- | -------------------------- |
-| Latest release | For production use | [Manifests](https://github.com/nginx/nginx-gateway-fabric/tree/v2.6.7/deploy). | [Documentation](https://docs.nginx.com/nginx-gateway-fabric). [Examples](https://github.com/nginx/nginx-gateway-fabric/tree/v2.6.7/examples). |
-| Edge | For experimental use and latest features | [Manifests](https://github.com/nginx/nginx-gateway-fabric/tree/main/deploy). | [Examples](https://github.com/nginx/nginx-gateway-fabric/tree/main/examples). |
-
-### Versioning
-
-NGF uses semantic versioning for its releases. For more information, see https://semver.org.
-
-> Major version zero `(0.Y.Z)` is reserved for development, anything MAY change at any time. The public API is not stable.
-
-### Release Planning and Development
-
-The features that will go into the next release are reflected in the
-corresponding [milestone](https://github.com/nginx/nginx-gateway-fabric/milestones). Refer to
-the [Issue Lifecycle](ISSUE_LIFECYCLE.md) document for information on issue creation and assignment to releases.
-
-## Technical Specifications
-
-The following table lists the software versions NGINX Gateway Fabric supports. Only the latest patch release for each minor version is shown.
-
-| NGINX Gateway Fabric | Gateway API | Kubernetes | NGINX OSS | NGINX Plus | NGINX Agent | F5 WAF for NGINX |
-|----------------------|-------------|------------|-----------|------------|-------------|------------------|
-| Edge                 | 1.5.1       | 1.31+      | 1.31.3    | R37.0      | v3.11.2     | 5.13.2           |
-| 2.6.7                | 1.5.1       | 1.31+      | 1.31.3    | R37.0      | v3.11.2     | 5.13.2           |
-| 2.5.1                | 1.5.1       | 1.31+      | 1.29.7    | R36        | v3.8.0      | ---              |
-| 2.4.2                | 1.4.1       | 1.25+      | 1.29.5    | R36        | v3.7.1      | ---              |
-| 2.3.0                | 1.4.1       | 1.25+      | 1.29.3    | R36        | v3.6.0      | ---              |
-| 2.2.2                | 1.3.0       | 1.25+      | 1.29.2    | R35        | v3.6.0      | ---              |
-| 2.1.4                | 1.3.0       | 1.25+      | 1.29.1    | R35        | v3.3.1      | ---              |
-| 2.0.2                | 1.3.0       | 1.25+      | 1.28.0    | R34        | v3.0.1      | ---              |
-| 1.6.2                | 1.2.1       | 1.25+      | 1.27.4    | R33        | ---         | ---              |
-| 1.5.1                | 1.2.0       | 1.25+      | 1.27.2    | R33        | ---         | ---              |
-| 1.4.0                | 1.1.0       | 1.25+      | 1.27.1    | R32        | ---         | ---              |
-| 1.3.0                | 1.1.0       | 1.25+      | 1.27.0    | R32        | ---         | ---              |
-| 1.2.0                | 1.0.0       | 1.23+      | 1.25.4    | R31        | ---         | ---              |
-
-### OpenShift Compatibility
-
-The following table lists the OpenShift versions and Operator versions compatible with NGINX Gateway Fabric.
-
-| NGINX Gateway Fabric | Operator | Preferred Gateway API | Compatible Gateway API | OCP with Preferred GWAPI | Supported OCP Versions |
-|----------------------|----------|-----------------------|------------------------|--------------------------|------------------------|
-| 2.6.x                | v1.4.x   | v1.5.x                | v1.2.1-v1.5.x          | ---                      | 4.19 - 4.21            |
-| 2.5.x                | v1.3.x   | v1.5.x                | v1.2.1-v1.5.x          | ---                      | 4.19 - 4.21            |
-| 2.4.x                | v1.2.x   | v1.4.x                | v1.2.1-v1.4.x          | 4.20 & 4.21              | 4.19 - 4.21            |
-| 2.2.x                | v1.0.x   | v1.3.0                | v1.2.1                 | ---                      | 4.19                   |
-
-NGINX Gateway Fabric is conformant with the Gateway API version installed on supported OCP versions. The "OCP with Preferred GWAPI" column shows which OCP versions ship with the preferred Gateway API version. On OCP versions with an older Gateway API installed, NGF remains fully conformant with that installed version, but features from newer Gateway API versions that NGF supports will be unavailable.
-
-## SBOM (Software Bill of Materials)
-
-We generate SBOMs for the binaries and the Docker image.
-
-### Binaries
-
-The SBOMs for the binaries are available in the releases page. The SBOMs are generated
-using [syft](https://github.com/anchore/syft) and are available in SPDX format.
-
-### Docker Images
-
-The SBOM for the Docker image is available in
-the [GitHub Container](https://github.com/nginx/nginx-gateway-fabric/pkgs/container/nginx-gateway-fabric)
-repository. The SBOM is generated using [syft](https://github.com/anchore/syft) and stored as an attestation in the
-image manifest.
-
-For example to retrieve the SBOM for `linux/amd64` and analyze it using [grype](https://github.com/anchore/grype) you
-can run the following command:
-
-```shell
-docker buildx imagetools inspect ghcr.io/nginx/nginx-gateway-fabric:edge --format '{{ json (index .SBOM "linux/amd64").SPDX }}' | grype
+```bash
+make build
+make unit-test
+make fmt vet lint
 ```
 
-## Troubleshooting
+Build the BWS-specific images with:
 
-For troubleshooting help, see the [Troubleshooting](https://docs.nginx.com/nginx-gateway-fabric/troubleshooting/) document.
+```bash
+make build-bws-control-plane-image TAG=dev
+make build-bws-image TAG=dev BWS_PREFIX=bws-gateway-fabric/bws
+```
 
-## Contacts
-
-We’d like to hear your feedback! If you experience issues with our Gateway Controller, please [open a bug][bug] in
-GitHub. If you have any suggestions or enhancement requests, please [open an idea][idea] on GitHub discussions. You can
-contact us directly on the [NGINX Community Forum][forum].
-
-[bug]: https://github.com/nginx/nginx-gateway-fabric/issues/new?assignees=&labels=&projects=&template=bug_report.md&title=
-[idea]: https://github.com/nginx/nginx-gateway-fabric/discussions/categories/ideas
-[forum]: https://community.nginx.org/c/projects/nginx-gateway-fabric/25
-
-## Community Meetings
-
-Every Tuesday, alternating time zones at 9:30AM Pacific / 5:30PM GMT or 12:00PM GMT.
-
-For the meeting link, updates, agenda, and meeting notes, check the link below:
-
-[NGINX Gateway Fabric Community Meeting](https://github.com/nginx/nginx-gateway-fabric/discussions/1472)
-
-If you have a use case for NGINX Gateway Fabric that the project can't quite meet yet, bugs, problems, success stories, or just want to be more involved with the project, come by and say hi!
-
-## Contributing
-
-Please read our [Contributing guide](CONTRIBUTING.md) if you'd like to contribute to the project.
-
-## Support and NGINX Plus
-
-If your team needs dedicated support for NGINX Gateway Fabric in your environment, or you would like to leverage our [advanced NGINX Plus features](https://docs.nginx.com/nginx-gateway-fabric/overview/nginx-plus/), you can reach out [here](https://www.f5.com/content/f5-com/en_us/products/get-f5).
-
-To try NGINX Gateway Fabric with NGINX Plus, you can start your free [30-day trial](https://www.f5.com/trials), then follow the [installation guide](https://docs.nginx.com/nginx-gateway-fabric/install/helm/) for installing with NGINX Plus.
+The BWS image contract is documented in [`docs/bws-data-plane-image.md`](docs/bws-data-plane-image.md), and the M4.3
+API contract and rollback boundary are documented in [`docs/bws-m4-api-migration.md`](docs/bws-m4-api-migration.md). Repeatable M4
+cluster deployment and smoke verification are under [`tests/bws-m4/`](tests/bws-m4/). The staged integration plan is
+maintained in the parent workspace at `docs/2026-07-16-bws-gateway-fabric-integration-plan.md`.

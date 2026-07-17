@@ -85,7 +85,7 @@ func (cs *commandService) CreateConnection(
 	resource := req.GetResource()
 	podName := resource.GetContainerInfo().GetHostname()
 	cs.logger.Info(
-		fmt.Sprintf("Creating connection for nginx pod: %s", podName),
+		fmt.Sprintf("Creating connection for BWS pod: %s", podName),
 		"correlation_id", req.GetMessageMeta().GetCorrelationId(),
 	)
 
@@ -145,7 +145,7 @@ func (cs *commandService) Subscribe(in pb.CommandService_SubscribeServer) error 
 	defer deployment.RemovePodStatus(grpcInfo.UUID)
 
 	cs.logger.Info(
-		"Successfully connected to nginx agent",
+		"Successfully connected to BWS Agent",
 		conn.ParentType, conn.ParentName,
 		"uuid", grpcInfo.UUID,
 	)
@@ -448,7 +448,7 @@ func (cs *commandService) logAndSendErrorStatus(
 		cs.logger.Error(err, "error sending request to agent", "uuid", grpcInfo.UUID)
 	} else {
 		cs.logger.Info(
-			"Successfully configured nginx for new subscription",
+			"Successfully configured BWS for new subscription",
 			conn.ParentType, conn.ParentName,
 			"uuid", grpcInfo.UUID,
 		)
@@ -586,7 +586,7 @@ func (cs *commandService) UpdateDataPlaneStatus(
 
 	instanceID := getNginxInstanceID(req.GetResource().GetInstances())
 	if instanceID == "" {
-		return nil, grpcStatus.Errorf(codes.InvalidArgument, "request does not contain nginx instanceID")
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "request does not contain BWS instanceID")
 	}
 
 	cs.connTracker.SetInstanceID(grpcInfo.UUID, instanceID)

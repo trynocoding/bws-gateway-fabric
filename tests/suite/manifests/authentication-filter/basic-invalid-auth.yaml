@@ -25,7 +25,7 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: AuthenticationFilter
             name: basic-auth3
     # Tea with Basic Auth with valid basic-auth2
@@ -39,7 +39,7 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: AuthenticationFilter
             name: basic-auth2
     # Frappe with with two valid basic-auth filters that makes it invalid
@@ -53,12 +53,12 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: AuthenticationFilter
             name: basic-auth1
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: AuthenticationFilter
             name: basic-auth2
     # Matcha with not existing AuthFilter
@@ -72,7 +72,7 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: AuthenticationFilter
             name: not-existing-auth
     # Chocolate with invalid key in reference
@@ -86,7 +86,7 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: AuthenticationFilter
             name: basic-auth-wrong-key
 ---
@@ -106,7 +106,7 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: AuthenticationFilter
             name: basic-auth-wrong-key
       backendRefs:
@@ -125,7 +125,7 @@ data:
   # Base64 of "htpasswd -bn user1 password1"
   auth: dXNlcjE6JGFwcjEkWEFKeU5yekgkY0Rjdy9YMVBCZTFmTjltQVBweXpxMA==
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: basic-auth1
@@ -146,7 +146,7 @@ data:
   # Base64 of "htpasswd -bn user2 password2"
   auth: dXNlcjI6JGFwcjEkd0lKUUpjZEUkSXUuYjVhMlBGODdtQi5zT0x4aUg5MQ==
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: basic-auth2
@@ -167,7 +167,7 @@ data:
   # Base64 of "htpasswd -bn user2 password2"
   creds: dXNlcjI6JGFwcjEkd0lKUUpjZEUkSXUuYjVhMlBGODdtQi5zT0x4aUg5MQ==
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: basic-auth-wrong-key

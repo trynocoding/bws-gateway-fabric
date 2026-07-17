@@ -44,8 +44,8 @@ or `edit` the configuration.
 Proposed configuration CRD example:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxProxy
+apiVersion: gateway.bessystem.com/v1alpha1
+kind: BwsProxy
 metadata:
     name: nginx-proxy-config
     namespace: nginx-gateway

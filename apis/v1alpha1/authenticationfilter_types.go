@@ -8,7 +8,7 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:categories=nginx-gateway-fabric,shortName=authfilter;authenticationfilter
+// +kubebuilder:resource:categories=bws-gateway-fabric,shortName=authfilter;authenticationfilter
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 
 // AuthenticationFilter configures request authentication and is
@@ -36,14 +36,6 @@ type AuthenticationFilterList struct {
 // AuthenticationFilterSpec defines the desired configuration.
 //
 // +kubebuilder:validation:XValidation:message="type Basic requires spec.basic to be set",rule="self.type != 'Basic' || has(self.basic)"
-// +kubebuilder:validation:XValidation:message="type Basic must not set spec.jwt", rule="self.type != 'Basic' || !has(self.jwt)"
-// +kubebuilder:validation:XValidation:message="type Basic must not set spec.oidc", rule="self.type != 'Basic' || !has(self.oidc)"
-// +kubebuilder:validation:XValidation:message="type OIDC requires spec.oidc to be set",rule="self.type != 'OIDC' || has(self.oidc)"
-// +kubebuilder:validation:XValidation:message="type OIDC must not set spec.basic", rule="self.type != 'OIDC' || !has(self.basic)"
-// +kubebuilder:validation:XValidation:message="type OIDC must not set spec.jwt", rule="self.type != 'OIDC' || !has(self.jwt)"
-// +kubebuilder:validation:XValidation:message="type JWT requires spec.jwt to be set",rule="self.type != 'JWT' || has(self.jwt)"
-// +kubebuilder:validation:XValidation:message="type JWT must not set spec.basic", rule="self.type != 'JWT' || !has(self.basic)"
-// +kubebuilder:validation:XValidation:message="type JWT must not set spec.oidc", rule="self.type != 'JWT' || !has(self.oidc)"
 //
 //nolint:lll
 type AuthenticationFilterSpec struct {
@@ -52,15 +44,11 @@ type AuthenticationFilterSpec struct {
 	// +optional
 	Basic *BasicAuth `json:"basic,omitempty"`
 
-	// OIDC configures OpenID Connect Authentication (NGINX Plus).
-	//
-	// +optional
-	OIDC *OIDCAuth `json:"oidc,omitempty"`
+	// OIDC is retained only for internal upstream compatibility. The NGINX Plus OIDC module is not a BWS API.
+	OIDC *OIDCAuth `json:"-"`
 
-	// JWT configures JSON Web Token authentication (NGINX Plus).
-	//
-	// +optional
-	JWT *JWTAuth `json:"jwt,omitempty"`
+	// JWT is retained only for internal upstream compatibility. The NGINX Plus JWT module is not a BWS API.
+	JWT *JWTAuth `json:"-"`
 
 	// Type selects the authentication mechanism.
 	Type AuthType `json:"type"`
@@ -68,7 +56,7 @@ type AuthenticationFilterSpec struct {
 
 // AuthType defines the authentication mechanism.
 //
-// +kubebuilder:validation:Enum=Basic;OIDC;JWT
+// +kubebuilder:validation:Enum=Basic
 type AuthType string
 
 const (

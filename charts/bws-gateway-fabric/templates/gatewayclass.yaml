@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: {{ .Values.bwsGateway.gatewayClassName }}
+  labels:
+  {{- include "bws-gateway.labels" . | nindent 4 }}
+  {{- if .Values.bwsGateway.gatewayClassAnnotations }}
+  annotations:
+    {{- range $key, $value := .Values.bwsGateway.gatewayClassAnnotations }}
+    {{ printf "%s: %s" $key $value }}
+    {{- end }}
+  {{- end }}
+spec:
+  controllerName: {{ .Values.bwsGateway.gatewayControllerName }}
+  parametersRef:
+    group: gateway.bessystem.com
+    kind: BwsProxy
+    name: {{ include "bws-gateway.proxy-config-name" . }}
+    namespace: {{ .Release.Namespace }}

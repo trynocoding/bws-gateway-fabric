@@ -148,7 +148,7 @@ func (h *eventHandler) handleDeleteEvent(ctx context.Context, e *events.DeleteEv
 		*corev1.ConfigMap, *rbacv1.Role, *rbacv1.RoleBinding, *autoscalingv2.HorizontalPodAutoscaler:
 
 		if err := h.reprovisionResources(ctx, e); err != nil {
-			return fmt.Errorf("error re-provisioning nginx resources: %w", err)
+			return fmt.Errorf("error re-provisioning BWS resources: %w", err)
 		}
 	case *corev1.Secret:
 		if h.provisioner.isUserSecret(e.NamespacedName.Name) {
@@ -157,7 +157,7 @@ func (h *eventHandler) handleDeleteEvent(ctx context.Context, e *events.DeleteEv
 			}
 		} else {
 			if err := h.reprovisionResources(ctx, e); err != nil {
-				return fmt.Errorf("error re-provisioning nginx resources: %w", err)
+				return fmt.Errorf("error re-provisioning BWS resources: %w", err)
 			}
 		}
 	default:
@@ -167,7 +167,7 @@ func (h *eventHandler) handleDeleteEvent(ctx context.Context, e *events.DeleteEv
 	return nil
 }
 
-// updateOrDeleteResources ensures that nginx resources are either:
+// updateOrDeleteResources ensures that BWS resources are either:
 // - deleted if the Gateway no longer exists (this is for when the controller first starts up)
 // - are updated to the proper state in case a user makes a change directly to the resource.
 func (h *eventHandler) updateOrDeleteResources(
@@ -192,7 +192,7 @@ func (h *eventHandler) updateOrDeleteResources(
 
 	h.store.registerResourceInGatewayConfig(gatewayNSName, obj)
 	if err := h.provisionResource(ctx, logger, gatewayNSName, obj); err != nil {
-		return fmt.Errorf("error updating nginx resource: %w", err)
+		return fmt.Errorf("error updating BWS resource: %w", err)
 	}
 
 	return nil
@@ -241,11 +241,11 @@ func (h *eventHandler) provisionResource(
 			objects, err = h.provisioner.buildNginxResourceObjects(
 				resourceName,
 				resources.Gateway.Source,
-				resources.Gateway.EffectiveNginxProxy,
+				resources.Gateway.EffectiveBwsProxy,
 				resources.Gateway.Listeners,
 			)
 			if err != nil {
-				logger.Error(err, "error building some nginx resources")
+				logger.Error(err, "error building some BWS resources")
 			}
 		}
 
@@ -268,14 +268,14 @@ func (h *eventHandler) provisionResource(
 			resources.Gateway.Source,
 			[]client.Object{objectToProvision},
 		); err != nil {
-			return fmt.Errorf("error updating nginx resource: %w", err)
+			return fmt.Errorf("error updating BWS resource: %w", err)
 		}
 	}
 
 	return nil
 }
 
-// reprovisionResources redeploys nginx resources that have been deleted but should not have been.
+// reprovisionResources redeploys BWS resources that have been deleted but should not have been.
 func (h *eventHandler) reprovisionResources(ctx context.Context, event *events.DeleteEvent) error {
 	gateway := h.store.gatewayExistsForResource(event.Type, event.NamespacedName)
 
@@ -291,7 +291,7 @@ func (h *eventHandler) reprovisionResources(ctx context.Context, event *events.D
 				ctx,
 				resourceName,
 				gateway.Source,
-				gateway.EffectiveNginxProxy,
+				gateway.EffectiveBwsProxy,
 				gateway.Listeners,
 			); err != nil {
 				return err

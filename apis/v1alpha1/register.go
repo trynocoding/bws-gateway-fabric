@@ -7,7 +7,7 @@ import (
 )
 
 // GroupName specifies the group name used to register the objects.
-const GroupName = "gateway.nginx.org"
+const GroupName = "gateway.bessystem.com"
 
 // SchemeGroupVersion is group version used to register these objects.
 var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1alpha1"}
@@ -32,8 +32,8 @@ var (
 // Adds the list of known types to Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&NginxGateway{},
-		&NginxGatewayList{},
+		&BwsGateway{},
+		&BwsGatewayList{},
 		&AuthenticationFilter{},
 		&AuthenticationFilterList{},
 		&ClientSettingsPolicy{},
@@ -48,6 +48,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&SnippetsPolicyList{},
 		&RateLimitPolicy{},
 		&RateLimitPolicyList{},
+		// WAF types remain in the internal scheme while upstream configuration code is retained.
+		// BWS does not generate, install, watch, or grant RBAC for a WAFPolicy CRD.
 		&WAFPolicy{},
 		&WAFPolicyList{},
 	)

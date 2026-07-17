@@ -9,12 +9,12 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:categories=nginx-gateway-fabric,shortName=pspolicy
+// +kubebuilder:resource:categories=bws-gateway-fabric,shortName=pspolicy
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:metadata:labels="gateway.networking.k8s.io/policy=inherited"
 
 // ProxySettingsPolicy is an Inherited Attached Policy. It provides a way to configure the behavior of the connection
-// between NGINX Gateway Fabric and the upstream applications (backends).
+// between BWS Gateway Fabric and the upstream applications (backends).
 type ProxySettingsPolicy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

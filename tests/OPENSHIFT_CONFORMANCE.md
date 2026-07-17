@@ -12,7 +12,7 @@ This document describes the steps required to run Gateway API conformance tests 
 - NGF should be preinstalled on the cluster before running the tests. You can install using the Operator or Helm.
 **Note** :
   - the NGINX service type needs to be set to `ClusterIP`
-  - the NGINX image referenced in the `NginxProxy` resource needs to be accessible to the cluster
+  - the NGINX image referenced in the `BwsProxy` resource needs to be accessible to the cluster
 
 ## Overview
 
@@ -109,7 +109,7 @@ kubectl delete -f tests/conformance/conformance-rbac.yaml
 
 **Cause:** OpenShift cluster DNS cannot resolve external ELB/LoadBalancer hostnames
 
-**Solution:** Ensure that the NGINX Service type is set to NodePort in the NginxProxy CRD
+**Solution:** Ensure that the NGINX Service type is set to NodePort in the BwsProxy CRD
 
 ### Architecture mismatch errors ("Exec format error")
 

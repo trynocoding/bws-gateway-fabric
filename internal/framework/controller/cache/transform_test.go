@@ -120,6 +120,7 @@ func TestTransformConfigMap(t *testing.T) {
 	keys := []string{
 		secrets.CAKey,
 		configmaps.AgentConfKey,
+		configmaps.LegacyAgentConfKey,
 		configmaps.MainConfKey,
 		configmaps.EventsConfKey,
 	}
@@ -127,18 +128,20 @@ func TestTransformConfigMap(t *testing.T) {
 	// ConfigMap with all relevant keys in Data and BinaryData, plus irrelevant keys
 	cm := &corev1.ConfigMap{
 		Data: map[string]string{
-			secrets.CAKey:            "ca-data",
-			configmaps.AgentConfKey:  "agent-data",
-			configmaps.MainConfKey:   "main-data",
-			configmaps.EventsConfKey: "events-data",
-			"irrelevant":             "nope",
+			secrets.CAKey:                 "ca-data",
+			configmaps.AgentConfKey:       "agent-data",
+			configmaps.LegacyAgentConfKey: "legacy-agent-data",
+			configmaps.MainConfKey:        "main-data",
+			configmaps.EventsConfKey:      "events-data",
+			"irrelevant":                  "nope",
 		},
 		BinaryData: map[string][]byte{
-			secrets.CAKey:            []byte("ca-bin"),
-			configmaps.AgentConfKey:  []byte("agent-bin"),
-			configmaps.MainConfKey:   []byte("main-bin"),
-			configmaps.EventsConfKey: []byte("events-bin"),
-			"irrelevant":             []byte("nope"),
+			secrets.CAKey:                 []byte("ca-bin"),
+			configmaps.AgentConfKey:       []byte("agent-bin"),
+			configmaps.LegacyAgentConfKey: []byte("legacy-agent-bin"),
+			configmaps.MainConfKey:        []byte("main-bin"),
+			configmaps.EventsConfKey:      []byte("events-bin"),
+			"irrelevant":                  []byte("nope"),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			ManagedFields: []metav1.ManagedFieldsEntry{{Manager: "foo"}},

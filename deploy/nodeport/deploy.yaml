@@ -8,32 +8,32 @@ automountServiceAccountToken: false
 kind: ServiceAccount
 metadata:
   labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
     app.kubernetes.io/version: 2.6.7
-  name: nginx-gateway
-  namespace: nginx-gateway
+  name: bws-gateway
+  namespace: bws-gateway
 ---
 apiVersion: v1
 automountServiceAccountToken: false
 kind: ServiceAccount
 metadata:
   labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
     app.kubernetes.io/version: 2.6.7
-  name: nginx-gateway-cert-generator
-  namespace: nginx-gateway
+  name: bws-gateway-cert-generator
+  namespace: bws-gateway
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
     app.kubernetes.io/version: 2.6.7
-  name: nginx-gateway-cert-generator
-  namespace: nginx-gateway
+  name: bws-gateway-cert-generator
+  namespace: bws-gateway
 rules:
 - apiGroups:
   - ""
@@ -48,10 +48,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
     app.kubernetes.io/version: 2.6.7
-  name: nginx-gateway
+  name: bws-gateway
 rules:
 - apiGroups:
   - ""
@@ -61,12 +61,6 @@ rules:
   - get
   - list
   - watch
-- apiGroups:
-  - ""
-  resources:
-  - nodes
-  verbs:
-  - list
 - apiGroups:
   - authentication.k8s.io
   resources:
@@ -187,38 +181,36 @@ rules:
   verbs:
   - update
 - apiGroups:
-  - gateway.nginx.org
+  - gateway.bessystem.com
   resources:
-  - nginxgateways
+  - bwsgateways
   verbs:
   - get
   - list
   - watch
 - apiGroups:
-  - gateway.nginx.org
+  - gateway.bessystem.com
   resources:
-  - nginxproxies
+  - bwsproxies
   - clientsettingspolicies
   - observabilitypolicies
   - upstreamsettingspolicies
   - authenticationfilters
   - proxysettingspolicies
   - ratelimitpolicies
-  - wafpolicies
   verbs:
   - list
   - watch
 - apiGroups:
-  - gateway.nginx.org
+  - gateway.bessystem.com
   resources:
-  - nginxgateways/status
+  - bwsgateways/status
   - clientsettingspolicies/status
   - observabilitypolicies/status
   - upstreamsettingspolicies/status
   - authenticationfilters/status
   - proxysettingspolicies/status
   - ratelimitpolicies/status
-  - wafpolicies/status
   verbs:
   - update
 - apiGroups:
@@ -234,46 +226,46 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
     app.kubernetes.io/version: 2.6.7
-  name: nginx-gateway-cert-generator
-  namespace: nginx-gateway
+  name: bws-gateway-cert-generator
+  namespace: bws-gateway
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: nginx-gateway-cert-generator
+  name: bws-gateway-cert-generator
 subjects:
 - kind: ServiceAccount
-  name: nginx-gateway-cert-generator
-  namespace: nginx-gateway
+  name: bws-gateway-cert-generator
+  namespace: bws-gateway
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
     app.kubernetes.io/version: 2.6.7
-  name: nginx-gateway
+  name: bws-gateway
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: nginx-gateway
+  name: bws-gateway
 subjects:
 - kind: ServiceAccount
-  name: nginx-gateway
-  namespace: nginx-gateway
+  name: bws-gateway
+  namespace: bws-gateway
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
     app.kubernetes.io/version: 2.6.7
-  name: nginx-gateway
-  namespace: nginx-gateway
+  name: bws-gateway
+  namespace: bws-gateway
 spec:
   ports:
   - name: agent-grpc
@@ -281,46 +273,47 @@ spec:
     protocol: TCP
     targetPort: 8443
   selector:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
   type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
     app.kubernetes.io/version: 2.6.7
-  name: nginx-gateway
-  namespace: nginx-gateway
+  name: bws-gateway
+  namespace: bws-gateway
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/instance: nginx-gateway
-      app.kubernetes.io/name: nginx-gateway
+      app.kubernetes.io/instance: bws-gateway
+      app.kubernetes.io/name: bws-gateway
   template:
     metadata:
       annotations:
         prometheus.io/port: "9113"
         prometheus.io/scrape: "true"
       labels:
-        app.kubernetes.io/instance: nginx-gateway
-        app.kubernetes.io/name: nginx-gateway
+        app.kubernetes.io/instance: bws-gateway
+        app.kubernetes.io/name: bws-gateway
     spec:
       automountServiceAccountToken: true
       containers:
       - args:
         - controller
-        - --gateway-ctlr-name=gateway.nginx.org/nginx-gateway-controller
-        - --gatewayclass=nginx
-        - --config=nginx-gateway-config
-        - --service=nginx-gateway
+        - --gateway-ctlr-name=gateway.bessystem.com/bws-gateway-controller
+        - --gatewayclass=bws
+        - --config=bws-gateway-config
+        - --service=bws-gateway
         - --agent-tls-secret=agent-tls
         - --metrics-port=9113
         - --health-port=8081
-        - --leader-election-lock-name=nginx-gateway-leader-election
+        - --leader-election-lock-name=bws-gateway-leader-election
+        - --product-telemetry-disable
         env:
         - name: POD_NAMESPACE
           valueFrom:
@@ -339,10 +332,10 @@ spec:
             fieldRef:
               fieldPath: metadata.labels['app.kubernetes.io/instance']
         - name: IMAGE_NAME
-          value: ghcr.io/nginx/nginx-gateway-fabric:2.6.7
-        image: ghcr.io/nginx/nginx-gateway-fabric:2.6.7
+          value: bws-gateway-fabric:2.6.7
+        image: bws-gateway-fabric:2.6.7
         imagePullPolicy: IfNotPresent
-        name: nginx-gateway
+        name: bws-gateway
         ports:
         - containerPort: 8443
           name: agent-grpc
@@ -370,15 +363,15 @@ spec:
           seccompProfile:
             type: RuntimeDefault
         volumeMounts:
-        - mountPath: /var/run/secrets/ngf
-          name: nginx-agent-tls
+        - mountPath: /var/run/secrets/bws-gateway
+          name: bws-agent-tls
       securityContext:
         fsGroup: 1001
         runAsNonRoot: true
-      serviceAccountName: nginx-gateway
+      serviceAccountName: bws-gateway
       terminationGracePeriodSeconds: 30
       volumes:
-      - name: nginx-agent-tls
+      - name: bws-agent-tls
         secret:
           secretName: server-tls
 ---
@@ -386,11 +379,11 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
     app.kubernetes.io/version: 2.6.7
-  name: nginx-gateway-cert-generator
-  namespace: nginx-gateway
+  name: bws-gateway-cert-generator
+  namespace: bws-gateway
 spec:
   template:
     metadata:
@@ -400,7 +393,7 @@ spec:
       containers:
       - args:
         - generate-certs
-        - --service=nginx-gateway
+        - --service=bws-gateway
         - --cluster-domain=cluster.local
         - --server-tls-secret=server-tls
         - --agent-tls-secret=agent-tls
@@ -409,7 +402,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: ghcr.io/nginx/nginx-gateway-fabric:2.6.7
+        image: bws-gateway-fabric:2.6.7
         imagePullPolicy: IfNotPresent
         name: cert-generator
         securityContext:
@@ -426,56 +419,56 @@ spec:
       securityContext:
         fsGroup: 1001
         runAsNonRoot: true
-      serviceAccountName: nginx-gateway-cert-generator
+      serviceAccountName: bws-gateway-cert-generator
   ttlSecondsAfterFinished: 30
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
+apiVersion: gateway.bessystem.com/v1alpha1
+kind: BwsGateway
 metadata:
   labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
     app.kubernetes.io/version: 2.6.7
-  name: nginx
-spec:
-  controllerName: gateway.nginx.org/nginx-gateway-controller
-  parametersRef:
-    group: gateway.nginx.org
-    kind: NginxProxy
-    name: nginx-gateway-proxy-config
-    namespace: nginx-gateway
----
-apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxGateway
-metadata:
-  labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
-    app.kubernetes.io/version: 2.6.7
-  name: nginx-gateway-config
-  namespace: nginx-gateway
+  name: bws-gateway-config
+  namespace: bws-gateway
 spec:
   logging:
     level: info
 ---
-apiVersion: gateway.nginx.org/v1alpha2
-kind: NginxProxy
+apiVersion: gateway.bessystem.com/v1alpha2
+kind: BwsProxy
 metadata:
   labels:
-    app.kubernetes.io/instance: nginx-gateway
-    app.kubernetes.io/name: nginx-gateway
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
     app.kubernetes.io/version: 2.6.7
-  name: nginx-gateway-proxy-config
-  namespace: nginx-gateway
+  name: bws-gateway-proxy-config
+  namespace: bws-gateway
 spec:
   kubernetes:
     deployment:
       container:
         image:
           pullPolicy: IfNotPresent
-          repository: ghcr.io/nginx/nginx-gateway-fabric/nginx
+          repository: bws-gateway-fabric/bws
           tag: 2.6.7
       replicas: 1
     service:
       externalTrafficPolicy: Local
       type: NodePort
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  labels:
+    app.kubernetes.io/instance: bws-gateway
+    app.kubernetes.io/name: bws-gateway
+    app.kubernetes.io/version: 2.6.7
+  name: bws
+spec:
+  controllerName: gateway.bessystem.com/bws-gateway-controller
+  parametersRef:
+    group: gateway.bessystem.com
+    kind: BwsProxy
+    name: bws-gateway-proxy-config
+    namespace: bws-gateway

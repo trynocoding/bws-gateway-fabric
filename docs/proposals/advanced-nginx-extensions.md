@@ -233,7 +233,7 @@ We use NGINX [limit req module](https://nginx.org/en/docs/http/ngx_http_limit_re
 limiting.
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsPolicy
 metadata:
   name: rate-limit
@@ -279,7 +279,7 @@ We configure [proxy_buffering](https://nginx.org/en/docs/http/ngx_http_proxy_mod
 to disable buffering.
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsPolicy
 metadata:
   name: buffering
@@ -301,7 +301,7 @@ We use NGINX [access module](https://nginx.org/en/docs/http/ngx_http_access_modu
 on client IPs.
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsPolicy
 metadata:
   name: access-control
@@ -326,7 +326,7 @@ We use NGINX [access module](https://nginx.org/en/docs/http/ngx_http_access_modu
 on client IPs.
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsFilter
 metadata:
   name: access-control
@@ -357,7 +357,7 @@ spec:
     filters:
     - type: ExtensionRef
       extensionRef:
-        group: gateway.nginx.org/v1alpha1
+        group: gateway.bessystem.com/v1alpha1
         kind: SnippetsFilter
         name: access-control
     backendRefs:
@@ -376,7 +376,7 @@ We use the third-party [Brotli module](https://docs.nginx.com/nginx/admin-guide/
 > the module.
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsPolicy
 metadata:
   name: brotli
@@ -481,7 +481,7 @@ The snippet below exposes the filesystem of the NGINX container including any TL
 which NGF uses to access Kubernetes API:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsPolicy
 metadata:
   name: expose
@@ -530,7 +530,7 @@ operator upgrades NGF to the next version. Such risk shall be clearly documented
 In the example below, SnippetsPolicy reference the snippet, which is defined in a separate resource.
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: NginxSnippet
 metadata:
   name: buffering-snippet
@@ -539,7 +539,7 @@ spec:
   - context: http.server.location
     value: proxy_buffering off;
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsPolicy
 metadata:
   name: buffering-snippet-policy
@@ -560,7 +560,7 @@ However, the Application developer can still target a Gateway resource, even tho
 operator:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsPolicy
 metadata:
   name: buffering-snippet-policy
@@ -877,7 +877,7 @@ Next, the Cluster operator allows the Application developer to use the feature b
 binds the CRD with the templates:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsTemplate
 metadata:
   name: rate-limiting-template
@@ -1066,7 +1066,7 @@ documentation.
 Instead of asking the Cluster operator to design a CRD, we can provide a ready container CRD. For example:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsTemplate
 metadata:
   name: rate-limiting-template
@@ -1090,7 +1090,7 @@ spec:
 ```
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: Values
 metadata:
   name: rate-limit

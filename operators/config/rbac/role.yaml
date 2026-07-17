@@ -143,17 +143,17 @@ rules:
   verbs:
   - update
 - apiGroups:
-  - gateway.nginx.org
+  - gateway.bessystem.com
   resources:
-  - nginxgatewayfabrics
-  - nginxgatewayfabrics/status
-  - nginxgatewayfabrics/finalizers
-  - nginxgateways
-  - nginxgateways/status
-  - nginxgateways/finalizers
-  - nginxproxies
-  - nginxproxies/status
-  - nginxproxies/finalizers
+  - bwsgatewayfabrics
+  - bwsgatewayfabrics/status
+  - bwsgatewayfabrics/finalizers
+  - bwsgateways
+  - bwsgateways/status
+  - bwsgateways/finalizers
+  - bwsproxies
+  - bwsproxies/status
+  - bwsproxies/finalizers
   - clientsettingspolicies
   - observabilitypolicies
   - proxysettingspolicies
@@ -162,7 +162,6 @@ rules:
   - snippetsfilters
   - authenticationfilters
   - snippetspolicies
-  - wafpolicies
   verbs:
   - create
   - delete
@@ -172,7 +171,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - gateway.nginx.org
+  - gateway.bessystem.com
   resources:
   - clientsettingspolicies/status
   - observabilitypolicies/status
@@ -182,7 +181,6 @@ rules:
   - snippetsfilters/status
   - authenticationfilters/status
   - snippetspolicies/status
-  - wafpolicies/status
   verbs:
   - update
 - apiGroups:

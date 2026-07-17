@@ -664,14 +664,14 @@ type ControlPlaneUpdateResult struct {
 	Error error
 }
 
-// PrepareNginxGatewayStatus prepares a status UpdateRequest for the given NginxGateway.
-// If the NginxGateway is nil, it returns nil.
-func PrepareNginxGatewayStatus(
-	nginxGateway *ngfAPI.NginxGateway,
+// PrepareBwsGatewayStatus prepares a status UpdateRequest for the given BwsGateway.
+// If the BwsGateway is nil, it returns nil.
+func PrepareBwsGatewayStatus(
+	bwsGateway *ngfAPI.BwsGateway,
 	transitionTime metav1.Time,
 	cpUpdateRes ControlPlaneUpdateResult,
 ) *UpdateRequest {
-	if nginxGateway == nil {
+	if bwsGateway == nil {
 		return nil
 	}
 
@@ -679,17 +679,17 @@ func PrepareNginxGatewayStatus(
 	if cpUpdateRes.Error != nil {
 		msg := "Failed to update control plane configuration"
 		conds = []conditions.Condition{
-			conditions.NewNginxGatewayInvalid(fmt.Sprintf("%s: %v", msg, cpUpdateRes.Error)),
+			conditions.NewBwsGatewayInvalid(fmt.Sprintf("%s: %v", msg, cpUpdateRes.Error)),
 		}
 	} else {
-		conds = []conditions.Condition{conditions.NewNginxGatewayValid()}
+		conds = []conditions.Condition{conditions.NewBwsGatewayValid()}
 	}
 
 	return &UpdateRequest{
-		NsName:       client.ObjectKeyFromObject(nginxGateway),
-		ResourceType: &ngfAPI.NginxGateway{},
-		Setter: newNginxGatewayStatusSetter(ngfAPI.NginxGatewayStatus{
-			Conditions: conditions.ConvertConditions(conds, nginxGateway.Generation, transitionTime),
+		NsName:       client.ObjectKeyFromObject(bwsGateway),
+		ResourceType: &ngfAPI.BwsGateway{},
+		Setter: newBwsGatewayStatusSetter(ngfAPI.BwsGatewayStatus{
+			Conditions: conditions.ConvertConditions(conds, bwsGateway.Generation, transitionTime),
 		}),
 	}
 }
@@ -704,7 +704,7 @@ func PrepareInferencePoolRequests(
 	reqs := make([]UpdateRequest, 0, len(referencedInferencePools))
 
 	// Create parent references from referenced gateways
-	nginxGatewayParentRefs := make([]inference.ParentReference, 0, len(referencedGateways))
+	bwsGatewayParentRefs := make([]inference.ParentReference, 0, len(referencedGateways))
 	for _, gateway := range referencedGateways {
 		parentRef := inference.ParentReference{
 			Name:      inference.ObjectName(gateway.Source.GetName()),
@@ -712,7 +712,7 @@ func PrepareInferencePoolRequests(
 			Group:     helpers.GetPointer(inference.Group(gateway.Source.GroupVersionKind().Group)),
 			Kind:      kinds.Gateway,
 		}
-		nginxGatewayParentRefs = append(nginxGatewayParentRefs, parentRef)
+		bwsGatewayParentRefs = append(bwsGatewayParentRefs, parentRef)
 	}
 
 	if clusterInferencePoolList != nil {
@@ -730,7 +730,7 @@ func PrepareInferencePoolRequests(
 				for _, parent := range pool.Status.Parents {
 					// if the parent.ParentRef is not in the list of nginx gateways, keep it
 					// otherwise, we are removing it from the status
-					if !containsParentReference(nginxGatewayParentRefs, parent.ParentRef) {
+					if !containsParentReference(bwsGatewayParentRefs, parent.ParentRef) {
 						filteredParents = append(filteredParents, parent)
 					}
 				}

@@ -409,7 +409,7 @@ func TestGatewayChanged(t *testing.T) {
 		{
 			name: "effective nginx proxy config changes",
 			original: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 						Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 							Replicas: helpers.GetPointer[int32](1),
@@ -418,7 +418,7 @@ func TestGatewayChanged(t *testing.T) {
 				},
 			},
 			updated: &graph.Gateway{
-				EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+				EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 					Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 						Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 							Replicas: helpers.GetPointer[int32](2),

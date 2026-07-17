@@ -2,7 +2,7 @@ package config
 
 const plusAPITemplateText = `
 server {
-    listen unix:/var/run/nginx/nginx-plus-api.sock;
+    listen unix:/var/run/bws/bws-plus-api.sock;
     access_log off;
 
     location /api {

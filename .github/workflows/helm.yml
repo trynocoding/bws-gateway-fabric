@@ -123,13 +123,12 @@ jobs:
 
       - name: Install Chart
         run: |
-          ct install --config .ct.yaml --namespace nginx-gateway --helm-extra-set-args="--set=nginxGateway.image.tag=${{ steps.ngf-meta.outputs.version }} \
-          --set=nginx.image.repository=ghcr.io/nginx/nginx-gateway-fabric/nginx${{ inputs.image == 'plus' && '-plus' || ''}} \
-          --set=nginx.plus=${{ inputs.image == 'plus' }} \
-          --set=nginx.image.tag=${{ steps.nginx-meta.outputs.version }} \
-          --set=nginxGateway.image.pullPolicy=Never \
-          --set=nginx.image.pullPolicy=Never \
-          --set=nginxGateway.productTelemetry.enable=false"
+          ct install --config .ct.yaml --namespace nginx-gateway --helm-extra-set-args="--set=bwsGateway.image.tag=${{ steps.ngf-meta.outputs.version }} \
+          --set=bws.image.repository=ghcr.io/nginx/nginx-gateway-fabric/nginx${{ inputs.image == 'plus' && '-plus' || ''}} \
+          --set=bws.image.tag=${{ steps.nginx-meta.outputs.version }} \
+          --set=bwsGateway.image.pullPolicy=Never \
+          --set=bws.image.pullPolicy=Never \
+          --set=bwsGateway.productTelemetry.enable=false"
 
   helm-test-remote:
     name: Helm Tests Remote
@@ -176,8 +175,7 @@ jobs:
 
       - name: Install Chart
         run: |
-          ct install --config .ct.yaml --all --namespace nginx-gateway --helm-extra-set-args="--set=nginxGateway.image.tag=nightly \
-          --set=nginx.plus=${{ inputs.image == 'plus' }} \
-          --set=nginx.image.tag=nightly \
-          --set=nginxGateway.productTelemetry.enable=false \
-          ${{ inputs.image == 'plus' && '--set=nginx.imagePullSecret=nginx-plus-registry-secret --set=nginx.image.repository=private-registry.nginx.com/nginx-gateway-fabric/nginx-plus' || '' }}"
+          ct install --config .ct.yaml --all --namespace nginx-gateway --helm-extra-set-args="--set=bwsGateway.image.tag=nightly \
+          --set=bws.image.tag=nightly \
+          --set=bwsGateway.productTelemetry.enable=false \
+          ${{ inputs.image == 'plus' && '--set=bws.imagePullSecret=nginx-plus-registry-secret --set=bws.image.repository=private-registry.nginx.com/nginx-gateway-fabric/nginx-plus' || '' }}"

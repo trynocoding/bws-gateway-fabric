@@ -797,7 +797,7 @@ func TestUpdateDataPlaneStatus(t *testing.T) {
 			ctx:       createGrpcContext(t),
 			request:   &pb.UpdateDataPlaneStatusRequest{},
 			response:  nil,
-			errString: "request does not contain nginx instanceID",
+			errString: "request does not contain BWS instanceID",
 		},
 	}
 

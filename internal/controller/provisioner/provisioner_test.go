@@ -209,7 +209,7 @@ func defaultNginxProvisioner(
 				EndpointTLSSkipVerify:  false,
 			},
 			AgentLabels: map[string]string{
-				"product-type":      "ngf",
+				"product-type":      "bws",
 				"product-version":   "ngf-version",
 				"cluster-id":        "my-cluster-id",
 				"control-name":      "my-control-plane-name",
@@ -515,7 +515,7 @@ func TestRegisterGateway_CreateOrUpdateError(t *testing.T) {
 	// The function should return an error after the timeout
 	err := provisioner.RegisterGateway(ctx, gateway, "gw-nginx")
 	g.Expect(err).To(HaveOccurred())
-	g.Expect(err.Error()).To(ContainSubstring("error provisioning nginx resources"))
+	g.Expect(err.Error()).To(ContainSubstring("error provisioning BWS resources"))
 }
 
 func TestRegisterGateway_CleansUpOldDeploymentOrDaemonSet(t *testing.T) {
@@ -534,7 +534,7 @@ func TestRegisterGateway_CleansUpOldDeploymentOrDaemonSet(t *testing.T) {
 			{},
 		},
 		Valid: true,
-		EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+		EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 			Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 				DaemonSet: &ngfAPIv1alpha2.DaemonSetSpec{},
 			},
@@ -566,7 +566,7 @@ func TestRegisterGateway_CleansUpOldDeploymentOrDaemonSet(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 
 	// Now test the opposite: switch from DaemonSet to Deployment
-	gateway.EffectiveNginxProxy = &graph.EffectiveNginxProxy{
+	gateway.EffectiveBwsProxy = &graph.EffectiveBwsProxy{
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			Deployment: &ngfAPIv1alpha2.DeploymentSpec{},
 		},
@@ -618,7 +618,7 @@ func TestRegisterGateway_CleansUpOldHPA(t *testing.T) {
 			{},
 		},
 		Valid: true,
-		EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+		EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 			Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 				Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 					Autoscaling: &ngfAPIv1alpha2.AutoscalingSpec{
@@ -634,7 +634,7 @@ func TestRegisterGateway_CleansUpOldHPA(t *testing.T) {
 		HPA: oldHPA.ObjectMeta,
 	}
 
-	// Simulate update: EffectiveNginxProxy no longer references HPA
+	// Simulate update: EffectiveBwsProxy no longer references HPA
 	g.Expect(provisioner.RegisterGateway(t.Context(), gateway, "gw-nginx")).To(Succeed())
 
 	// HPA should be deleted
@@ -703,7 +703,7 @@ func TestProvisionerRestartsDeployment(t *testing.T) {
 			{},
 		},
 		Valid: true,
-		EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+		EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 			Logging: &ngfAPIv1alpha2.NginxLogging{
 				AgentLevel: helpers.GetPointer(ngfAPIv1alpha2.AgentLogLevelDebug),
 			},
@@ -738,7 +738,7 @@ func TestProvisionerRestartsDeployment(t *testing.T) {
 			{},
 		},
 		Valid: true,
-		EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+		EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 			Logging: &ngfAPIv1alpha2.NginxLogging{
 				AgentLevel: helpers.GetPointer(ngfAPIv1alpha2.AgentLogLevelInfo),
 			},
@@ -769,7 +769,7 @@ func TestProvisionerRestartsDaemonSet(t *testing.T) {
 			{},
 		},
 		Valid: true,
-		EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+		EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 			Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 				DaemonSet: &ngfAPIv1alpha2.DaemonSetSpec{},
 			},
@@ -807,7 +807,7 @@ func TestProvisionerRestartsDaemonSet(t *testing.T) {
 			{},
 		},
 		Valid: true,
-		EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+		EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 			Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 				DaemonSet: &ngfAPIv1alpha2.DaemonSetSpec{},
 			},

@@ -14,7 +14,7 @@ type: Opaque
 data:
   client-secret: b2lkYy10ZWEtY2xpZW50LXNlY3JldA==
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: oidc-auth-coffee
@@ -30,7 +30,7 @@ spec:
     logout:
       uri: /logout-coffee
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: oidc-auth-tea
@@ -67,7 +67,7 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: AuthenticationFilter
             name: oidc-auth-coffee
     - matches:
@@ -80,6 +80,6 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: AuthenticationFilter
             name: oidc-auth-tea

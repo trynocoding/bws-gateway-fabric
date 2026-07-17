@@ -1503,11 +1503,11 @@ func telemetryEnabled(gw *graph.Gateway) bool {
 		return false
 	}
 
-	if gw.EffectiveNginxProxy == nil || gw.EffectiveNginxProxy.Telemetry == nil {
+	if gw.EffectiveBwsProxy == nil || gw.EffectiveBwsProxy.Telemetry == nil {
 		return false
 	}
 
-	tel := gw.EffectiveNginxProxy.Telemetry
+	tel := gw.EffectiveBwsProxy.Telemetry
 
 	if slices.Contains(tel.DisabledFeatures, ngfAPIv1alpha2.DisableTracing) {
 		return false
@@ -1527,7 +1527,7 @@ func buildTelemetry(g *graph.Graph, gateway *graph.Gateway) Telemetry {
 	}
 
 	serviceName := fmt.Sprintf("ngf:%s:%s", gateway.Source.Namespace, gateway.Source.Name)
-	telemetry := gateway.EffectiveNginxProxy.Telemetry
+	telemetry := gateway.EffectiveBwsProxy.Telemetry
 	if telemetry.ServiceName != nil {
 		serviceName = serviceName + ":" + *telemetry.ServiceName
 	}
@@ -1615,8 +1615,8 @@ func buildBaseHTTPConfig(
 		baseConfig.GatewaySecretID = generateSSLKeyPairID(*gateway.SecretRef)
 	}
 
-	// safe to access EffectiveNginxProxy since we only call this function when the Gateway is not nil.
-	np := gateway.EffectiveNginxProxy
+	// safe to access EffectiveBwsProxy since we only call this function when the Gateway is not nil.
+	np := gateway.EffectiveBwsProxy
 
 	// These helpers handle np == nil internally, so call them before the nil check.
 	baseConfig.NginxReadinessProbePort = GetNginxReadinessProbePort(np)
@@ -1704,7 +1704,7 @@ func buildHTTPContextRateLimitPolicies(gatewayRateLimitPolicies map[graph.Policy
 	return httpContextRateLimitPolicies
 }
 
-func GetNginxReadinessProbePort(np *graph.EffectiveNginxProxy) int32 {
+func GetNginxReadinessProbePort(np *graph.EffectiveBwsProxy) int32 {
 	port := DefaultNginxReadinessProbePort
 
 	if np != nil && np.Kubernetes != nil {
@@ -1721,7 +1721,7 @@ func GetNginxReadinessProbePort(np *graph.EffectiveNginxProxy) int32 {
 	return port
 }
 
-func GetNginxReadinessProbePath(np *graph.EffectiveNginxProxy) string {
+func GetNginxReadinessProbePath(np *graph.EffectiveBwsProxy) string {
 	path := DefaultNginxReadinessProbePath
 
 	if np != nil && np.Kubernetes != nil {
@@ -1742,8 +1742,8 @@ func GetNginxReadinessProbePath(np *graph.EffectiveNginxProxy) string {
 func buildBaseStreamConfig(gateway *graph.Gateway) BaseStreamConfig {
 	baseConfig := BaseStreamConfig{}
 
-	// safe to access EffectiveNginxProxy since we only call this function when the Gateway is not nil.
-	np := gateway.EffectiveNginxProxy
+	// safe to access EffectiveBwsProxy since we only call this function when the Gateway is not nil.
+	np := gateway.EffectiveBwsProxy
 	if np == nil {
 		return baseConfig
 	}
@@ -1856,11 +1856,11 @@ func convertAddresses(addresses []ngfAPIv1alpha2.RewriteClientIPAddress) []strin
 func buildLogging(gateway *graph.Gateway) Logging {
 	logSettings := Logging{ErrorLevel: defaultErrorLogLevel}
 
-	if gateway == nil || gateway.EffectiveNginxProxy == nil {
+	if gateway == nil || gateway.EffectiveBwsProxy == nil {
 		return logSettings
 	}
 
-	ngfProxy := gateway.EffectiveNginxProxy
+	ngfProxy := gateway.EffectiveBwsProxy
 	if ngfProxy.Logging != nil {
 		if ngfProxy.Logging.ErrorLevel != nil {
 			logSettings.ErrorLevel = string(*ngfProxy.Logging.ErrorLevel)
@@ -1897,11 +1897,11 @@ func buildAccessLog(srcLogSettings *ngfAPIv1alpha2.NginxLogging) *AccessLog {
 }
 
 func buildWorkerConnections(gateway *graph.Gateway) int32 {
-	if gateway == nil || gateway.EffectiveNginxProxy == nil {
+	if gateway == nil || gateway.EffectiveBwsProxy == nil {
 		return DefaultWorkerConnections
 	}
 
-	ngfProxy := gateway.EffectiveNginxProxy
+	ngfProxy := gateway.EffectiveBwsProxy
 	if ngfProxy.WorkerConnections != nil {
 		return *ngfProxy.WorkerConnections
 	}
@@ -1926,11 +1926,11 @@ func buildAuxiliarySecrets(
 func buildNginxPlus(gateway *graph.Gateway) NginxPlus {
 	nginxPlusSettings := NginxPlus{AllowedAddresses: []string{"127.0.0.1"}}
 
-	if gateway == nil || gateway.EffectiveNginxProxy == nil {
+	if gateway == nil || gateway.EffectiveBwsProxy == nil {
 		return nginxPlusSettings
 	}
 
-	ngfProxy := gateway.EffectiveNginxProxy
+	ngfProxy := gateway.EffectiveBwsProxy
 	if ngfProxy.NginxPlus != nil {
 		if ngfProxy.NginxPlus.AllowedAddresses != nil {
 			addresses := make([]string, 0, len(ngfProxy.NginxPlus.AllowedAddresses))
@@ -1954,7 +1954,7 @@ func GetDefaultConfiguration(g *graph.Graph, gateway *graph.Gateway) Configurati
 	}
 }
 
-// buildDNSResolverConfig builds a DNSResolverConfig from an NginxProxy DNSResolver configuration.
+// buildDNSResolverConfig builds a DNSResolverConfig from an BwsProxy DNSResolver configuration.
 func buildDNSResolverConfig(dnsResolver *ngfAPIv1alpha2.DNSResolver) *DNSResolverConfig {
 	if dnsResolver == nil {
 		return nil
@@ -2017,7 +2017,7 @@ func resolveUpstreamEndpoints(
 		return []resolver.Endpoint{endpoint}, nil
 	}
 
-	// Resolve endpoints for both IPv4 and IPv6. NginxProxy ipFamily controls only the
+	// Resolve endpoints for both IPv4 and IPv6. BwsProxy ipFamily controls only the
 	// NGINX listen directives, not which upstream endpoints are selected.
 	return svcResolver.Resolve(
 		ctx,
@@ -2029,11 +2029,11 @@ func resolveUpstreamEndpoints(
 }
 
 func buildServerTokens(gateway *graph.Gateway) string {
-	if gateway == nil || gateway.EffectiveNginxProxy == nil || gateway.EffectiveNginxProxy.ServerTokens == nil {
+	if gateway == nil || gateway.EffectiveBwsProxy == nil || gateway.EffectiveBwsProxy.ServerTokens == nil {
 		return graph.ServerTokenOff
 	}
 
-	serverToken := *gateway.EffectiveNginxProxy.ServerTokens
+	serverToken := *gateway.EffectiveBwsProxy.ServerTokens
 	if _, isKeyword := serverTokensKeywords[serverToken]; isKeyword {
 		return serverToken
 	}
@@ -2046,12 +2046,12 @@ func buildWAF(gateway *graph.Gateway) WAFConfig {
 	wb := convertWAFBundles(gatewayBundles)
 
 	var cookieSeed string
-	if gateway.Source != nil && !graph.WAFCookieSeedDisabledForNginxProxy(gateway.EffectiveNginxProxy) {
+	if gateway.Source != nil && !graph.WAFCookieSeedDisabledForBwsProxy(gateway.EffectiveBwsProxy) {
 		cookieSeed = string(gateway.Source.UID)
 	}
 
 	wc := WAFConfig{
-		Enabled:    graph.WAFEnabledForNginxProxy(gateway.EffectiveNginxProxy),
+		Enabled:    graph.WAFEnabledForBwsProxy(gateway.EffectiveBwsProxy),
 		WAFBundles: wb,
 		CookieSeed: cookieSeed,
 	}

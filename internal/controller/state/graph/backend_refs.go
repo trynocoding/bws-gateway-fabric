@@ -29,7 +29,7 @@ type BackendRef struct {
 	// EndpointPickerConfig holds the configuration for the EndpointPicker for this backend.
 	EndpointPickerConfig EndpointPickerConfig
 	// InvalidForGateways is a map of Gateways for which this BackendRef is invalid for, with the corresponding
-	// condition. Certain NginxProxy configurations may result in a backend not being valid for some Gateways,
+	// condition. Certain BwsProxy configurations may result in a backend not being valid for some Gateways,
 	// but not others.
 	InvalidForGateways map[types.NamespacedName]conditions.Condition
 	// SessionPersistence is the SessionPersistenceConfig of the backendRef.
@@ -465,10 +465,10 @@ func checkExternalNameValidForGateways(
 	invalidForGateways map[types.NamespacedName]conditions.Condition,
 ) map[types.NamespacedName]conditions.Condition {
 	for _, parentRef := range parentRefs {
-		if parentRef.EffectiveNginxProxy == nil ||
-			parentRef.EffectiveNginxProxy.DNSResolver == nil {
+		if parentRef.EffectiveBwsProxy == nil ||
+			parentRef.EffectiveBwsProxy.DNSResolver == nil {
 			invalidForGateways[parentRef.GatewayNsName] = conditions.NewRouteBackendRefUnsupportedValue(
-				"ExternalName service requires DNS resolver configuration in Gateway's NginxProxy",
+				"ExternalName service requires DNS resolver configuration in Gateway's BwsProxy",
 			)
 		}
 	}

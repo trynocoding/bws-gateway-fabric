@@ -376,13 +376,13 @@ var _ = Describe("eventHandler", func() {
 	})
 
 	When("receiving control plane configuration updates", func() {
-		cfg := func(level ngfAPI.ControllerLogLevel) *ngfAPI.NginxGateway {
-			return &ngfAPI.NginxGateway{
+		cfg := func(level ngfAPI.ControllerLogLevel) *ngfAPI.BwsGateway {
+			return &ngfAPI.BwsGateway{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespace,
 					Name:      configName,
 				},
-				Spec: ngfAPI.NginxGatewaySpec{
+				Spec: ngfAPI.BwsGatewaySpec{
 					Logging: &ngfAPI.Logging{
 						Level: helpers.GetPointer(level),
 					},
@@ -436,7 +436,7 @@ var _ = Describe("eventHandler", func() {
 		It("handles a deleted config", func() {
 			batch := []any{
 				&events.DeleteEvent{
-					Type: &ngfAPI.NginxGateway{},
+					Type: &ngfAPI.BwsGateway{},
 					NamespacedName: types.NamespacedName{
 						Namespace: namespace,
 						Name:      configName,
@@ -458,7 +458,7 @@ var _ = Describe("eventHandler", func() {
 
 			Expect(fakeEventRecorder.Events).To(HaveLen(1))
 			event := <-fakeEventRecorder.Events
-			Expect(event).To(Equal("Warning ResourceDeleted NginxGateway configuration was deleted; using defaults"))
+			Expect(event).To(Equal("Warning ResourceDeleted BwsGateway configuration was deleted; using defaults"))
 			Expect(zapLogLevelSetter.Enabled(zap.InfoLevel)).To(BeTrue())
 		})
 	})
@@ -793,7 +793,7 @@ var _ = Describe("eventHandler", func() {
 							Valid:  true,
 						},
 					},
-					EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+					EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 						WAF: &v1alpha2.WAFSpec{
 							Enable:         helpers.GetPointer(true),
 							BundleFailOpen: helpers.GetPointer(true),
@@ -837,7 +837,7 @@ var _ = Describe("eventHandler", func() {
 						},
 					},
 					DeploymentName: types.NamespacedName{Namespace: "test", Name: "gateway-nginx"},
-					EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+					EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 						WAF: &v1alpha2.WAFSpec{
 							Enable:         helpers.GetPointer(true),
 							BundleFailOpen: helpers.GetPointer(false),
@@ -897,7 +897,7 @@ var _ = Describe("eventHandler", func() {
 	})
 
 	It("should process events with volume mounts from Deployment", func() {
-		// Create a gateway with EffectiveNginxProxy containing Deployment VolumeMounts
+		// Create a gateway with EffectiveBwsProxy containing Deployment VolumeMounts
 		gatewayWithVolumeMounts := &graph.Graph{
 			Gateways: map[types.NamespacedName]*graph.Gateway{
 				{Namespace: "test", Name: "gateway"}: {
@@ -915,7 +915,7 @@ var _ = Describe("eventHandler", func() {
 						Namespace: "test",
 						Name:      controller.CreateNginxResourceName("gateway", "nginx"),
 					},
-					EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+					EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 						Kubernetes: &v1alpha2.KubernetesSpec{
 							Deployment: &v1alpha2.DeploymentSpec{
 								Container: v1alpha2.ContainerSpec{
@@ -949,7 +949,7 @@ var _ = Describe("eventHandler", func() {
 	})
 
 	It("should process events with volume mounts from DaemonSet", func() {
-		// Create a gateway with EffectiveNginxProxy containing DaemonSet VolumeMounts
+		// Create a gateway with EffectiveBwsProxy containing DaemonSet VolumeMounts
 		gatewayWithVolumeMounts := &graph.Graph{
 			Gateways: map[types.NamespacedName]*graph.Gateway{
 				{Namespace: "test", Name: "gateway"}: {
@@ -967,7 +967,7 @@ var _ = Describe("eventHandler", func() {
 						Namespace: "test",
 						Name:      controller.CreateNginxResourceName("gateway", "nginx"),
 					},
-					EffectiveNginxProxy: &graph.EffectiveNginxProxy{
+					EffectiveBwsProxy: &graph.EffectiveBwsProxy{
 						Kubernetes: &v1alpha2.KubernetesSpec{
 							DaemonSet: &v1alpha2.DaemonSetSpec{
 								Container: v1alpha2.ContainerSpec{

@@ -80,8 +80,8 @@ func TestSetAndGetFiles_VolumeIgnoreFiles(t *testing.T) {
 		"/var/log/nginx/access.log",
 		"/var/log/nginx/error.log",
 		"/etc/ssl/certs/cert.pem",
-		"/etc/nginx/conf.d/default.conf", // This won't match any volume mount
-		"/one/two/three/etc/ssl",         // This won't match any volume mount either
+		"/etc/bws/conf.d/default.conf", // This won't match any volume mount
+		"/one/two/three/etc/ssl",       // This won't match any volume mount either
 	}
 
 	files := []File{
@@ -135,7 +135,7 @@ func TestSetAndGetFiles_VolumeIgnoreFiles(t *testing.T) {
 	g.Expect(unmanagedFiles).To(ContainElement("/etc/ssl/certs/cert.pem"))
 
 	// Should NOT contain file that doesn't match volume mount paths
-	g.Expect(unmanagedFiles).ToNot(ContainElement("/etc/nginx/conf.d/default.conf"))
+	g.Expect(unmanagedFiles).ToNot(ContainElement("/etc/bws/conf.d/default.conf"))
 	g.Expect(unmanagedFiles).ToNot(ContainElement("/one/two/three/etc/ssl"))
 
 	invalidFile, _ := deployment.GetFile("invalid", "12345")

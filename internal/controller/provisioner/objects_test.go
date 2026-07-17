@@ -147,7 +147,7 @@ func TestBuildNginxResourceObjects(t *testing.T) {
 	objects, err := provisioner.buildNginxResourceObjects(
 		resourceName,
 		gateway,
-		&graph.EffectiveNginxProxy{
+		&graph.EffectiveBwsProxy{
 			Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 				Service: &ngfAPIv1alpha2.ServiceSpec{
 					NodePorts: []ngfAPIv1alpha2.NodePort{
@@ -359,7 +359,7 @@ func TestBuildNginxResourceObjects_ListenerSetPorts(t *testing.T) {
 	objects, err := provisioner.buildNginxResourceObjects(
 		resourceName,
 		gateway,
-		&graph.EffectiveNginxProxy{},
+		&graph.EffectiveBwsProxy{},
 		allListeners,
 	)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -400,7 +400,7 @@ func TestBuildNginxResourceObjects_ListenerSetPorts(t *testing.T) {
 	g.Expect(containerHasPort443).To(BeTrue(), "Container should have port 443 from ListenerSet listener")
 }
 
-func TestBuildNginxResourceObjects_NginxProxyConfig(t *testing.T) {
+func TestBuildNginxResourceObjects_BwsProxyConfig(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
@@ -443,7 +443,7 @@ func TestBuildNginxResourceObjects_NginxProxyConfig(t *testing.T) {
 	}
 
 	resourceName := "gw-nginx"
-	nProxyCfg := &graph.EffectiveNginxProxy{
+	nProxyCfg := &graph.EffectiveBwsProxy{
 		IPFamily: helpers.GetPointer(ngfAPIv1alpha2.IPv4),
 		Logging: &ngfAPIv1alpha2.NginxLogging{
 			ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelDebug),
@@ -586,13 +586,13 @@ func TestBuildNginxResourceObjects_ExposeHealthcheck(t *testing.T) {
 	resourceName := "gw-nginx"
 
 	tests := []struct {
-		nProxyCfg                  *graph.EffectiveNginxProxy
+		nProxyCfg                  *graph.EffectiveBwsProxy
 		name                       string
 		expectHealthcheckPortInSvc bool
 	}{
 		{
 			name: "expose is true - healthcheck port should be in service",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 						Container: ngfAPIv1alpha2.ContainerSpec{
@@ -608,7 +608,7 @@ func TestBuildNginxResourceObjects_ExposeHealthcheck(t *testing.T) {
 		},
 		{
 			name: "expose is false - healthcheck port should not be in service",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 						Container: ngfAPIv1alpha2.ContainerSpec{
@@ -624,7 +624,7 @@ func TestBuildNginxResourceObjects_ExposeHealthcheck(t *testing.T) {
 		},
 		{
 			name: "expose is not set - healthcheck port should not be in service",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 						Container: ngfAPIv1alpha2.ContainerSpec{
@@ -834,7 +834,7 @@ func TestBuildNginxResourceObjects_DeploymentReplicasFromHPA(t *testing.T) {
 			}
 
 			resourceName := "gw-nginx"
-			nProxyCfg := &graph.EffectiveNginxProxy{
+			nProxyCfg := &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 						Replicas:    tc.configReplicas,
@@ -947,7 +947,7 @@ func TestBuildNginxResourceObjects_Plus(t *testing.T) {
 	objects, err := provisioner.buildNginxResourceObjects(
 		resourceName,
 		gateway,
-		&graph.EffectiveNginxProxy{},
+		&graph.EffectiveBwsProxy{},
 		graphListenersFromGateway(gateway),
 	)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -1022,12 +1022,12 @@ func TestBuildNginxResourceObjects_Plus(t *testing.T) {
 	g.Expect(initContainer.Command).To(ContainElement("/includes/mgmt.conf"))
 	g.Expect(container.VolumeMounts).To(ContainElement(corev1.VolumeMount{
 		Name:      "nginx-plus-license",
-		MountPath: "/etc/nginx/" + secrets.LicenseJWTKey,
+		MountPath: "/etc/bws/" + secrets.LicenseJWTKey,
 		SubPath:   secrets.LicenseJWTKey,
 	}))
 	g.Expect(container.VolumeMounts).To(ContainElement(corev1.VolumeMount{
 		Name:      "nginx-plus-usage-certs",
-		MountPath: "/etc/nginx/certs-bootstrap/",
+		MountPath: "/etc/bws/certs-bootstrap/",
 	}))
 	g.Expect(container.Image).To(Equal(fmt.Sprintf("%s:1.0.0", defaultNginxPlusImagePath)))
 }
@@ -1102,7 +1102,7 @@ func TestBuildNginxResourceObjects_DockerSecrets(t *testing.T) {
 	objects, err := provisioner.buildNginxResourceObjects(
 		resourceName,
 		gateway,
-		&graph.EffectiveNginxProxy{},
+		&graph.EffectiveBwsProxy{},
 		graphListenersFromGateway(gateway),
 	)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -1209,7 +1209,7 @@ func TestBuildNginxResourceObjects_DaemonSet(t *testing.T) {
 		},
 	}
 
-	nProxyCfg := &graph.EffectiveNginxProxy{
+	nProxyCfg := &graph.EffectiveBwsProxy{
 		WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)},
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			DaemonSet: &ngfAPIv1alpha2.DaemonSetSpec{
@@ -1322,7 +1322,7 @@ func TestBuildNginxResourceObjects_OpenShift(t *testing.T) {
 	objects, err := provisioner.buildNginxResourceObjects(
 		resourceName,
 		gateway,
-		&graph.EffectiveNginxProxy{},
+		&graph.EffectiveBwsProxy{},
 		graphListenersFromGateway(gateway),
 	)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -1404,7 +1404,7 @@ func TestBuildNginxResourceObjects_DataplaneKeySecret(t *testing.T) {
 	objects, err := provisioner.buildNginxResourceObjects(
 		resourceName,
 		gateway,
-		&graph.EffectiveNginxProxy{},
+		&graph.EffectiveBwsProxy{},
 		graphListenersFromGateway(gateway),
 	)
 	g.Expect(err).ToNot(HaveOccurred())
@@ -1430,7 +1430,7 @@ func TestBuildNginxResourceObjects_DataplaneKeySecret(t *testing.T) {
 	container := dep.Spec.Template.Spec.Containers[0]
 	g.Expect(container.VolumeMounts).To(ContainElement(corev1.VolumeMount{
 		Name:      "agent-dataplane-key",
-		MountPath: "/etc/nginx-agent/secrets/dataplane.key",
+		MountPath: "/etc/bws-agent/secrets/dataplane.key",
 		SubPath:   "dataplane.key",
 	}))
 }
@@ -1716,21 +1716,21 @@ func TestSetIPFamily(t *testing.T) {
 
 	// nProxyCfg.IPFamily is nil, should not set anything
 	svc = newSvc()
-	setIPFamily(&graph.EffectiveNginxProxy{}, svc)
+	setIPFamily(&graph.EffectiveBwsProxy{}, svc)
 	g.Expect(svc.Spec.IPFamilyPolicy).To(BeNil())
 	g.Expect(svc.Spec.IPFamilies).To(BeNil())
 
 	// nProxyCfg.IPFamily is IPv4, should set SingleStack and IPFamilies to IPv4
 	svc = newSvc()
 	ipFamily := ngfAPIv1alpha2.IPv4
-	setIPFamily(&graph.EffectiveNginxProxy{IPFamily: &ipFamily}, svc)
+	setIPFamily(&graph.EffectiveBwsProxy{IPFamily: &ipFamily}, svc)
 	g.Expect(svc.Spec.IPFamilyPolicy).To(Equal(helpers.GetPointer(corev1.IPFamilyPolicySingleStack)))
 	g.Expect(svc.Spec.IPFamilies).To(Equal([]corev1.IPFamily{corev1.IPv4Protocol}))
 
 	// nProxyCfg.IPFamily is IPv6, should set SingleStack and IPFamilies to IPv6
 	svc = newSvc()
 	ipFamily = ngfAPIv1alpha2.IPv6
-	setIPFamily(&graph.EffectiveNginxProxy{IPFamily: &ipFamily}, svc)
+	setIPFamily(&graph.EffectiveBwsProxy{IPFamily: &ipFamily}, svc)
 	g.Expect(svc.Spec.IPFamilyPolicy).To(Equal(helpers.GetPointer(corev1.IPFamilyPolicySingleStack)))
 	g.Expect(svc.Spec.IPFamilies).To(Equal([]corev1.IPFamily{corev1.IPv6Protocol}))
 }
@@ -1760,7 +1760,7 @@ func TestBuildNginxConfigMaps_WorkerConnections(t *testing.T) {
 
 	resourceName := "gw-nginx"
 	names := provisioner.buildResourceNames(resourceName)
-	// Test with default worker connections (nil NginxProxy config)
+	// Test with default worker connections (nil BwsProxy config)
 	configMaps, errs := provisioner.buildNginxConfigMaps(
 		objectMeta,
 		nil,
@@ -1774,8 +1774,8 @@ func TestBuildNginxConfigMaps_WorkerConnections(t *testing.T) {
 	g.Expect(ok).To(BeTrue())
 	g.Expect(bootstrapCM.Data[configmaps.EventsConfKey]).To(ContainSubstring("worker_connections 1024;"))
 
-	// Test with default worker connections (empty NginxProxy config)
-	nProxyCfgEmpty := &graph.EffectiveNginxProxy{}
+	// Test with default worker connections (empty BwsProxy config)
+	nProxyCfgEmpty := &graph.EffectiveBwsProxy{}
 	configMaps, errs = provisioner.buildNginxConfigMaps(
 		objectMeta,
 		nProxyCfgEmpty,
@@ -1790,7 +1790,7 @@ func TestBuildNginxConfigMaps_WorkerConnections(t *testing.T) {
 	g.Expect(bootstrapCM.Data[configmaps.EventsConfKey]).To(ContainSubstring("worker_connections 1024;"))
 
 	// Test with custom worker connections
-	nProxyCfg := &graph.EffectiveNginxProxy{
+	nProxyCfg := &graph.EffectiveBwsProxy{
 		WorkerConnections: helpers.GetPointer(int32(2048)),
 	}
 
@@ -1834,7 +1834,7 @@ func TestBuildNginxConfigMaps_AgentFields(t *testing.T) {
 	}
 	objectMeta := metav1.ObjectMeta{Name: "test", Namespace: "default"}
 
-	nProxyCfgEmpty := &graph.EffectiveNginxProxy{}
+	nProxyCfgEmpty := &graph.EffectiveBwsProxy{}
 
 	gateway := &gatewayv1.Gateway{
 		ObjectMeta: metav1.ObjectMeta{
@@ -1890,7 +1890,7 @@ func TestBuildReadinessProbe(t *testing.T) {
 	provisioner := &NginxProvisioner{}
 
 	tests := []struct {
-		nProxyCfg *graph.EffectiveNginxProxy
+		nProxyCfg *graph.EffectiveBwsProxy
 		expected  *corev1.Probe
 		name      string
 	}{
@@ -1901,7 +1901,7 @@ func TestBuildReadinessProbe(t *testing.T) {
 		},
 		{
 			name: "deployment is nil, default probe is returned",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: nil,
 				},
@@ -1910,7 +1910,7 @@ func TestBuildReadinessProbe(t *testing.T) {
 		},
 		{
 			name: "container is nil, default probe is returned",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 						Container: ngfAPIv1alpha2.ContainerSpec{},
@@ -1921,7 +1921,7 @@ func TestBuildReadinessProbe(t *testing.T) {
 		},
 		{
 			name: "readinessProbe is nil, default probe is returned",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 						Container: ngfAPIv1alpha2.ContainerSpec{
@@ -1934,7 +1934,7 @@ func TestBuildReadinessProbe(t *testing.T) {
 		},
 		{
 			name: "port & initialDelaySeconds is set in readinessProbe, custom probe is returned",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 						Container: ngfAPIv1alpha2.ContainerSpec{
@@ -1958,7 +1958,7 @@ func TestBuildReadinessProbe(t *testing.T) {
 		},
 		{
 			name: "custom path is set in readinessProbe, custom probe with path is returned",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 						Container: ngfAPIv1alpha2.ContainerSpec{
@@ -1983,7 +1983,7 @@ func TestBuildReadinessProbe(t *testing.T) {
 		},
 		{
 			name: "daemonset with custom readiness probe configuration",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					DaemonSet: &ngfAPIv1alpha2.DaemonSetSpec{
 						Container: ngfAPIv1alpha2.ContainerSpec{
@@ -2066,7 +2066,7 @@ func TestBuildNginxResourceObjects_Patches(t *testing.T) {
 	}
 
 	// Test successful patches with all three resource types and all patch types
-	nProxyCfg := &graph.EffectiveNginxProxy{
+	nProxyCfg := &graph.EffectiveBwsProxy{
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			Service: &ngfAPIv1alpha2.ServiceSpec{
 				Patches: []ngfAPIv1alpha2.Patch{
@@ -2132,7 +2132,7 @@ func TestBuildNginxResourceObjects_Patches(t *testing.T) {
 	g.Expect(dep.Spec.Replicas).To(Equal(helpers.GetPointer(int32(3))))
 
 	// Test that a later patch overrides a field set by an earlier patch
-	nProxyCfg = &graph.EffectiveNginxProxy{
+	nProxyCfg = &graph.EffectiveBwsProxy{
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			Service: &ngfAPIv1alpha2.ServiceSpec{
 				Patches: []ngfAPIv1alpha2.Patch{
@@ -2174,7 +2174,7 @@ func TestBuildNginxResourceObjects_Patches(t *testing.T) {
 	g.Expect(svc.Labels).To(HaveKeyWithValue("override-label", "second"))
 
 	// Test successful daemonset patch
-	nProxyCfg = &graph.EffectiveNginxProxy{
+	nProxyCfg = &graph.EffectiveBwsProxy{
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			DaemonSet: &ngfAPIv1alpha2.DaemonSetSpec{
 				Patches: []ngfAPIv1alpha2.Patch{
@@ -2210,7 +2210,7 @@ func TestBuildNginxResourceObjects_Patches(t *testing.T) {
 	g.Expect(ds.Labels).To(HaveKeyWithValue("ds-patched", "true"))
 
 	// Test error cases - invalid patches should return objects and errors
-	nProxyCfg = &graph.EffectiveNginxProxy{
+	nProxyCfg = &graph.EffectiveBwsProxy{
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			Service: &ngfAPIv1alpha2.ServiceSpec{
 				Patches: []ngfAPIv1alpha2.Patch{
@@ -2247,7 +2247,7 @@ func TestBuildNginxResourceObjects_Patches(t *testing.T) {
 	g.Expect(objects).To(HaveLen(6)) // Objects should still be returned
 
 	// Test unsupported patch type
-	nProxyCfg = &graph.EffectiveNginxProxy{
+	nProxyCfg = &graph.EffectiveBwsProxy{
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			Service: &ngfAPIv1alpha2.ServiceSpec{
 				Patches: []ngfAPIv1alpha2.Patch{
@@ -2273,7 +2273,7 @@ func TestBuildNginxResourceObjects_Patches(t *testing.T) {
 	g.Expect(objects).To(HaveLen(6))
 
 	// Test edge cases - nil values and empty patches should be ignored
-	nProxyCfg = &graph.EffectiveNginxProxy{
+	nProxyCfg = &graph.EffectiveBwsProxy{
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			Service: &ngfAPIv1alpha2.ServiceSpec{
 				Patches: []ngfAPIv1alpha2.Patch{
@@ -2312,7 +2312,7 @@ func TestBuildNginxResourceObjects_Patches(t *testing.T) {
 	g.Expect(svc.Labels).ToNot(HaveKey("patched")) // Should not have patch-related labels
 
 	// Test that Service patches don't affect Deployment labels and vice versa (cross-contamination)
-	nProxyCfg = &graph.EffectiveNginxProxy{
+	nProxyCfg = &graph.EffectiveBwsProxy{
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			Service: &ngfAPIv1alpha2.ServiceSpec{
 				Patches: []ngfAPIv1alpha2.Patch{
@@ -2409,7 +2409,7 @@ func TestBuildNginxResourceObjects_InferenceExtension(t *testing.T) {
 		},
 	}
 
-	npCfg := &graph.EffectiveNginxProxy{
+	npCfg := &graph.EffectiveBwsProxy{
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 				Container: ngfAPIv1alpha2.ContainerSpec{
@@ -2579,7 +2579,7 @@ func TestBuildNginxResourceObjects_ClusterIPWithExternalIPs(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		nProxyCfg                     *graph.EffectiveNginxProxy
+		nProxyCfg                     *graph.EffectiveBwsProxy
 		name                          string
 		expectedExternalTrafficPolicy corev1.ServiceExternalTrafficPolicy
 		gatewayAddresses              []gatewayv1.GatewaySpecAddress
@@ -2593,7 +2593,7 @@ func TestBuildNginxResourceObjects_ClusterIPWithExternalIPs(t *testing.T) {
 					Value: "10.0.0.1",
 				},
 			},
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Service: &ngfAPIv1alpha2.ServiceSpec{
 						ServiceType:           helpers.GetPointer(ngfAPIv1alpha2.ServiceTypeClusterIP),
@@ -2606,7 +2606,7 @@ func TestBuildNginxResourceObjects_ClusterIPWithExternalIPs(t *testing.T) {
 		},
 		{
 			name: "ClusterIP service with no Gateway addresses leaves externalTrafficPolicy unset",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Service: &ngfAPIv1alpha2.ServiceSpec{
 						ServiceType: helpers.GetPointer(ngfAPIv1alpha2.ServiceTypeClusterIP),
@@ -2728,7 +2728,7 @@ func TestBuildNginxResourceObjects_WAF(t *testing.T) {
 	}
 
 	resourceName := "gw-nginx"
-	nProxyCfg := &graph.EffectiveNginxProxy{
+	nProxyCfg := &graph.EffectiveBwsProxy{
 		WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)},
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			Deployment: &ngfAPIv1alpha2.DeploymentSpec{
@@ -2955,7 +2955,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		nProxyCfg      *graph.EffectiveNginxProxy
+		nProxyCfg      *graph.EffectiveBwsProxy
 		name           string
 		version        string
 		expectedImage  string
@@ -2963,7 +2963,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 		isPlus         bool
 	}{
 		{
-			name:           "OSS default, no NginxProxy",
+			name:           "OSS default, no BwsProxy",
 			nProxyCfg:      nil,
 			isPlus:         false,
 			version:        "1.0.0",
@@ -2971,7 +2971,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 			expectedPolicy: defaultImagePullPolicy,
 		},
 		{
-			name:           "Plus default, no NginxProxy",
+			name:           "Plus default, no BwsProxy",
 			nProxyCfg:      nil,
 			isPlus:         true,
 			version:        "1.0.0",
@@ -2980,7 +2980,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 		},
 		{
 			name: "Plus WAF default, no container image override",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)},
 			},
 			isPlus:         true,
@@ -2990,7 +2990,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 		},
 		{
 			name: "Plus WAF with Helm-injected OSS default image should still use WAF image",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)},
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
@@ -3011,7 +3011,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 		},
 		{
 			name: "Plus WAF with explicit Plus image should preserve user choice",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)},
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
@@ -3030,7 +3030,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 		},
 		{
 			name: "Plus WAF with custom image should preserve user choice",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)},
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
@@ -3050,7 +3050,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 		},
 		{
 			name: "Plus WAF with DaemonSet and Helm-injected OSS default should still use WAF image",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)},
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					DaemonSet: &ngfAPIv1alpha2.DaemonSetSpec{
@@ -3069,7 +3069,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 		},
 		{
 			name: "Plus without WAF and Helm-injected OSS default should use Plus image",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 						Container: ngfAPIv1alpha2.ContainerSpec{
@@ -3087,7 +3087,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 		},
 		{
 			name: "Plus without WAF and custom image should preserve user choice",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 						Container: ngfAPIv1alpha2.ContainerSpec{
@@ -3106,7 +3106,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 		},
 		{
 			name: "Plus WAF with explicit Plus image via DaemonSet should preserve user choice",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)},
 				Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 					DaemonSet: &ngfAPIv1alpha2.DaemonSetSpec{
@@ -3125,7 +3125,7 @@ func TestDetermineNginxImageName(t *testing.T) {
 		},
 		{
 			name: "OSS with WAF enabled should not switch to WAF image",
-			nProxyCfg: &graph.EffectiveNginxProxy{
+			nProxyCfg: &graph.EffectiveBwsProxy{
 				WAF: &ngfAPIv1alpha2.WAFSpec{Enable: helpers.GetPointer(true)},
 			},
 			isPlus:         false,

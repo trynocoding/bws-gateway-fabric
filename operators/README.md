@@ -1,18 +1,17 @@
-# NGINX Gateway Fabric Operator
+# BWS Gateway Fabric Operator
 
-A Helm-based Kubernetes operator for deploying and managing [NGINX Gateway Fabric](https://github.com/nginx/nginx-gateway-fabric), an implementation of the Gateway API using NGINX as the data plane.
+A Helm-based Kubernetes operator for deploying and managing BWS Gateway Fabric.
 
 ## Overview
 
-The NGINX Gateway Fabric Operator simplifies the deployment and lifecycle management of NGINX Gateway Fabric in Kubernetes and OpenShift environments. It leverages the official NGINX Gateway Fabric Helm charts to provide a declarative way to install, configure, and manage Gateway API implementations.
+The BWS Gateway Fabric Operator simplifies deployment and lifecycle management of BWS Gateway Fabric in Kubernetes and OpenShift environments.
 
 ## Features
 
-- **Declarative Configuration**: Manage NGINX Gateway Fabric through Kubernetes custom resources
-- **Helm Chart Integration**: Uses official NGINX Gateway Fabric Helm charts for reliable deployments
+- **Declarative Configuration**: Manage BWS Gateway Fabric through Kubernetes custom resources
+- **Helm Chart Integration**: Uses the BWS Gateway Fabric Helm chart
 - **OpenShift Compatible**: Certified for Red Hat OpenShift with proper SecurityContextConstraints
-- **Full Feature Support**: Supports all NGINX Gateway Fabric configuration options including:
-  - NGINX Plus integration
+- **BWS API Contract**: Uses `gateway.bessystem.com` and BWS Helm values, including:
   - Experimental Gateway API features
   - Multiple deployment modes (Deployment/DaemonSet)
 
@@ -34,29 +33,29 @@ The NGINX Gateway Fabric Operator simplifies the deployment and lifecycle manage
 
 ### Basic Installation
 
-Create a `NginxGatewayFabric` custom resource to deploy NGINX Gateway Fabric:
+Create a `BwsGatewayFabric` custom resource to deploy BWS Gateway Fabric:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxGatewayFabric
+apiVersion: gateway.bessystem.com/v1alpha1
+kind: BwsGatewayFabric
 metadata:
-  name: nginx-gateway-fabric
+  name: bws-gateway-fabric
 spec:
-  nginxGateway:
+  bwsGateway:
     replicas: 2
-    gatewayClassName: nginx
-  nginx:
+    gatewayClassName: bws
+  bws:
     service:
       type: LoadBalancer
 ```
 
-See [the example here](config/samples/gateway_v1alpha1_nginxgatewayfabric.yaml).
+See [the example here](config/samples/gateway_v1alpha1_bwsgatewayfabric.yaml).
 
 ## Configuration Reference
 
-The `NginxGatewayFabric` custom resource accepts the same configuration options as the NGINX Gateway Fabric Helm chart.
+The `BwsGatewayFabric` custom resource accepts the same configuration options as the BWS Gateway Fabric Helm chart.
 
-For complete configuration options, see the [Helm Chart Documentation](https://github.com/nginx/nginx-gateway-fabric/tree/main/charts/nginx-gateway-fabric/README.md#configuration).
+For complete configuration options, see the [Helm Chart Documentation](https://github.com/nginx/nginx-gateway-fabric/tree/main/charts/bws-gateway-fabric/README.md#configuration).
 
 ## Development
 
@@ -82,7 +81,7 @@ operator-sdk olm install
 operator-sdk run bundle <your-registry>/nginx-gateway-fabric/operator-bundle:<tag>
 
 # Deploy NGF operand (modify the manifest if required)
-kubectl apply -f config/samples/gateway_v1alpha1_nginxgatewayfabric.yaml
+kubectl apply -f config/samples/gateway_v1alpha1_bwsgatewayfabric.yaml
 
 # Deploy test application
 kubectl apply -f ../examples/cafe-example/
@@ -145,7 +144,7 @@ If RBAC permissions in the Helm chart change, update [config/rbac/role.yaml](con
 
 Before releasing, verify these items are up-to-date:
 
-1. Sample manifest: The [example manifest](config/samples/gateway_v1alpha1_nginxgatewayfabric.yaml) may need updates to add new important fields or change existing entries.
+1. Sample manifest: The [example manifest](config/samples/gateway_v1alpha1_bwsgatewayfabric.yaml) may need updates to add new important fields or change existing entries.
 
 2. Operator version: The VERSION in the [Makefile](Makefile) is automatically updated during the release process, but verify it matches the intended release version.
 

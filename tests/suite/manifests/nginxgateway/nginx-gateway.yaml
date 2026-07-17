@@ -1,8 +1,0 @@
-apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxGateway
-metadata:
-  name: ngf-test-config
-  namespace: nginx-gateway
-spec:
-  logging:
-    level: debug

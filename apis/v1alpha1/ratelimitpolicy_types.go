@@ -9,11 +9,11 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:categories=nginx-gateway-fabric,shortName=rlpolicy,scope=Namespaced
+// +kubebuilder:resource:categories=bws-gateway-fabric,shortName=rlpolicy,scope=Namespaced
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:metadata:labels="gateway.networking.k8s.io/policy=inherited"
 
-// RateLimitPolicy is an Inherited Attached Policy. It provides a way to set local rate limiting rules in NGINX.
+// RateLimitPolicy is an Inherited Attached Policy. It provides a way to set local rate limiting rules in BWS.
 type RateLimitPolicy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

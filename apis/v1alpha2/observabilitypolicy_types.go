@@ -11,12 +11,12 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:categories=nginx-gateway-fabric,scope=Namespaced
+// +kubebuilder:resource:categories=bws-gateway-fabric,scope=Namespaced
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:metadata:labels="gateway.networking.k8s.io/policy=direct"
 
 // ObservabilityPolicy is a Direct Attached Policy. It provides a way to configure observability settings for
-// the NGINX Gateway Fabric data plane. Used in conjunction with the NginxProxy CRD that is attached to the
+// the BWS Gateway Fabric data plane. Used in conjunction with the BwsProxy CRD that is attached to the
 // GatewayClass parametersRef.
 type ObservabilityPolicy struct {
 	metav1.TypeMeta   `json:",inline"`

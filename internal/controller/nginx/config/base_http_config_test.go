@@ -266,17 +266,17 @@ func TestExecuteBaseHttp_Snippets(t *testing.T) {
 
 	/*
 		Order of files:
-		/etc/nginx/conf.d/http.conf
-		/etc/nginx/includes/snippet1.conf
-		/etc/nginx/includes/snippet2.conf
+		/etc/bws/conf.d/http.conf
+		/etc/bws/includes/snippet1.conf
+		/etc/bws/includes/snippet2.conf
 	*/
 
 	httpRes := string(res[0].data)
 	g.Expect(httpRes).To(ContainSubstring("map $http_host $gw_api_compliant_host {"))
 	g.Expect(httpRes).To(ContainSubstring("map $http_upgrade $connection_upgrade {"))
 	g.Expect(httpRes).To(ContainSubstring("map $request_uri $request_uri_path {"))
-	g.Expect(httpRes).To(ContainSubstring("include /etc/nginx/includes/snippet1.conf;"))
-	g.Expect(httpRes).To(ContainSubstring("include /etc/nginx/includes/snippet2.conf;"))
+	g.Expect(httpRes).To(ContainSubstring("include /etc/bws/includes/snippet1.conf;"))
+	g.Expect(httpRes).To(ContainSubstring("include /etc/bws/includes/snippet2.conf;"))
 
 	snippet1IncludeRes := string(res[1].data)
 	g.Expect(snippet1IncludeRes).To(ContainSubstring("contents1"))
@@ -525,8 +525,8 @@ func TestExecuteBaseHttp_GatewaySecretID(t *testing.T) {
 					GatewaySecretID: "client-secret",
 				},
 			},
-			expectedConfig: "proxy_ssl_certificate /etc/nginx/secrets/client-secret.pem;" +
-				"\nproxy_ssl_certificate_key /etc/nginx/secrets/client-secret.pem;",
+			expectedConfig: "proxy_ssl_certificate /etc/bws/secrets/client-secret.pem;" +
+				"\nproxy_ssl_certificate_key /etc/bws/secrets/client-secret.pem;",
 		},
 		{
 			name: "without GatewaySecretID",
@@ -611,15 +611,15 @@ func TestExecuteBaseHttp_Policies(t *testing.T) {
 
 	/*
 		Order of files:
-		/etc/nginx/conf.d/http.conf
-		/etc/nginx/includes/policy1.conf
-		/etc/nginx/includes/policy2.conf
+		/etc/bws/conf.d/http.conf
+		/etc/bws/includes/policy1.conf
+		/etc/bws/includes/policy2.conf
 	*/
 
 	httpRes := string(res[0].data)
 	g.Expect(httpRes).To(ContainSubstring("map $http_host $gw_api_compliant_host {"))
-	g.Expect(httpRes).To(ContainSubstring("include /etc/nginx/includes/policy1.conf;"))
-	g.Expect(httpRes).To(ContainSubstring("include /etc/nginx/includes/policy2.conf;"))
+	g.Expect(httpRes).To(ContainSubstring("include /etc/bws/includes/policy1.conf;"))
+	g.Expect(httpRes).To(ContainSubstring("include /etc/bws/includes/policy2.conf;"))
 
 	policy1Res := string(res[1].data)
 	g.Expect(policy1Res).To(Equal("policy1 content"))
@@ -739,7 +739,7 @@ func TestExecuteBaseHttp_OIDCProviders(t *testing.T) {
 				"client_id my-client-id;",
 				"client_secret my-client-secret;",
 				"redirect_uri /oidc_callback_test_my-filter;",
-				"ssl_trusted_certificate /etc/nginx/secrets/oidc_ca_test_my-ca.crt;",
+				"ssl_trusted_certificate /etc/bws/secrets/oidc_ca_test_my-ca.crt;",
 			},
 		},
 		{
@@ -792,7 +792,7 @@ func TestExecuteBaseHttp_OIDCProviders(t *testing.T) {
 				"client_id client-id-2;",
 				"client_secret client-secret-2;",
 				"redirect_uri /oidc_callback_test_filter-two;",
-				"ssl_trusted_certificate /etc/nginx/secrets/oidc_ca_test_filter-two.crt;",
+				"ssl_trusted_certificate /etc/bws/secrets/oidc_ca_test_filter-two.crt;",
 			},
 		},
 		{
@@ -820,8 +820,8 @@ func TestExecuteBaseHttp_OIDCProviders(t *testing.T) {
 				},
 			},
 			expSubStrings: []string{
-				"ssl_trusted_certificate /etc/nginx/secrets/oidc_ca_test_full.crt;",
-				"ssl_crl /etc/nginx/secrets/crl_bundle_test_crl-secret.pem;",
+				"ssl_trusted_certificate /etc/bws/secrets/oidc_ca_test_full.crt;",
+				"ssl_crl /etc/bws/secrets/crl_bundle_test_crl-secret.pem;",
 				"config_url https://idp.example.com/.well-known/openid-configuration;",
 				"pkce on;",
 				`extra_auth_args "audience=api&prompt=consent";`,

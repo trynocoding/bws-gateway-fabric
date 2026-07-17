@@ -1,5 +1,5 @@
-# M4.1 keeps the upstream Helm top-level fields and custom resources while switching visible product identity.
-nginxGateway:
+# M4.3 uses only the BWS Helm and custom-resource API contracts.
+bwsGateway:
   name: bws-gateway-fabric
   watchNamespaces:
     - bws-m4
@@ -17,8 +17,7 @@ nginxGateway:
     tag: m4-local
     pullPolicy: Never
 
-nginx:
-  plus: false
+bws:
   replicas: 2
   image:
     repository: bws-gateway-fabric/bws
@@ -36,6 +35,12 @@ nginx:
             - key: bws.lic.txt
               path: bws.lic.txt
   container:
+    lifecycle:
+      preStop:
+        exec:
+          command:
+            - /usr/bin/sleep
+            - "5"
     readinessProbe:
       port: 8081
       path: /readyz

@@ -1,0 +1,15 @@
+apiVersion: gateway.bessystem.com/v1alpha1
+kind: BwsGateway
+metadata:
+  name: {{ include "bws-gateway.config-name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "bws-gateway.labels" . | nindent 4 }}
+  {{- if .Values.bwsGateway.configAnnotations }}
+  annotations:
+    {{- range $key, $value := .Values.bwsGateway.configAnnotations }}
+    {{ printf "%s: %s" $key $value }}
+    {{- end }}
+  {{- end }}
+spec:
+  {{- toYaml .Values.bwsGateway.config | nindent 2 }}

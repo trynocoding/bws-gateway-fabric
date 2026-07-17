@@ -129,11 +129,11 @@ func TestBuildGatewayClass(t *testing.T) {
 	validGC := &v1.GatewayClass{}
 	npNsName := types.NamespacedName{Namespace: "test", Name: "nginx-proxy"}
 
-	np := &ngfAPIv1alpha2.NginxProxy{
+	np := &ngfAPIv1alpha2.BwsProxy{
 		TypeMeta: metav1.TypeMeta{
-			Kind: kinds.NginxProxy,
+			Kind: kinds.BwsProxy,
 		},
-		Spec: ngfAPIv1alpha2.NginxProxySpec{
+		Spec: ngfAPIv1alpha2.BwsProxySpec{
 			Telemetry: &ngfAPIv1alpha2.Telemetry{
 				ServiceName: helpers.GetPointer("my-svc"),
 			},
@@ -143,7 +143,7 @@ func TestBuildGatewayClass(t *testing.T) {
 	gcWithParams := &v1.GatewayClass{
 		Spec: v1.GatewayClassSpec{
 			ParametersRef: &v1.ParametersReference{
-				Kind:      v1.Kind(kinds.NginxProxy),
+				Kind:      v1.Kind(kinds.BwsProxy),
 				Namespace: helpers.GetPointer(v1.Namespace(npNsName.Namespace)),
 				Name:      npNsName.Name,
 			},
@@ -195,7 +195,7 @@ func TestBuildGatewayClass(t *testing.T) {
 
 	tests := []struct {
 		gc                  *v1.GatewayClass
-		nps                 map[types.NamespacedName]*NginxProxy
+		nps                 map[types.NamespacedName]*BwsProxy
 		crdMetadata         map[types.NamespacedName]*metav1.PartialObjectMetadata
 		expected            *GatewayClass
 		name                string
@@ -217,7 +217,7 @@ func TestBuildGatewayClass(t *testing.T) {
 		},
 		{
 			gc: gcWithParams,
-			nps: map[types.NamespacedName]*NginxProxy{
+			nps: map[types.NamespacedName]*BwsProxy{
 				npNsName: {
 					Source: np,
 					Valid:  true,
@@ -227,7 +227,7 @@ func TestBuildGatewayClass(t *testing.T) {
 				Source:     gcWithParams,
 				Valid:      true,
 				Conditions: []conditions.Condition{conditions.NewGatewayClassResolvedRefs()},
-				NginxProxy: &NginxProxy{
+				BwsProxy: &BwsProxy{
 					Valid:  true,
 					Source: np,
 				},
@@ -257,10 +257,10 @@ func TestBuildGatewayClass(t *testing.T) {
 				Valid:  true,
 				Conditions: []conditions.Condition{
 					conditions.NewGatewayClassRefInvalid(
-						"Spec.parametersRef.kind: Unsupported value: \"Invalid\": supported values: \"NginxProxy\"",
+						"Spec.parametersRef.kind: Unsupported value: \"Invalid\": supported values: \"BwsProxy\"",
 					),
 					conditions.NewGatewayClassInvalidParameters(
-						"Spec.parametersRef.kind: Unsupported value: \"Invalid\": supported values: \"NginxProxy\"",
+						"Spec.parametersRef.kind: Unsupported value: \"Invalid\": supported values: \"BwsProxy\"",
 					),
 				},
 			},
@@ -282,7 +282,7 @@ func TestBuildGatewayClass(t *testing.T) {
 		},
 		{
 			gc: gcWithParams,
-			nps: map[types.NamespacedName]*NginxProxy{
+			nps: map[types.NamespacedName]*BwsProxy{
 				npNsName: {
 					Valid: false,
 					ErrMsgs: field.ErrorList{
@@ -312,7 +312,7 @@ func TestBuildGatewayClass(t *testing.T) {
 							", spec.telemetry.exporter.endpoint: Invalid value: \"my-endpoint\": error]",
 					),
 				},
-				NginxProxy: &NginxProxy{
+				BwsProxy: &BwsProxy{
 					Valid: false,
 					ErrMsgs: field.ErrorList{
 						field.Invalid(

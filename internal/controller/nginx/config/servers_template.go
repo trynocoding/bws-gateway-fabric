@@ -1,7 +1,7 @@
 package config
 
 const serversTemplateText = `
-js_preload_object matches from /etc/nginx/conf.d/matches.json;
+js_preload_object matches from /etc/bws/conf.d/matches.json;
 
 
 {{- range $s := .Servers -}}
@@ -243,7 +243,7 @@ server {
         {{ $proxyOrGRPC := "proxy" }}{{ if $l.GRPC }}{{ $proxyOrGRPC = "grpc" }}{{ end }}
 
         {{- if $l.GRPC }}
-        include /etc/nginx/grpc-error-pages.conf;
+        include /etc/bws/grpc-error-pages.conf;
         {{- end }}
 
         proxy_http_version 1.1;
@@ -278,20 +278,20 @@ server {
         {{- end }}
 
         {{- if $s.GRPC }}
-        include /etc/nginx/grpc-error-locations.conf;
+        include /etc/bws/grpc-error-locations.conf;
         {{- end }}
 }
     {{- end }}
 {{ end }}
 server {
-    listen unix:/var/run/nginx/nginx-503-server.sock;
+    listen unix:/var/run/bws/bws-503-server.sock;
     access_log off;
 
     return 503;
 }
 
 server {
-    listen unix:/var/run/nginx/nginx-500-server.sock;
+    listen unix:/var/run/bws/bws-500-server.sock;
     access_log off;
 
     return 500;

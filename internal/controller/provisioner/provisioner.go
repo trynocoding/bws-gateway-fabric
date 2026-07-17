@@ -72,7 +72,7 @@ type NginxProvisioner struct {
 	store             *store
 	baseLabelSelector metav1.LabelSelector
 	// resourcesToDeleteOnStartup contains a list of Gateway names that no longer exist
-	// but have nginx resources tied to them that need to be deleted.
+	// but have BWS resources tied to them that need to be deleted.
 	resourcesToDeleteOnStartup []types.NamespacedName
 	cfg                        Config
 	lock                       sync.RWMutex
@@ -99,7 +99,7 @@ type AgentLabelCollector interface {
 	Collect(ctx context.Context) (map[string]string, error)
 }
 
-// NewNginxProvisioner returns a new instance of a Provisioner that will deploy nginx resources.
+// NewNginxProvisioner returns a new instance of a Provisioner that will deploy BWS resources.
 func NewNginxProvisioner(
 	ctx context.Context,
 	mgr manager.Manager,
@@ -197,7 +197,7 @@ func (p *NginxProvisioner) Enable(ctx context.Context) {
 			continue
 		}
 		if err := p.deprovisionNginxForInvalidGateway(ctx, gatewayNSName); err != nil {
-			p.cfg.Logger.Error(err, "error deprovisioning nginx resources on startup")
+			p.cfg.Logger.Error(err, "error deprovisioning BWS resources on startup")
 		}
 	}
 	p.lock.RUnlock()
@@ -285,9 +285,9 @@ func (p *NginxProvisioner) provisionNginx(
 	}
 
 	p.cfg.Logger.Info(
-		"Creating/Updating nginx resources",
+		"Creating/Updating BWS resources",
 		"namespace", gateway.GetNamespace(),
-		"nginx resource name", resourceName,
+		"BWS resource name", resourceName,
 		"resource names", objNames,
 	)
 
@@ -316,13 +316,13 @@ func (p *NginxProvisioner) provisionNginx(
 					if apierrors.IsInvalid(upsertErr) { // log this error at the error level
 						p.cfg.Logger.Error(
 							upsertErr,
-							"Retrying CreateOrUpdate for nginx resource after error",
+							"Retrying CreateOrUpdate for BWS resource after error",
 							"namespace", gateway.GetNamespace(),
 							"name", fmt.Sprintf("%s (%s)", resourceName, reflect.TypeOf(obj).Elem().Name()),
 						)
 					} else {
 						p.cfg.Logger.V(1).Info(
-							"Retrying CreateOrUpdate for nginx resource after error",
+							"Retrying CreateOrUpdate for BWS resource after error",
 							"namespace", gateway.GetNamespace(),
 							"name", fmt.Sprintf("%s (%s)", resourceName, reflect.TypeOf(obj).Elem().Name()),
 							"error", upsertErr.Error(),
@@ -335,7 +335,7 @@ func (p *NginxProvisioner) provisionNginx(
 		); err != nil {
 			p.cfg.Logger.Error(
 				err,
-				"Failed to CreateOrUpdate nginx resource after retries",
+				"Failed to CreateOrUpdate BWS resource after retries",
 				"namespace", gateway.GetNamespace(),
 				"name", fmt.Sprintf("%s (%s)", resourceName, reflect.TypeOf(obj).Elem().Name()),
 			)
@@ -347,7 +347,7 @@ func (p *NginxProvisioner) provisionNginx(
 				corev1.EventTypeWarning,
 				"CreateOrUpdateFailed",
 				"None",
-				"Failed to create or update nginx resource: %s",
+				"Failed to create or update BWS resource: %s",
 				fullErr.Error(),
 			)
 			cancel()
@@ -375,7 +375,7 @@ func (p *NginxProvisioner) provisionNginx(
 
 		if res != controllerutil.OperationResultCreated && res != controllerutil.OperationResultUpdated {
 			p.cfg.Logger.V(1).Info(
-				"nginx resource already up to date with this result: "+string(res),
+				"BWS resource already up to date with this result: "+string(res),
 				"namespace", gateway.GetNamespace(),
 				"name", fmt.Sprintf("%s (%s)", resourceName, reflect.TypeOf(minimalObj).Elem().Name()),
 			)
@@ -384,7 +384,7 @@ func (p *NginxProvisioner) provisionNginx(
 
 		result := cases.Title(language.English, cases.Compact).String(string(res))
 		p.cfg.Logger.V(1).Info(
-			fmt.Sprintf("%s nginx %s", result, reflect.TypeOf(minimalObj).Elem().Name()),
+			fmt.Sprintf("%s BWS %s", result, reflect.TypeOf(minimalObj).Elem().Name()),
 			"namespace", gateway.GetNamespace(),
 			"name", resourceName,
 		)
@@ -416,7 +416,7 @@ func (p *NginxProvisioner) provisionNginx(
 		}
 
 		p.cfg.Logger.V(1).Info(
-			"Restarting nginx after agent configmap update",
+			"Restarting BWS after agent configmap update",
 			"name", object.GetName(),
 			"namespace", object.GetNamespace(),
 		)
@@ -428,7 +428,7 @@ func (p *NginxProvisioner) provisionNginx(
 				corev1.EventTypeWarning,
 				"RestartFailed",
 				"None",
-				"Failed to restart nginx after agent config update: %s",
+				"Failed to restart BWS after agent config update: %s",
 				err.Error(),
 			)
 			return err
@@ -442,7 +442,7 @@ func (p *NginxProvisioner) reprovisionNginx(
 	ctx context.Context,
 	resourceName string,
 	gateway *gatewayv1.Gateway,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	nProxyCfg *graph.EffectiveBwsProxy,
 	allListeners []*graph.Listener,
 ) error {
 	if !p.isLeader() {
@@ -453,11 +453,11 @@ func (p *NginxProvisioner) reprovisionNginx(
 	}
 	objects, err := p.buildNginxResourceObjects(resourceName, gateway, nProxyCfg, allListeners)
 	if err != nil {
-		p.cfg.Logger.Error(err, "error provisioning some nginx resources")
+		p.cfg.Logger.Error(err, "error provisioning some BWS resources")
 	}
 
 	p.cfg.Logger.Info(
-		"Re-creating nginx resources",
+		"Re-creating BWS resources",
 		"namespace", gateway.GetNamespace(),
 		"name", resourceName,
 	)
@@ -473,7 +473,7 @@ func (p *NginxProvisioner) reprovisionNginx(
 				corev1.EventTypeWarning,
 				"CreateFailed",
 				"None",
-				"Failed to create nginx resource: %s",
+				"Failed to create BWS resource: %s",
 				err.Error(),
 			)
 			return err
@@ -494,7 +494,7 @@ func (p *NginxProvisioner) deprovisionNginxForInvalidGateway(
 
 	if p.isLeader() {
 		p.cfg.Logger.Info(
-			"Removing nginx resources for Gateway",
+			"Removing BWS resources for Gateway",
 			"name", gatewayNSName.Name,
 			"namespace", gatewayNSName.Namespace,
 		)
@@ -517,7 +517,7 @@ func (p *NginxProvisioner) deprovisionNginxForInvalidGateway(
 					corev1.EventTypeWarning,
 					"DeleteFailed",
 					"None",
-					"Failed to delete nginx resource: %s",
+					"Failed to delete BWS resource: %s",
 					err.Error(),
 				)
 				return err
@@ -546,7 +546,7 @@ func (p *NginxProvisioner) deleteObject(ctx context.Context, obj client.Object) 
 			corev1.EventTypeWarning,
 			"DeleteFailed",
 			"None",
-			"Failed to delete nginx resource: %s",
+			"Failed to delete BWS resource: %s",
 			err.Error(),
 		)
 		return err
@@ -581,8 +581,8 @@ func (p *NginxProvisioner) isUserSecret(name string) bool {
 
 // RegisterGateway is called by the main event handler when a Gateway API resource event occurs
 // and the graph is built. The provisioner updates the Gateway config in the store and then:
-// - If it's a valid Gateway, create or update nginx resources associated with the Gateway, if necessary.
-// - If it's an invalid Gateway, delete the associated nginx resources.
+// - If it's a valid Gateway, create or update BWS resources associated with the Gateway, if necessary.
+// - If it's an invalid Gateway, delete the associated BWS resources.
 func (p *NginxProvisioner) RegisterGateway(
 	ctx context.Context,
 	gateway *graph.Gateway,
@@ -601,11 +601,11 @@ func (p *NginxProvisioner) RegisterGateway(
 		objects, err := p.buildNginxResourceObjects(
 			resourceName,
 			gateway.Source,
-			gateway.EffectiveNginxProxy,
+			gateway.EffectiveBwsProxy,
 			gateway.Listeners,
 		)
 		if err != nil {
-			p.cfg.Logger.Error(err, "error building some nginx resources")
+			p.cfg.Logger.Error(err, "error building some BWS resources")
 		}
 
 		// If NGINX deployment type switched between Deployment and DaemonSet, clean up the old one.
@@ -614,27 +614,27 @@ func (p *NginxProvisioner) RegisterGateway(
 		if nginxResources != nil {
 			if needToDeleteDaemonSet(nginxResources) {
 				if err := p.deleteObject(ctx, &appsv1.DaemonSet{ObjectMeta: nginxResources.DaemonSet}); err != nil {
-					p.cfg.Logger.Error(err, "error deleting nginx resource")
+					p.cfg.Logger.Error(err, "error deleting BWS resource")
 				}
 			} else if needToDeleteDeployment(nginxResources) {
 				if err := p.deleteObject(ctx, &appsv1.Deployment{ObjectMeta: nginxResources.Deployment}); err != nil {
-					p.cfg.Logger.Error(err, "error deleting nginx resource")
+					p.cfg.Logger.Error(err, "error deleting BWS resource")
 				}
 			}
 
 			if needToDeleteHPA(nginxResources) {
 				if err := p.deleteObject(ctx, &autoscalingv2.HorizontalPodAutoscaler{ObjectMeta: nginxResources.HPA}); err != nil {
-					p.cfg.Logger.Error(err, "error deleting nginx resource")
+					p.cfg.Logger.Error(err, "error deleting BWS resource")
 				}
 			}
 		}
 
 		if err := p.provisionNginx(ctx, resourceName, gateway.Source, objects); err != nil {
-			return fmt.Errorf("error provisioning nginx resources: %w", err)
+			return fmt.Errorf("error provisioning BWS resources: %w", err)
 		}
 	} else {
 		if err := p.deprovisionNginxForInvalidGateway(ctx, gatewayNSName); err != nil {
-			return fmt.Errorf("error deprovisioning nginx resources: %w", err)
+			return fmt.Errorf("error deprovisioning BWS resources: %w", err)
 		}
 	}
 
@@ -643,9 +643,9 @@ func (p *NginxProvisioner) RegisterGateway(
 
 func needToDeleteDeployment(cfg *NginxResources) bool {
 	if cfg.Deployment.Name != "" {
-		if cfg.Gateway != nil && cfg.Gateway.EffectiveNginxProxy != nil &&
-			cfg.Gateway.EffectiveNginxProxy.Kubernetes != nil &&
-			cfg.Gateway.EffectiveNginxProxy.Kubernetes.DaemonSet != nil {
+		if cfg.Gateway != nil && cfg.Gateway.EffectiveBwsProxy != nil &&
+			cfg.Gateway.EffectiveBwsProxy.Kubernetes != nil &&
+			cfg.Gateway.EffectiveBwsProxy.Kubernetes.DaemonSet != nil {
 			return true
 		}
 	}
@@ -655,13 +655,13 @@ func needToDeleteDeployment(cfg *NginxResources) bool {
 
 func needToDeleteDaemonSet(cfg *NginxResources) bool {
 	if cfg.DaemonSet.Name != "" && cfg.Gateway != nil {
-		if cfg.Gateway.EffectiveNginxProxy != nil &&
-			cfg.Gateway.EffectiveNginxProxy.Kubernetes != nil &&
-			cfg.Gateway.EffectiveNginxProxy.Kubernetes.Deployment != nil {
+		if cfg.Gateway.EffectiveBwsProxy != nil &&
+			cfg.Gateway.EffectiveBwsProxy.Kubernetes != nil &&
+			cfg.Gateway.EffectiveBwsProxy.Kubernetes.Deployment != nil {
 			return true
-		} else if cfg.Gateway.EffectiveNginxProxy == nil ||
-			cfg.Gateway.EffectiveNginxProxy.Kubernetes == nil ||
-			cfg.Gateway.EffectiveNginxProxy.Kubernetes.DaemonSet == nil {
+		} else if cfg.Gateway.EffectiveBwsProxy == nil ||
+			cfg.Gateway.EffectiveBwsProxy.Kubernetes == nil ||
+			cfg.Gateway.EffectiveBwsProxy.Kubernetes.DaemonSet == nil {
 			return true
 		}
 	}
@@ -671,12 +671,12 @@ func needToDeleteDaemonSet(cfg *NginxResources) bool {
 
 func needToDeleteHPA(cfg *NginxResources) bool {
 	if cfg.HPA.Name != "" && cfg.Gateway != nil {
-		if cfg.Gateway.EffectiveNginxProxy != nil &&
-			cfg.Gateway.EffectiveNginxProxy.Kubernetes != nil &&
-			!isAutoscalingEnabled(cfg.Gateway.EffectiveNginxProxy.Kubernetes.Deployment) {
+		if cfg.Gateway.EffectiveBwsProxy != nil &&
+			cfg.Gateway.EffectiveBwsProxy.Kubernetes != nil &&
+			!isAutoscalingEnabled(cfg.Gateway.EffectiveBwsProxy.Kubernetes.Deployment) {
 			return true
-		} else if cfg.Gateway.EffectiveNginxProxy == nil ||
-			cfg.Gateway.EffectiveNginxProxy.Kubernetes == nil {
+		} else if cfg.Gateway.EffectiveBwsProxy == nil ||
+			cfg.Gateway.EffectiveBwsProxy.Kubernetes == nil {
 			return true
 		}
 	}

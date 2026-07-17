@@ -12,9 +12,9 @@ import (
 type LabelCollectorConfig struct {
 	// K8sClientReader is a Kubernetes API client Reader.
 	K8sClientReader client.Reader
-	// Version is the NGF version.
+	// Version is the BWS Gateway Fabric version.
 	Version string
-	// PodNSName is the NamespacedName of the NGF Pod.
+	// PodNSName is the NamespacedName of the BWS Gateway Fabric Pod.
 	PodNSName types.NamespacedName
 }
 
@@ -48,10 +48,10 @@ func (l *LabelCollector) Collect(ctx context.Context) (map[string]string, error)
 
 	deploymentName, deploymentID, err := getDeploymentNameAndID(replicaSet)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get NGF deployment info: %w", err)
+		return nil, fmt.Errorf("failed to get BWS Gateway Fabric deployment info: %w", err)
 	}
 
-	agentLabels["product-type"] = "ngf"
+	agentLabels["product-type"] = "bws"
 	agentLabels["product-version"] = l.cfg.Version
 	agentLabels["cluster-id"] = clusterID
 	agentLabels["control-name"] = deploymentName

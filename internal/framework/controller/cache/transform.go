@@ -30,6 +30,7 @@ var (
 	configMapKeys = []string{
 		secrets.CAKey,
 		configmaps.AgentConfKey,
+		configmaps.LegacyAgentConfKey,
 		configmaps.MainConfKey,
 		configmaps.EventsConfKey,
 		configmaps.MgmtConfKey,

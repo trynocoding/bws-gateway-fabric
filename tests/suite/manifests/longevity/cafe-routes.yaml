@@ -16,7 +16,7 @@ spec:
     filters:
     - type: ExtensionRef
       extensionRef:
-        group: gateway.nginx.org
+        group: gateway.bessystem.com
         kind: SnippetsFilter
         name: loggable-snippet
     backendRefs:
@@ -41,7 +41,7 @@ spec:
     filters:
     - type: ExtensionRef
       extensionRef:
-        group: gateway.nginx.org
+        group: gateway.bessystem.com
         kind: SnippetsFilter
         name: loggable-snippet
     backendRefs:
@@ -49,7 +49,7 @@ spec:
       port: 80
 ---
 # Only log non-200 responses
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsFilter
 metadata:
   name: loggable-snippet

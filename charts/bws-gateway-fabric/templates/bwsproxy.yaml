@@ -1,0 +1,86 @@
+apiVersion: gateway.bessystem.com/v1alpha2
+kind: BwsProxy
+metadata:
+  name: {{ include "bws-gateway.proxy-config-name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "bws-gateway.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.bws.config }}
+  {{- toYaml .Values.bws.config | nindent 2 }}
+  {{- end }}
+  kubernetes:
+    {{- if eq .Values.bws.kind "deployment" }}
+    deployment:
+      {{- if .Values.bws.replicas }}
+      replicas: {{ .Values.bws.replicas }}
+      {{- end }}
+      {{- if .Values.bws.autoscaling.enable }}
+      autoscaling:
+        enable: {{ .Values.bws.autoscaling.enable }}
+        {{- if .Values.bws.autoscaling.minReplicas }}
+        minReplicas: {{ .Values.bws.autoscaling.minReplicas }}
+        {{- end }}
+        maxReplicas: {{ .Values.bws.autoscaling.maxReplicas }}
+        {{- if .Values.bws.autoscaling.targetCPUUtilizationPercentage }}
+        targetCPUUtilizationPercentage: {{ .Values.bws.autoscaling.targetCPUUtilizationPercentage }}
+        {{- end }}
+        {{- if .Values.bws.autoscaling.targetMemoryUtilizationPercentage }}
+        targetMemoryUtilizationPercentage: {{ .Values.bws.autoscaling.targetMemoryUtilizationPercentage }}
+        {{- end }}
+        {{- if .Values.bws.autoscaling.behavior }}
+        behavior:
+          {{- toYaml .Values.bws.autoscaling.behavior | nindent 10 }}
+        {{- end }}
+        {{- if .Values.bws.autoscaling.metrics }}
+        metrics:
+          {{- toYaml .Values.bws.autoscaling.metrics | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.bws.pod }}
+      pod:
+        {{- toYaml .Values.bws.pod | nindent 8 }}
+      {{- end }}
+      container:
+        {{- with .Values.bws.container }}
+        {{- $filtered := include "filterEmptyFields" . }}
+        {{- if $filtered }}
+        {{- $filtered | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        image:
+          {{- toYaml .Values.bws.image | nindent 10 }}
+      {{- if .Values.bws.patches }}
+      patches:
+        {{- toYaml .Values.bws.patches | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    {{- if eq .Values.bws.kind "daemonSet" }}
+    daemonSet:
+      {{- if .Values.bws.pod }}
+      pod:
+        {{- toYaml .Values.bws.pod | nindent 8 }}
+      {{- end }}
+      container:
+        {{- with .Values.bws.container }}
+        {{- $filtered := include "filterEmptyFields" . }}
+        {{- if $filtered }}
+        {{- $filtered | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        image:
+          {{- toYaml .Values.bws.image | nindent 10 }}
+      {{- if .Values.bws.patches }}
+      patches:
+        {{- toYaml .Values.bws.patches | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.bws.service }}
+    service:
+      {{- with .Values.bws.service }}
+      {{- $filtered := include "filterEmptyFields" . }}
+      {{- if $filtered }}
+      {{- $filtered | nindent 6 }}
+      {{- end }}
+      {{- end }}
+    {{- end }}

@@ -117,7 +117,7 @@ func NewChangeProcessorImpl(cfg ChangeProcessorConfig) *ChangeProcessorImpl {
 		CRDMetadata:           make(map[types.NamespacedName]*metav1.PartialObjectMetadata),
 		BackendTLSPolicies:    make(map[types.NamespacedName]*v1.BackendTLSPolicy),
 		ConfigMaps:            make(map[types.NamespacedName]*apiv1.ConfigMap),
-		NginxProxies:          make(map[types.NamespacedName]*ngfAPIv1alpha2.NginxProxy),
+		BwsProxies:            make(map[types.NamespacedName]*ngfAPIv1alpha2.BwsProxy),
 		GRPCRoutes:            make(map[types.NamespacedName]*v1.GRPCRoute),
 		TLSRoutes:             make(map[types.NamespacedName]*v1.TLSRoute),
 		TCPRoutes:             make(map[types.NamespacedName]*v1alpha2.TCPRoute),
@@ -215,8 +215,8 @@ func NewChangeProcessorImpl(cfg ChangeProcessorConfig) *ChangeProcessorImpl {
 			predicate: annotationChangedPredicate{annotation: consts.BundleVersionAnnotation},
 		},
 		{
-			gvk:       cfg.MustExtractGVK(&ngfAPIv1alpha2.NginxProxy{}),
-			store:     newObjectStoreMapAdapter(clusterStore.NginxProxies),
+			gvk:       cfg.MustExtractGVK(&ngfAPIv1alpha2.BwsProxy{}),
+			store:     newObjectStoreMapAdapter(clusterStore.BwsProxies),
 			predicate: funcPredicate{stateChanged: isReferenced},
 		},
 		{

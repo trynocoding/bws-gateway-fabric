@@ -25,7 +25,7 @@ const (
 	gwInstallBasePath       = "https://github.com/kubernetes-sigs/gateway-api/releases/download"
 	PlusSecretName          = "nplus-license"
 	PlusImagePullSecretName = "nginx-plus-registry-secret" //nolint:gosec // not hardcoded credentials
-	NgfControllerName       = "gateway.nginx.org/nginx-gateway-controller"
+	NgfControllerName       = "gateway.bessystem.com/nginx-gateway-controller"
 	nginxPlusRegistry       = "private-registry.nginx.com"
 )
 
@@ -116,8 +116,8 @@ func InstallNGF(cfg InstallationConfig, extraArgs ...string) ([]byte, error) {
 		"--create-namespace",
 		"--namespace", cfg.Namespace,
 		"--wait",
-		"--set", "nginxGateway.snippets.enable=true",
-		"--set", "nginxGateway.gwAPIExperimentalFeatures.enable=true",
+		"--set", "bwsGateway.snippets.enable=true",
+		"--set", "bwsGateway.gwAPIExperimentalFeatures.enable=true",
 	}
 	if cfg.ChartVersion != "" {
 		args = append(args, "--version", cfg.ChartVersion)
@@ -127,7 +127,7 @@ func InstallNGF(cfg InstallationConfig, extraArgs ...string) ([]byte, error) {
 	args = append(args, setTelemetryArgs(cfg)...)
 	args = append(args, setPlusUsageEndpointArg(cfg)...)
 	if cfg.GatewayClassName != "" {
-		args = append(args, "--set", fmt.Sprintf("nginxGateway.gatewayClassName=%s", cfg.GatewayClassName))
+		args = append(args, "--set", fmt.Sprintf("bwsGateway.gatewayClassName=%s", cfg.GatewayClassName))
 	}
 	fullArgs := append(args, extraArgs...) //nolint:gocritic
 
@@ -263,8 +263,8 @@ func UpgradeNGF(cfg InstallationConfig, extraArgs ...string) ([]byte, error) {
 		cfg.ChartPath,
 		"--namespace", cfg.Namespace,
 		"--wait",
-		"--set", "nginxGateway.config.logging.level=debug",
-		"--set", "nginxGateway.snippets.enable=true",
+		"--set", "bwsGateway.config.logging.level=debug",
+		"--set", "bwsGateway.snippets.enable=true",
 	}
 	if cfg.ChartVersion != "" {
 		args = append(args, "--version", cfg.ChartVersion)
@@ -274,7 +274,7 @@ func UpgradeNGF(cfg InstallationConfig, extraArgs ...string) ([]byte, error) {
 	args = append(args, setTelemetryArgs(cfg)...)
 	args = append(args, setPlusUsageEndpointArg(cfg)...)
 	if cfg.GatewayClassName != "" {
-		args = append(args, "--set", fmt.Sprintf("nginxGateway.gatewayClassName=%s", cfg.GatewayClassName))
+		args = append(args, "--set", fmt.Sprintf("bwsGateway.gatewayClassName=%s", cfg.GatewayClassName))
 	}
 	fullArgs := append(args, extraArgs...) //nolint:gocritic
 
@@ -323,7 +323,7 @@ func DeleteNGFCRDs(rm ResourceManager) error {
 	}
 
 	for _, cr := range crList.Items {
-		if strings.Contains(cr.Spec.Group, "gateway.nginx.org") {
+		if strings.Contains(cr.Spec.Group, "gateway.bessystem.com") {
 			cr := cr
 			if err := rm.Delete(ctx, &cr, nil); err != nil && !apierrors.IsNotFound(err) {
 				return err
@@ -339,9 +339,9 @@ func setTelemetryArgs(cfg InstallationConfig) []string {
 
 	GinkgoWriter.Printf("Setting telemetry to %v\n", cfg.Telemetry)
 	if cfg.Telemetry {
-		args = append(args, formatValueSet("nginxGateway.productTelemetry.enable", "true")...)
+		args = append(args, formatValueSet("bwsGateway.productTelemetry.enable", "true")...)
 	} else {
-		args = append(args, formatValueSet("nginxGateway.productTelemetry.enable", "false")...)
+		args = append(args, formatValueSet("bwsGateway.productTelemetry.enable", "false")...)
 	}
 	return args
 }
@@ -350,12 +350,12 @@ func setImageArgs(cfg InstallationConfig) []string {
 	var args []string
 
 	if cfg.NgfImageRepository != "" {
-		args = append(args, formatValueSet("nginxGateway.image.repository", cfg.NgfImageRepository)...)
+		args = append(args, formatValueSet("bwsGateway.image.repository", cfg.NgfImageRepository)...)
 		if cfg.ImageTag != "" {
-			args = append(args, formatValueSet("nginxGateway.image.tag", cfg.ImageTag)...)
+			args = append(args, formatValueSet("bwsGateway.image.tag", cfg.ImageTag)...)
 		}
 		if cfg.ImagePullPolicy != "" {
-			args = append(args, formatValueSet("nginxGateway.image.pullPolicy", cfg.ImagePullPolicy)...)
+			args = append(args, formatValueSet("bwsGateway.image.pullPolicy", cfg.ImagePullPolicy)...)
 		}
 	}
 

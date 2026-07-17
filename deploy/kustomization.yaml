@@ -39,6 +39,6 @@ images:
   newName: my-registry/nginx-gateway-fabric
   newTag: new-tag
 # NGINX image
-- name: ghcr.io/nginx/nginx-gateway-fabric/nginx
+- name: bws-gateway-fabric/bws
   newName: my-registry/nginx-gateway-fabric/nginx
   newTag: new-tag

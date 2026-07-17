@@ -125,7 +125,7 @@ Condtions:
       Reason:                RefNotPermitted
       Status:                False
       Type:                  ResolvedRefs
-      Controller Name:       gateway.nginx.org/nginx-gateway-controller
+      Controller Name:       gateway.bessystem.com/nginx-gateway-controller
 ```
 
 ```shell
@@ -139,5 +139,5 @@ Condtions:
       Reason:                RefNotPermitted
       Status:                False
       Type:                  ResolvedRefs
-      Controller Name:       gateway.nginx.org/nginx-gateway-controller
+      Controller Name:       gateway.bessystem.com/nginx-gateway-controller
 ```

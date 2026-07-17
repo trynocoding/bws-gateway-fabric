@@ -45,17 +45,17 @@ var _ = Describe("Tracing", FlakeAttempts(2), Ordered, Label("functional", "trac
 		collectorPodName, helloURL, worldURL, helloworldURL string
 	)
 
-	updateNginxProxyTelemetrySpec := func(telemetry ngfAPIv1alpha2.Telemetry) {
+	updateBwsProxyTelemetrySpec := func(telemetry ngfAPIv1alpha2.Telemetry) {
 		ctx, cancel := context.WithTimeout(context.Background(), timeoutConfig.UpdateTimeout)
 		defer cancel()
 
 		key := types.NamespacedName{Name: fmt.Sprintf("%s-proxy-config", releaseName), Namespace: ngfNamespace}
-		var nginxProxy ngfAPIv1alpha2.NginxProxy
-		Expect(resourceManager.Get(ctx, key, &nginxProxy)).To(Succeed())
+		var bwsProxy ngfAPIv1alpha2.BwsProxy
+		Expect(resourceManager.Get(ctx, key, &bwsProxy)).To(Succeed())
 
-		nginxProxy.Spec.Telemetry = &telemetry
+		bwsProxy.Spec.Telemetry = &telemetry
 
-		Expect(resourceManager.Update(ctx, &nginxProxy, nil)).To(Succeed())
+		Expect(resourceManager.Update(ctx, &bwsProxy, nil)).To(Succeed())
 	}
 
 	BeforeAll(func() {
@@ -70,7 +70,7 @@ var _ = Describe("Tracing", FlakeAttempts(2), Ordered, Label("functional", "trac
 			}},
 		}
 
-		updateNginxProxyTelemetrySpec(telemetry)
+		updateBwsProxyTelemetrySpec(telemetry)
 	})
 
 	// BeforeEach is needed because FlakeAttempts do not re-run BeforeAll/AfterAll nodes
@@ -127,7 +127,7 @@ var _ = Describe("Tracing", FlakeAttempts(2), Ordered, Label("functional", "trac
 	})
 
 	AfterAll(func() {
-		updateNginxProxyTelemetrySpec(ngfAPIv1alpha2.Telemetry{})
+		updateBwsProxyTelemetrySpec(ngfAPIv1alpha2.Telemetry{})
 	})
 
 	sendRequests := func(url string, count int) {

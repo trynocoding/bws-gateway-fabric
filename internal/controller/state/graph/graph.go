@@ -43,7 +43,7 @@ type ClusterState struct {
 	CRDMetadata           map[types.NamespacedName]*metav1.PartialObjectMetadata
 	BackendTLSPolicies    map[types.NamespacedName]*gatewayv1.BackendTLSPolicy
 	ConfigMaps            map[types.NamespacedName]*v1.ConfigMap
-	NginxProxies          map[types.NamespacedName]*ngfAPIv1alpha2.NginxProxy
+	BwsProxies            map[types.NamespacedName]*ngfAPIv1alpha2.BwsProxy
 	GRPCRoutes            map[types.NamespacedName]*gatewayv1.GRPCRoute
 	NGFPolicies           map[PolicyKey]policies.Policy
 	SnippetsFilters       map[types.NamespacedName]*ngfAPIv1alpha1.SnippetsFilter
@@ -80,8 +80,8 @@ type Graph struct {
 	ReferencedInferencePools map[types.NamespacedName]*ReferencedInferencePool
 	// ReferencedCaCertConfigMaps includes ConfigMaps that have been referenced by any BackendTLSPolicies.
 	ReferencedCaCertConfigMaps map[types.NamespacedName]*configmaps.CaCertConfigMap
-	// ReferencedNginxProxies includes NginxProxies that have been referenced by a GatewayClass or a Gateway.
-	ReferencedNginxProxies map[types.NamespacedName]*NginxProxy
+	// ReferencedBwsProxies includes BwsProxies that have been referenced by a GatewayClass or a Gateway.
+	ReferencedBwsProxies map[types.NamespacedName]*BwsProxy
 	// BackendTLSPolicies holds BackendTLSPolicy resources.
 	BackendTLSPolicies map[types.NamespacedName]*BackendTLSPolicy
 	// NGFPolicies holds all NGF Policies.
@@ -162,9 +162,9 @@ func (g *Graph) IsReferenced(resourceType ngftypes.ObjectType, nsname types.Name
 		// Service Namespace should be the same Namespace as the EndpointSlice
 		_, exists := g.ReferencedServices[types.NamespacedName{Namespace: nsname.Namespace, Name: svcName}]
 		return exists
-	// NginxProxy reference exists if the GatewayClass or Gateway references it.
-	case *ngfAPIv1alpha2.NginxProxy:
-		_, exists := g.ReferencedNginxProxies[nsname]
+	// BwsProxy reference exists if the GatewayClass or Gateway references it.
+	case *ngfAPIv1alpha2.BwsProxy:
+		_, exists := g.ReferencedBwsProxies[nsname]
 		return exists
 	default:
 		return false
@@ -248,8 +248,8 @@ func BuildGraph(
 	}
 
 	processedGws := processGateways(state.Gateways, gcName)
-	processedNginxProxies := processNginxProxies(
-		state.NginxProxies,
+	processedBwsProxies := processBwsProxies(
+		state.BwsProxies,
 		validators.GenericValidator,
 		processedGwClasses.Winner,
 		processedGws,
@@ -258,7 +258,7 @@ func BuildGraph(
 
 	gc := buildGatewayClass(
 		processedGwClasses.Winner,
-		processedNginxProxies,
+		processedBwsProxies,
 		state.CRDMetadata,
 		featureFlags.Experimental,
 	)
@@ -271,7 +271,7 @@ func BuildGraph(
 		resourceResolver,
 		gc,
 		refGrantResolver,
-		processedNginxProxies,
+		processedBwsProxies,
 	)
 
 	listenerSets := buildListenerSets(state.ListenerSets, gws, state.Namespaces)
@@ -383,7 +383,7 @@ func BuildGraph(
 		ReferencedServices:         referencedServices,
 		ReferencedInferencePools:   referencedInferencePools,
 		ReferencedCaCertConfigMaps: resourceResolver.GetConfigMaps(),
-		ReferencedNginxProxies:     processedNginxProxies,
+		ReferencedBwsProxies:       processedBwsProxies,
 		BackendTLSPolicies:         processedBackendTLSPolicies,
 		NGFPolicies:                processedPolicies,
 		SnippetsFilters:            processedSnippetsFilters,

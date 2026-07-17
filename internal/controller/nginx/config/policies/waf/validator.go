@@ -42,20 +42,20 @@ func (v *Validator) Validate(policy policies.Policy) []conditions.Condition {
 	return nil
 }
 
-// ValidateGlobalSettings validates a WAFPolicy with respect to the NginxProxy global settings.
+// ValidateGlobalSettings validates a WAFPolicy with respect to the BwsProxy global settings.
 func (v *Validator) ValidateGlobalSettings(
 	_ policies.Policy,
 	globalSettings *policies.GlobalSettings,
 ) []conditions.Condition {
 	if globalSettings == nil {
 		return []conditions.Condition{
-			conditions.NewPolicyNotAcceptedNginxProxyNotSet(conditions.PolicyMessageNginxProxyInvalid),
+			conditions.NewPolicyNotAcceptedBwsProxyNotSet(conditions.PolicyMessageBwsProxyInvalid),
 		}
 	}
 
 	if !globalSettings.WAFEnabled {
 		return []conditions.Condition{
-			conditions.NewPolicyNotAcceptedNginxProxyNotSet("WAF is not enabled in NginxProxy"),
+			conditions.NewPolicyNotAcceptedBwsProxyNotSet("WAF is not enabled in BwsProxy"),
 		}
 	}
 	return nil

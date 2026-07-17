@@ -337,7 +337,7 @@ func createControllerCommand() *cobra.Command {
 		&configName,
 		configFlag,
 		"c",
-		`The name of the NginxGateway resource to be used for this controller's dynamic configuration.`+
+		`The name of the BwsGateway resource to be used for this controller's dynamic configuration.`+
 			` Lives in the same Namespace as the controller.`,
 	)
 
@@ -524,8 +524,8 @@ func createControllerCommand() *cobra.Command {
 		&snippetsFilters,
 		snippetsFiltersFlag,
 		false,
-		"Enable SnippetsFilters feature. SnippetsFilters allow inserting NGINX configuration "+
-			"into the generated NGINX config for HTTPRoute and GRPCRoute resources.",
+		"Enable SnippetsFilters feature. SnippetsFilters allow inserting BWS configuration "+
+			"into the generated BWS config for HTTPRoute and GRPCRoute resources.",
 	)
 	_ = cmd.Flags().MarkDeprecated(snippetsFiltersFlag, "This flag is deprecated in favor of --snippets, "+
 		"which enables both SnippetsFilters and SnippetsPolicies.")
@@ -535,8 +535,8 @@ func createControllerCommand() *cobra.Command {
 		snippetsFlag,
 		false,
 		"Enable Snippets feature through SnippetsFilter and SnippetsPolicy APIs. SnippetsFilters allow inserting "+
-			"NGINX configuration into the generated NGINX config for HTTPRoute and GRPCRoute resources. SnippetsPolicies "+
-			"allow inserting NGINX configuration into the generated NGINX config for Gateway resources.",
+			"BWS configuration into the generated BWS config for HTTPRoute and GRPCRoute resources. SnippetsPolicies "+
+			"allow inserting BWS configuration into the generated BWS config for Gateway resources.",
 	)
 
 	cmd.Flags().Var(

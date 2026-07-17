@@ -4,10 +4,10 @@ set -euo pipefail
 
 readonly bws_launcher="${BWS_LAUNCHER:-/opt/bws/bin/bws.sh}"
 readonly bws_prefix="${BWS_PREFIX:-/opt/bws}"
-readonly bws_config="${BWS_CONFIG:-/etc/nginx/nginx.conf}"
+readonly bws_config="${BWS_CONFIG:-/etc/bws/nginx.conf}"
 readonly bws_license="${BWS_LICENSE_FILE:-/var/run/secrets/bws/bws.lic.txt}"
 readonly bws_runtime_license="${BWS_RUNTIME_LICENSE_FILE:-${bws_prefix}/license/bws.lic.txt}"
-readonly bws_pid_file="${BWS_PID_FILE:-/var/run/nginx/nginx.pid}"
+readonly bws_pid_file="${BWS_PID_FILE:-/var/run/bws/bws.pid}"
 
 bws_pid=""
 agent_pid=""
@@ -43,19 +43,19 @@ if [[ ! -s "${bws_license}" ]]; then
 fi
 
 mkdir -p \
-    /var/cache/nginx/ajp_temp \
-    /var/cache/nginx/bws-logs \
-    /var/cache/nginx/bws-license \
-    /var/cache/nginx/temp/client_body_temp \
-    /var/cache/nginx/temp/fastcgi_temp \
-    /var/cache/nginx/temp/proxy_temp \
-    /var/cache/nginx/temp/scgi_temp \
-    /var/cache/nginx/temp/uwsgi_temp
-touch /var/cache/nginx/bws-logs/access.log /var/cache/nginx/bws-logs/error.log
+    /var/cache/bws/ajp_temp \
+    /var/cache/bws/license \
+    /var/cache/bws/logs \
+    /var/cache/bws/temp/client_body_temp \
+    /var/cache/bws/temp/fastcgi_temp \
+    /var/cache/bws/temp/proxy_temp \
+    /var/cache/bws/temp/scgi_temp \
+    /var/cache/bws/temp/uwsgi_temp
+touch /var/cache/bws/logs/access.log /var/cache/bws/logs/error.log
 cp "${bws_license}" "${bws_runtime_license}"
 chmod 0600 "${bws_runtime_license}"
 
-for socket in /var/run/nginx/*.sock; do
+for socket in /var/run/bws/*.sock; do
     if [[ -S "${socket}" ]]; then
         unlink "${socket}"
     fi

@@ -48,7 +48,7 @@ In the future, we can extend the Proxy Settings Policy to include more proxy-rel
 
 ## API
 
-The `ProxySettingsPolicy` API is a CRD that is a part of the `gateway.nginx.org` Group. It adheres to the guidelines and requirements of an Inherited Policy as outlined in the [Policy Attachment GEP (GEP-713)](https://gateway-api.sigs.k8s.io/geps/gep-713/).
+The `ProxySettingsPolicy` API is a CRD that is a part of the `gateway.bessystem.com` Group. It adheres to the guidelines and requirements of an Inherited Policy as outlined in the [Policy Attachment GEP (GEP-713)](https://gateway-api.sigs.k8s.io/geps/gep-713/).
 
 The policy uses `targetRefs` (plural) to support targeting multiple resources with a single policy instance. This follows the current GEP-713 guidance and provides better user experience by:
 
@@ -216,7 +216,7 @@ import (
 )
 
 const (
-    ProxySettingsPolicyAffected gatewayv1alpha2.PolicyConditionType = "gateway.nginx.org/ProxySettingsPolicyAffected"
+    ProxySettingsPolicyAffected gatewayv1alpha2.PolicyConditionType = "gateway.bessystem.com/ProxySettingsPolicyAffected"
     PolicyAffectedReason gatewayv1alpha2.PolicyConditionReason = "PolicyAffected"
 )
 ```
@@ -226,7 +226,7 @@ Below is an example of what this Condition may look like:
 
 ```yaml
 Conditions:
-  Type:                  gateway.nginx.org/ProxySettingsPolicyAffected
+  Type:                  gateway.bessystem.com/ProxySettingsPolicyAffected
   Message:               Object affected by a ProxySettingsPolicy.
   Observed Generation:   1
   Reason:                PolicyAffected
@@ -245,7 +245,7 @@ Some additional rules:
 Below is an example of `ProxySettingsPolicy` YAML definition:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ProxySettingsPolicy
 metadata:
   name: example-proxy-settings
@@ -283,7 +283,7 @@ status:
 And an example attached to an HTTPRoute:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ProxySettingsPolicy
 metadata:
   name: streaming-proxy-settings

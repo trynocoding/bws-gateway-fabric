@@ -25,7 +25,7 @@ func TestCreateTelemetryJobWorker_Succeeds(t *testing.T) {
 
 	expData := telemetry.Data{
 		Data: tel.Data{
-			ProjectName: "NGF",
+			ProjectName: "BWS Gateway Fabric",
 		},
 	}
 	dataCollector.CollectReturns(expData, nil)

@@ -182,14 +182,14 @@ func TestValidator_ValidateGlobalSettings(t *testing.T) {
 		{
 			name: "global settings are nil",
 			expConditions: []conditions.Condition{
-				conditions.NewPolicyNotAcceptedNginxProxyNotSet(conditions.PolicyMessageNginxProxyInvalid),
+				conditions.NewPolicyNotAcceptedBwsProxyNotSet(conditions.PolicyMessageBwsProxyInvalid),
 			},
 		},
 		{
 			name:           "telemetry is not enabled",
 			globalSettings: &policies.GlobalSettings{TelemetryEnabled: false},
 			expConditions: []conditions.Condition{
-				conditions.NewPolicyNotAcceptedNginxProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
+				conditions.NewPolicyNotAcceptedBwsProxyNotSet(conditions.PolicyMessageTelemetryNotEnabled),
 			},
 		},
 		{

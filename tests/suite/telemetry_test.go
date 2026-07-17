@@ -89,7 +89,7 @@ var _ = Describe("Telemetry test with OTel collector", Label("telemetry"), func(
 				"GatewayAttachedClientSettingsPolicyCount: Int(0)",
 				"RouteAttachedClientSettingsPolicyCount: Int(0)",
 				"ObservabilityPolicyCount: Int(0)",
-				"NginxProxyCount: Int(1)",
+				"BwsProxyCount: Int(1)",
 				"SnippetsFilterCount: Int(0)",
 				"UpstreamSettingsPolicyCount: Int(0)",
 				"GatewayAttachedNpCount: Int(0)",

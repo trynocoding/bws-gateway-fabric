@@ -29,13 +29,13 @@ import (
 
 // Volumes here also need to be added to our crossplane ephemeral test container.
 const (
-	// configFolder is the folder where NGINX configuration files are stored.
-	configFolder = "/etc/nginx"
+	// configFolder is the folder where BWS configuration files are stored.
+	configFolder = "/etc/bws"
 
-	// httpFolder is the folder where NGINX HTTP configuration files are stored.
+	// httpFolder is the folder where BWS HTTP configuration files are stored.
 	httpFolder = configFolder + "/conf.d"
 
-	// streamFolder is the folder where NGINX Stream configuration files are stored.
+	// streamFolder is the folder where BWS Stream configuration files are stored.
 	streamFolder = configFolder + "/stream-conf.d"
 
 	// mainIncludesFolder is the folder where NGINX main context configuration files are stored.

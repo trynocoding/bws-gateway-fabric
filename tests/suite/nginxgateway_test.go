@@ -15,12 +15,12 @@ import (
 	ngfAPI "github.com/nginx/nginx-gateway-fabric/v2/apis/v1alpha1"
 )
 
-var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), func() {
+var _ = Describe("BwsGateway", Ordered, Label("functional", "bwsGateway"), func() {
 	var (
 		ngfPodName string
 
-		namespace          string
-		nginxGatewayNsname types.NamespacedName
+		namespace        string
+		bwsGatewayNsname types.NamespacedName
 
 		files = []string{
 			"nginxgateway/nginx-gateway.yaml",
@@ -29,25 +29,25 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 
 	BeforeAll(func() {
 		namespace = ngfNamespace
-		nginxGatewayNsname = types.NamespacedName{Name: releaseName + "-config", Namespace: namespace}
+		bwsGatewayNsname = types.NamespacedName{Name: releaseName + "-config", Namespace: namespace}
 	})
 
-	getNginxGateway := func(nsname types.NamespacedName) (ngfAPI.NginxGateway, error) {
+	getBwsGateway := func(nsname types.NamespacedName) (ngfAPI.BwsGateway, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), timeoutConfig.GetTimeout)
 		defer cancel()
 
-		var nginxGateway ngfAPI.NginxGateway
+		var bwsGateway ngfAPI.BwsGateway
 
-		if err := resourceManager.Get(ctx, nsname, &nginxGateway); err != nil {
-			return nginxGateway, fmt.Errorf("failed to get nginxGateway: %w", err)
+		if err := resourceManager.Get(ctx, nsname, &bwsGateway); err != nil {
+			return bwsGateway, fmt.Errorf("failed to get bwsGateway: %w", err)
 		}
 
-		return nginxGateway, nil
+		return bwsGateway, nil
 	}
 
-	verifyNginxGatewayConditions := func(ng ngfAPI.NginxGateway) error {
+	verifyBwsGatewayConditions := func(ng ngfAPI.BwsGateway) error {
 		if ng.Status.Conditions == nil {
-			noConditionsErr := errors.New("nginxGateway has no conditions")
+			noConditionsErr := errors.New("bwsGateway has no conditions")
 			GinkgoWriter.Printf("ERROR: %v\n", noConditionsErr)
 
 			return noConditionsErr
@@ -55,7 +55,7 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 
 		if len(ng.Status.Conditions) != 1 {
 			tooManyConditionsErr := fmt.Errorf(
-				"expected nginxGateway to have only one condition, instead has %d conditions",
+				"expected bwsGateway to have only one condition, instead has %d conditions",
 				len(ng.Status.Conditions),
 			)
 			GinkgoWriter.Printf("ERROR: %v\n", tooManyConditionsErr)
@@ -66,16 +66,16 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 		return nil
 	}
 
-	getNginxGatewayCurrentObservedGeneration := func(ng ngfAPI.NginxGateway) (int64, error) {
-		if err := verifyNginxGatewayConditions(ng); err != nil {
+	getBwsGatewayCurrentObservedGeneration := func(ng ngfAPI.BwsGateway) (int64, error) {
+		if err := verifyBwsGatewayConditions(ng); err != nil {
 			return 0, err
 		}
 
 		return ng.Status.Conditions[0].ObservedGeneration, nil
 	}
 
-	verifyNginxGatewayStatus := func(ng ngfAPI.NginxGateway, expObservedGen int64) error {
-		if err := verifyNginxGatewayConditions(ng); err != nil {
+	verifyBwsGatewayStatus := func(ng ngfAPI.BwsGateway, expObservedGen int64) error {
+		if err := verifyBwsGatewayConditions(ng); err != nil {
 			return err
 		}
 
@@ -83,7 +83,7 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 
 		if condition.Type != "Valid" {
 			invalidConditionTypeErr := fmt.Errorf(
-				"expected nginxGateway condition type to be Valid, instead has type %s",
+				"expected bwsGateway condition type to be Valid, instead has type %s",
 				condition.Type,
 			)
 			GinkgoWriter.Printf("ERROR: %v\n", invalidConditionTypeErr)
@@ -92,7 +92,7 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 		}
 
 		if condition.Reason != "Valid" {
-			invalidReasonErr := fmt.Errorf("expected nginxGateway reason to be Valid, instead is %s", condition.Reason)
+			invalidReasonErr := fmt.Errorf("expected bwsGateway reason to be Valid, instead is %s", condition.Reason)
 			GinkgoWriter.Printf("ERROR: %v\n", invalidReasonErr)
 
 			return invalidReasonErr
@@ -100,7 +100,7 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 
 		if condition.ObservedGeneration != expObservedGen {
 			observedGenerationErr := fmt.Errorf(
-				"expected nginxGateway observed generation to be %d, instead is %d",
+				"expected bwsGateway observed generation to be %d, instead is %d",
 				expObservedGen,
 				condition.ObservedGeneration,
 			)
@@ -132,17 +132,17 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 	}
 
 	AfterAll(func() {
-		// re-apply NginxGateway crd to restore NGF instance for following functional tests
+		// re-apply BwsGateway crd to restore NGF instance for following functional tests
 		Expect(resourceManager.ApplyFromFiles(files, namespace)).To(Succeed())
 
 		Eventually(
 			func() bool {
-				ng, err := getNginxGateway(nginxGatewayNsname)
+				ng, err := getBwsGateway(bwsGatewayNsname)
 				if err != nil {
 					return false
 				}
 
-				return verifyNginxGatewayStatus(ng, int64(1)) == nil
+				return verifyBwsGatewayStatus(ng, int64(1)) == nil
 			}).WithTimeout(timeoutConfig.UpdateTimeout).
 			WithPolling(500 * time.Millisecond).
 			Should(BeTrue())
@@ -154,10 +154,10 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 				ngfPodName, err := getNGFPodName()
 				Expect(err).ToNot(HaveOccurred())
 
-				ng, err := getNginxGateway(nginxGatewayNsname)
+				ng, err := getBwsGateway(bwsGatewayNsname)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(verifyNginxGatewayStatus(ng, int64(1))).To(Succeed())
+				Expect(verifyBwsGatewayStatus(ng, int64(1))).To(Succeed())
 
 				Eventually(
 					func() bool {
@@ -188,12 +188,12 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 
 				Eventually(
 					func() bool {
-						ng, err := getNginxGateway(nginxGatewayNsname)
+						ng, err := getBwsGateway(bwsGatewayNsname)
 						if err != nil {
 							return false
 						}
 
-						return verifyNginxGatewayStatus(ng, int64(1)) == nil
+						return verifyBwsGatewayStatus(ng, int64(1)) == nil
 					}).WithTimeout(timeoutConfig.UpdateTimeout).
 					WithPolling(500 * time.Millisecond).
 					Should(BeTrue())
@@ -222,16 +222,16 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		When("NginxGateway is updated", func() {
+		When("BwsGateway is updated", func() {
 			It("captures the change, the status is valid, and the observed generation is incremented", func() {
 				// previous test has left the log level at info, this test will change the log level to debug
-				ng, err := getNginxGateway(nginxGatewayNsname)
+				ng, err := getBwsGateway(bwsGatewayNsname)
 				Expect(err).ToNot(HaveOccurred())
 
-				gen, err := getNginxGatewayCurrentObservedGeneration(ng)
+				gen, err := getBwsGatewayCurrentObservedGeneration(ng)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(verifyNginxGatewayStatus(ng, gen)).To(Succeed())
+				Expect(verifyBwsGatewayStatus(ng, gen)).To(Succeed())
 
 				logs, err := resourceManager.GetPodLogs(ngfNamespace, ngfPodName, &core.PodLogOptions{
 					Container: "nginx-gateway",
@@ -244,12 +244,12 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 
 				Eventually(
 					func() bool {
-						ng, err := getNginxGateway(nginxGatewayNsname)
+						ng, err := getBwsGateway(bwsGatewayNsname)
 						if err != nil {
 							return false
 						}
 
-						return verifyNginxGatewayStatus(ng, gen+1) == nil
+						return verifyBwsGatewayStatus(ng, gen+1) == nil
 					}).WithTimeout(timeoutConfig.UpdateTimeout).
 					WithPolling(500 * time.Millisecond).
 					Should(BeTrue())
@@ -270,17 +270,17 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 			})
 		})
 
-		When("NginxGateway is deleted", func() {
+		When("BwsGateway is deleted", func() {
 			It("captures the deletion and default values are used", func() {
 				Expect(resourceManager.DeleteFromFiles(files, namespace)).To(Succeed())
 
 				Eventually(
 					func() error {
-						_, err := getNginxGateway(nginxGatewayNsname)
+						_, err := getBwsGateway(bwsGatewayNsname)
 						return err
 					}).WithTimeout(timeoutConfig.DeleteTimeout).
 					WithPolling(500 * time.Millisecond).
-					Should(MatchError(ContainSubstring("failed to get nginxGateway")))
+					Should(MatchError(ContainSubstring("failed to get bwsGateway")))
 
 				Eventually(
 					func() bool {
@@ -291,7 +291,7 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 							return false
 						}
 
-						return strings.Contains(logs, "NginxGateway configuration was deleted; using defaults")
+						return strings.Contains(logs, "BwsGateway configuration was deleted; using defaults")
 					}).WithTimeout(timeoutConfig.GetTimeout).
 					WithPolling(500 * time.Millisecond).
 					Should(BeTrue())
@@ -299,16 +299,16 @@ var _ = Describe("NginxGateway", Ordered, Label("functional", "nginxGateway"), f
 				events, err := resourceManager.GetEvents(namespace)
 				Expect(err).ToNot(HaveOccurred())
 
-				var foundNginxGatewayDeletionEvent bool
+				var foundBwsGatewayDeletionEvent bool
 				for _, item := range events.Items {
-					if item.Message == "NginxGateway configuration was deleted; using defaults" &&
+					if item.Message == "BwsGateway configuration was deleted; using defaults" &&
 						item.Type == "Warning" &&
 						item.Reason == "ResourceDeleted" {
-						foundNginxGatewayDeletionEvent = true
+						foundBwsGatewayDeletionEvent = true
 						break
 					}
 				}
-				Expect(foundNginxGatewayDeletionEvent).To(BeTrue())
+				Expect(foundBwsGatewayDeletionEvent).To(BeTrue())
 			})
 		})
 	})

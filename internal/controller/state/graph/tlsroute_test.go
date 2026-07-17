@@ -607,9 +607,9 @@ func TestBuildTLSRoute(t *testing.T) {
 				RouteType: RouteTypeTLS,
 				ParentRefs: []ParentRef{
 					{
-						SectionName:         helpers.GetPointer[gatewayv1.SectionName]("l1"),
-						EffectiveNginxProxy: &EffectiveNginxProxy{IPFamily: helpers.GetPointer(ngfAPI.IPv6)},
-						Kind:                gatewayv1.Kind(kinds.Gateway),
+						SectionName:       helpers.GetPointer[gatewayv1.SectionName]("l1"),
+						EffectiveBwsProxy: &EffectiveBwsProxy{IPFamily: helpers.GetPointer(ngfAPI.IPv6)},
+						Kind:              gatewayv1.Kind(kinds.Gateway),
 						NamespacedName: types.NamespacedName{
 							Namespace: "test",
 							Name:      "gateway",
@@ -634,15 +634,15 @@ func TestBuildTLSRoute(t *testing.T) {
 			},
 			gateway: func() *Gateway {
 				gw := createGateway()
-				gw.EffectiveNginxProxy = &EffectiveNginxProxy{IPFamily: helpers.GetPointer(ngfAPI.IPv6)}
+				gw.EffectiveBwsProxy = &EffectiveBwsProxy{IPFamily: helpers.GetPointer(ngfAPI.IPv6)}
 				return gw
 			}(),
 			services: map[types.NamespacedName]*apiv1.Service{
 				svcNsName: ipv4Svc,
 			},
 			resolver: alwaysTrueRefGrantResolver,
-			name: "IPv6 NginxProxy with IPv4-only Service " +
-				"BackendRef is accepted because Service IP family is not validated against NginxProxy IP family",
+			name: "IPv6 BwsProxy with IPv4-only Service " +
+				"BackendRef is accepted because Service IP family is not validated against BwsProxy IP family",
 		},
 		{
 			gtr: diffNsBackendRef,

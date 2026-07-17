@@ -42,7 +42,7 @@ func (v *Validator) Validate(policy policies.Policy) []conditions.Condition {
 	return nil
 }
 
-// ValidateGlobalSettings validates a ClientSettingsPolicy with respect to the NginxProxy global settings.
+// ValidateGlobalSettings validates a ClientSettingsPolicy with respect to the BwsProxy global settings.
 func (v *Validator) ValidateGlobalSettings(
 	_ policies.Policy,
 	_ *policies.GlobalSettings,

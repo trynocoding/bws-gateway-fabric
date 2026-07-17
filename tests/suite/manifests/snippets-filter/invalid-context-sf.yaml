@@ -1,4 +1,4 @@
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: SnippetsFilter
 metadata:
   name: invalid-context
@@ -29,7 +29,7 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: gateway.nginx.org
+            group: gateway.bessystem.com
             kind: SnippetsFilter
             name: invalid-context
       backendRefs:

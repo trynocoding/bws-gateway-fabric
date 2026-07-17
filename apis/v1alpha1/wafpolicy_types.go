@@ -5,14 +5,6 @@ import (
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-// +genclient
-// +kubebuilder:object:root=true
-// +kubebuilder:storageversion
-// +kubebuilder:subresource:status
-// +kubebuilder:resource:categories=nginx-gateway-fabric,shortName=wgbpolicy
-// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
-// +kubebuilder:metadata:labels="gateway.networking.k8s.io/policy=inherited"
-
 // WAFPolicy is an Inherited Attached Policy. It provides a way to configure F5 WAF for NGINX
 // for Gateways and Routes by referencing compiled WAF policy bundles. Bundles can be fetched directly from an
 // HTTP/HTTPS URL (type: HTTP), from an NGINX Instance Manager instance (type: NIM), or from an F5 NGINX One
@@ -27,8 +19,6 @@ type WAFPolicy struct {
 	// Status defines the state of the WAFPolicy.
 	Status gatewayv1.PolicyStatus `json:"status,omitempty"`
 }
-
-// +kubebuilder:object:root=true
 
 // WAFPolicyList contains a list of WAFPolicies.
 type WAFPolicyList struct {
@@ -344,7 +334,7 @@ type N1CBundleSource struct {
 
 // BundleAuth configures authentication for bundle fetching.
 type BundleAuth struct {
-	// SecretRef references a Kubernetes Secret in the same namespace as the WAFPolicy.
+	// SecretRef references a Kubernetes Secret in the same namespace as the policy.
 	// The Secret may contain:
 	//   - "username" and "password" fields for HTTP Basic Authentication
 	//   - "token" field for Bearer Token Authentication (NIM) or APIToken Authentication (N1C)

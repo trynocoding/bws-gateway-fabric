@@ -30,7 +30,7 @@ import (
 type Policy struct {
 	// Source is the corresponding Policy resource.
 	Source policies.Policy
-	// InvalidForGateways is a map of Gateways for which this Policy is invalid for. Certain NginxProxy
+	// InvalidForGateways is a map of Gateways for which this Policy is invalid for. Certain BwsProxy
 	// configurations may result in a policy not being valid for some Gateways, but not others.
 	// This includes gateways that cannot accept the policy due to ancestor status limits.
 	InvalidForGateways map[types.NamespacedName]struct{}
@@ -370,10 +370,10 @@ func attachPolicyToRoute(
 	}
 
 	for _, parentRef := range route.ParentRefs {
-		if parentRef.EffectiveNginxProxy != nil {
+		if parentRef.EffectiveBwsProxy != nil {
 			globalSettings := &policies.GlobalSettings{
-				TelemetryEnabled: telemetryEnabledForNginxProxy(parentRef.EffectiveNginxProxy),
-				WAFEnabled:       WAFEnabledForNginxProxy(parentRef.EffectiveNginxProxy),
+				TelemetryEnabled: telemetryEnabledForBwsProxy(parentRef.EffectiveBwsProxy),
+				WAFEnabled:       WAFEnabledForBwsProxy(parentRef.EffectiveBwsProxy),
 			}
 
 			if conds := validator.ValidateGlobalSettings(policy.Source, globalSettings); len(conds) > 0 {
@@ -456,8 +456,8 @@ func attachPolicyToGateway(
 	}
 
 	globalSettings := &policies.GlobalSettings{
-		TelemetryEnabled: telemetryEnabledForNginxProxy(gw.EffectiveNginxProxy),
-		WAFEnabled:       WAFEnabledForNginxProxy(gw.EffectiveNginxProxy),
+		TelemetryEnabled: telemetryEnabledForBwsProxy(gw.EffectiveBwsProxy),
+		WAFEnabled:       WAFEnabledForBwsProxy(gw.EffectiveBwsProxy),
 	}
 
 	// Policy is effective for this gateway (not adding to InvalidForGateways)

@@ -1,6 +1,6 @@
-@namespace("gateway.nginx.org") protocol NGFProductTelemetry {
+@namespace("gateway.bessystem.com") protocol BWSProductTelemetry {
 	/** Data is the telemetry data for the product. */
-	@df_datatype("ngf-product-telemetry") record Data {
+	@df_datatype("bws-product-telemetry") record Data {
 		/** The field that identifies what type of data this is. */
 		string dataType;
 		/** The time the event occurred */
@@ -93,8 +93,8 @@ attached at the Gateway level. */
 		/** ObservabilityPolicyCount is the number of relevant ObservabilityPolicies. */
 		long? ObservabilityPolicyCount = null;
 		
-		/** NginxProxyCount is the number of NginxProxies. */
-		long? NginxProxyCount = null;
+		/** BwsProxyCount is the number of BwsProxies. */
+		long? BwsProxyCount = null;
 		
 		/** SnippetsFilterCount is the number of SnippetsFilters. */
 		long? SnippetsFilterCount = null;
@@ -102,7 +102,7 @@ attached at the Gateway level. */
 		/** UpstreamSettingsPolicyCount is the number of UpstreamSettingsPolicies. */
 		long? UpstreamSettingsPolicyCount = null;
 		
-		/** GatewayAttachedNpCount is the total number of NginxProxy resources that are attached to a Gateway. */
+		/** GatewayAttachedNpCount is the total number of BwsProxy resources that are attached to a Gateway. */
 		long? GatewayAttachedNpCount = null;
 		
 		/** GatewayAttachedRateLimitPolicyCount is the number of RateLimitPolicy resources attached at the Gateway level. */
@@ -142,7 +142,7 @@ attached at the Gateway level. */
 attached at the Route level. */
 		long? RouteAttachedWAFPolicyCount = null;
 		
-		/** WAFEnabledGatewayCount is the number of Gateways with WAF enabled on their effective NginxProxy. */
+		/** WAFEnabledGatewayCount is the number of Gateways with WAF enabled on their effective BwsProxy. */
 		long? WAFEnabledGatewayCount = null;
 		
 		/** ListenerSetCount is the number of relevant ListenerSets. */

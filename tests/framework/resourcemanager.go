@@ -905,21 +905,21 @@ func (rm *ResourceManager) GetNGFDeployment(namespace, releaseName string) (*app
 	return &deployment, nil
 }
 
-func (rm *ResourceManager) getGatewayClassNginxProxy(
+func (rm *ResourceManager) getGatewayClassBwsProxy(
 	namespace,
 	releaseName string,
-) (*ngfAPIv1alpha2.NginxProxy, error) {
-	GinkgoWriter.Printf("Getting NginxProxy in namespace %q with release name %q\n", namespace, releaseName)
+) (*ngfAPIv1alpha2.BwsProxy, error) {
+	GinkgoWriter.Printf("Getting BwsProxy in namespace %q with release name %q\n", namespace, releaseName)
 	ctx, cancel := context.WithTimeout(context.Background(), rm.TimeoutConfig.GetTimeout)
 	defer cancel()
 
-	var proxy ngfAPIv1alpha2.NginxProxy
+	var proxy ngfAPIv1alpha2.BwsProxy
 	proxyName := releaseName + "-proxy-config"
 
 	if err := rm.Get(ctx, types.NamespacedName{Namespace: namespace, Name: proxyName}, &proxy); err != nil {
 		return nil, err
 	}
-	GinkgoWriter.Printf("Successfully found NginxProxy %q in namespace %q\n", proxyName, namespace)
+	GinkgoWriter.Printf("Successfully found BwsProxy %q in namespace %q\n", proxyName, namespace)
 
 	return &proxy, nil
 }
@@ -934,24 +934,24 @@ func (rm *ResourceManager) ScaleNginxDeployment(namespace, releaseName string, r
 	ctx, cancel := context.WithTimeout(context.Background(), rm.TimeoutConfig.UpdateTimeout)
 	defer cancel()
 
-	// If there is another NginxProxy which "overrides" the gateway class  one, then this won't work and
+	// If there is another BwsProxy which "overrides" the gateway class  one, then this won't work and
 	// may need refactoring.
-	proxy, err := rm.getGatewayClassNginxProxy(namespace, releaseName)
+	proxy, err := rm.getGatewayClassBwsProxy(namespace, releaseName)
 	if err != nil {
-		getNginxProxyErr := fmt.Errorf("error getting NginxProxy: %w", err)
-		GinkgoWriter.Printf("ERROR occurred during getting NginxProxy in namespace %q with release name %q, error: %s\n",
+		getBwsProxyErr := fmt.Errorf("error getting BwsProxy: %w", err)
+		GinkgoWriter.Printf("ERROR occurred during getting BwsProxy in namespace %q with release name %q, error: %s\n",
 			namespace,
 			releaseName,
-			getNginxProxyErr,
+			getBwsProxyErr,
 		)
 
-		return getNginxProxyErr
+		return getBwsProxyErr
 	}
 
 	proxy.Spec.Kubernetes.Deployment.Replicas = &replicas
 
 	if err = rm.Update(ctx, proxy, nil); err != nil {
-		return fmt.Errorf("error updating NginxProxy: %w", err)
+		return fmt.Errorf("error updating BwsProxy: %w", err)
 	}
 
 	GinkgoWriter.Printf("Successfully scaled Nginx Deployment in namespace %q with release name %q to %d replicas\n",

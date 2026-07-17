@@ -105,17 +105,17 @@ const (
 
 // Conditions and Reasons for Policy resources.
 const (
-	// PolicyReasonNginxProxyConfigNotSet is used with the "PolicyAccepted" condition when the
-	// NginxProxy resource is missing or invalid.
-	PolicyReasonNginxProxyConfigNotSet v1.PolicyConditionReason = "NginxProxyConfigNotSet"
+	// PolicyReasonBwsProxyConfigNotSet is used with the "PolicyAccepted" condition when the
+	// BwsProxy resource is missing or invalid.
+	PolicyReasonBwsProxyConfigNotSet v1.PolicyConditionReason = "BwsProxyConfigNotSet"
 
-	// PolicyMessageNginxProxyInvalid is a message used with the PolicyReasonNginxProxyConfigNotSet reason
-	// when the NginxProxy resource is either invalid or not attached.
-	PolicyMessageNginxProxyInvalid = "The NginxProxy configuration is either invalid or not attached to the GatewayClass"
+	// PolicyMessageBwsProxyInvalid is a message used with the PolicyReasonBwsProxyConfigNotSet reason
+	// when the BwsProxy resource is either invalid or not attached.
+	PolicyMessageBwsProxyInvalid = "The BwsProxy configuration is either invalid or not attached to the GatewayClass"
 
-	// PolicyMessageTelemetryNotEnabled is a message used with the PolicyReasonNginxProxyConfigNotSet reason
-	// when telemetry is not enabled in the NginxProxy resource.
-	PolicyMessageTelemetryNotEnabled = "Telemetry is not enabled in the NginxProxy resource"
+	// PolicyMessageTelemetryNotEnabled is a message used with the PolicyReasonBwsProxyConfigNotSet reason
+	// when telemetry is not enabled in the BwsProxy resource.
+	PolicyMessageTelemetryNotEnabled = "Telemetry is not enabled in the BwsProxy resource"
 
 	// PolicyReasonTargetConflict is used with the "PolicyAccepted" condition when a Route that it targets
 	// has an overlapping hostname:port/path combination with another Route.
@@ -221,7 +221,7 @@ const (
 
 	// WAFPolicyAffected is used with the "PolicyAffected" condition when a
 	// WAFPolicy is applied to a Gateway, HTTPRoute, or GRPCRoute.
-	WAFPolicyAffected v1.PolicyConditionType = "gateway.nginx.org/WAFPolicyAffected"
+	WAFPolicyAffected v1.PolicyConditionType = "gateway.bessystem.com/WAFPolicyAffected"
 
 	// PolicyReasonPending is used with the "PolicyAccepted" condition when a Policy is pending
 	// external processing (e.g., PLM compilation for WAF policies).
@@ -1145,22 +1145,22 @@ func NewListenerInvalidNoValidCACertificate(msg string) []Condition {
 	}
 }
 
-// NewNginxGatewayValid returns a Condition that indicates that the NginxGateway config is valid.
-func NewNginxGatewayValid() Condition {
+// NewBwsGatewayValid returns a Condition that indicates that the BwsGateway config is valid.
+func NewBwsGatewayValid() Condition {
 	return Condition{
-		Type:    string(ngfAPI.NginxGatewayConditionValid),
+		Type:    string(ngfAPI.BwsGatewayConditionValid),
 		Status:  metav1.ConditionTrue,
-		Reason:  string(ngfAPI.NginxGatewayReasonValid),
-		Message: "The NginxGateway is valid",
+		Reason:  string(ngfAPI.BwsGatewayReasonValid),
+		Message: "The BwsGateway is valid",
 	}
 }
 
-// NewNginxGatewayInvalid returns a Condition that indicates that the NginxGateway config is invalid.
-func NewNginxGatewayInvalid(msg string) Condition {
+// NewBwsGatewayInvalid returns a Condition that indicates that the BwsGateway config is invalid.
+func NewBwsGatewayInvalid(msg string) Condition {
 	return Condition{
-		Type:    string(ngfAPI.NginxGatewayConditionValid),
+		Type:    string(ngfAPI.BwsGatewayConditionValid),
 		Status:  metav1.ConditionFalse,
-		Reason:  string(ngfAPI.NginxGatewayReasonInvalid),
+		Reason:  string(ngfAPI.BwsGatewayReasonInvalid),
 		Message: msg,
 	}
 }
@@ -1275,13 +1275,13 @@ func NewPolicyNotAcceptedTargetConflict(msg string) Condition {
 	}
 }
 
-// NewPolicyNotAcceptedNginxProxyNotSet returns a Condition that indicates that the Policy is not accepted
-// because it relies on the NginxProxy configuration which is missing or invalid.
-func NewPolicyNotAcceptedNginxProxyNotSet(msg string) Condition {
+// NewPolicyNotAcceptedBwsProxyNotSet returns a Condition that indicates that the Policy is not accepted
+// because it relies on the BwsProxy configuration which is missing or invalid.
+func NewPolicyNotAcceptedBwsProxyNotSet(msg string) Condition {
 	return Condition{
 		Type:    string(v1.PolicyConditionAccepted),
 		Status:  metav1.ConditionFalse,
-		Reason:  string(PolicyReasonNginxProxyConfigNotSet),
+		Reason:  string(PolicyReasonBwsProxyConfigNotSet),
 		Message: msg,
 	}
 }

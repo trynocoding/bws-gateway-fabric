@@ -1,0 +1,17 @@
+apiVersion: v2
+name: bws-gateway-fabric
+description: BWS Gateway Fabric
+type: application
+version: 2.6.7
+appVersion: "2.6.7"
+kubeVersion: ">= 1.31.0-0"
+home: https://github.com/trynocoding/nginx-gateway-fabric
+icon: https://raw.githubusercontent.com/trynocoding/nginx-gateway-fabric/bws/m4-productization/charts/bws-gateway-fabric/chart-icon.png
+sources:
+  - https://github.com/trynocoding/nginx-gateway-fabric/tree/bws/m4-productization/charts/bws-gateway-fabric
+keywords:
+  - kubernetes
+  - gateway
+  - bws
+maintainers:
+  - name: trynocoding

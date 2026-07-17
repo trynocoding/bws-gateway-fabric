@@ -178,7 +178,7 @@ func setup(cfg setupConfig, extraInstallArgs ...string) {
 	}
 
 	// Set text replacements for per-proc resource names so manifests reference the correct
-	// GatewayClass and NginxGateway config for this parallel process.
+	// GatewayClass and BwsGateway config for this parallel process.
 	// Longevity installs NGF with the default "nginx" class, so no replacement is needed.
 	if !strings.Contains(GinkgoLabelFilter(), "longevity") {
 		resourceManager.TextReplacements = map[string]string{
@@ -276,7 +276,7 @@ func createNGFInstallConfig(cfg setupConfig, extraInstallArgs ...string) framewo
 	if cfg.debugLogLevel {
 		extraInstallArgs = append(
 			extraInstallArgs,
-			"--set", "nginxGateway.config.logging.level=debug",
+			"--set", "bwsGateway.config.logging.level=debug",
 			"--set", "nginx.config.logging.agentLevel=debug",
 		)
 	}
@@ -334,7 +334,7 @@ func getDefaultSetupCfg() setupConfig {
 	_, file, _, _ := runtime.Caller(0)
 	fileDir := path.Join(path.Dir(file), "../")
 	basepath := filepath.Dir(fileDir)
-	localChartPath = filepath.Join(basepath, "charts/nginx-gateway-fabric")
+	localChartPath = filepath.Join(basepath, "charts/bws-gateway-fabric")
 
 	return setupConfig{
 		releaseName:   releaseName,
@@ -351,7 +351,7 @@ var _ = SynchronizedBeforeSuite(
 		_, file, _, _ := runtime.Caller(0)
 		fileDir := path.Join(path.Dir(file), "../")
 		basepath := filepath.Dir(fileDir)
-		chartPath := filepath.Join(basepath, "charts/nginx-gateway-fabric")
+		chartPath := filepath.Join(basepath, "charts/bws-gateway-fabric")
 
 		output, err := framework.InstallGatewayAPI(*gatewayAPIVersion)
 		Expect(err).ToNot(HaveOccurred(), string(output))

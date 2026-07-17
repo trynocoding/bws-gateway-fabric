@@ -9,12 +9,12 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:categories=nginx-gateway-fabric,scope=Namespaced,shortName=uspolicy
+// +kubebuilder:resource:categories=bws-gateway-fabric,scope=Namespaced,shortName=uspolicy
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:metadata:labels="gateway.networking.k8s.io/policy=direct"
 
 // UpstreamSettingsPolicy is a Direct Attached Policy. It provides a way to configure the behavior of
-// the connection between NGINX and the upstream applications.
+// the connection between BWS and the upstream applications.
 type UpstreamSettingsPolicy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -55,7 +55,7 @@ type UpstreamSettingsPolicySpec struct {
 	KeepAlive *UpstreamKeepAlive `json:"keepAlive,omitempty"`
 
 	// LoadBalancingMethod specifies the load balancing algorithm to be used for the upstream.
-	// If not specified, NGINX Gateway Fabric defaults to `random two least_conn`,
+	// If not specified, BWS Gateway Fabric defaults to `random two least_conn`,
 	// which differs from the standard NGINX default `round-robin`.
 	//
 	// +optional

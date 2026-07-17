@@ -1,10 +1,15 @@
 {
   "hideMemberFields": [
-    "TypeMeta"
+    "TypeMeta",
+    "NginxPlus",
+    "WAF",
+    "WAFContainers"
   ],
   "hideTypePatterns": [
     "ParseError$",
-    "List$"
+    "List$",
+    "NginxPlus",
+    "WAF"
   ],
   "externalPackages": [
     {

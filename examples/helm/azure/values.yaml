@@ -1,8 +1,8 @@
-nginxGateway:
-  name: nginx-gateway
+bwsGateway:
+  name: bws-gateway
   nodeSelector:
     kubernetes.io/os: linux
-nginx:
+bws:
   pod:
     nodeSelector:
       kubernetes.io/os: linux

@@ -1,4 +1,4 @@
 ## Append samples of your project ##
 resources:
-- gateway_v1alpha1_nginxgatewayfabric.yaml
+- gateway_v1alpha1_bwsgatewayfabric.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

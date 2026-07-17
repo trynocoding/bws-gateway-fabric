@@ -2260,22 +2260,22 @@ func TestBuildBackendTLSPolicyStatuses(t *testing.T) {
 	}
 }
 
-func TestBuildNginxGatewayStatus(t *testing.T) {
+func TestBuildBwsGatewayStatus(t *testing.T) {
 	t.Parallel()
 	transitionTime := helpers.PrepareTimeForFakeClient(metav1.Now())
 
 	tests := []struct {
 		cpUpdateResult ControlPlaneUpdateResult
-		nginxGateway   *ngfAPI.NginxGateway
-		expected       *ngfAPI.NginxGatewayStatus
+		bwsGateway     *ngfAPI.BwsGateway
+		expected       *ngfAPI.BwsGatewayStatus
 		name           string
 	}{
 		{
-			name: "nil NginxGateway",
+			name: "nil BwsGateway",
 		},
 		{
-			name: "NginxGateway with no update error",
-			nginxGateway: &ngfAPI.NginxGateway{
+			name: "BwsGateway with no update error",
+			bwsGateway: &ngfAPI.BwsGateway{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       "nginx-gateway",
 					Namespace:  "test",
@@ -2283,22 +2283,22 @@ func TestBuildNginxGatewayStatus(t *testing.T) {
 				},
 			},
 			cpUpdateResult: ControlPlaneUpdateResult{},
-			expected: &ngfAPI.NginxGatewayStatus{
+			expected: &ngfAPI.BwsGatewayStatus{
 				Conditions: []metav1.Condition{
 					{
-						Type:               string(ngfAPI.NginxGatewayConditionValid),
+						Type:               string(ngfAPI.BwsGatewayConditionValid),
 						Status:             metav1.ConditionTrue,
 						ObservedGeneration: 3,
 						LastTransitionTime: transitionTime,
-						Reason:             string(ngfAPI.NginxGatewayReasonValid),
-						Message:            "The NginxGateway is valid",
+						Reason:             string(ngfAPI.BwsGatewayReasonValid),
+						Message:            "The BwsGateway is valid",
 					},
 				},
 			},
 		},
 		{
-			name: "NginxGateway with update error",
-			nginxGateway: &ngfAPI.NginxGateway{
+			name: "BwsGateway with update error",
+			bwsGateway: &ngfAPI.BwsGateway{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       "nginx-gateway",
 					Namespace:  "test",
@@ -2308,14 +2308,14 @@ func TestBuildNginxGatewayStatus(t *testing.T) {
 			cpUpdateResult: ControlPlaneUpdateResult{
 				Error: errors.New("test error"),
 			},
-			expected: &ngfAPI.NginxGatewayStatus{
+			expected: &ngfAPI.BwsGatewayStatus{
 				Conditions: []metav1.Condition{
 					{
-						Type:               string(ngfAPI.NginxGatewayConditionValid),
+						Type:               string(ngfAPI.BwsGatewayConditionValid),
 						Status:             metav1.ConditionFalse,
 						ObservedGeneration: 3,
 						LastTransitionTime: transitionTime,
-						Reason:             string(ngfAPI.NginxGatewayReasonInvalid),
+						Reason:             string(ngfAPI.BwsGatewayReasonInvalid),
 						Message:            "Failed to update control plane configuration: test error",
 					},
 				},
@@ -2328,24 +2328,24 @@ func TestBuildNginxGatewayStatus(t *testing.T) {
 			t.Parallel()
 			g := NewWithT(t)
 
-			k8sClient := createK8sClientFor(&ngfAPI.NginxGateway{})
+			k8sClient := createK8sClientFor(&ngfAPI.BwsGateway{})
 
-			if test.nginxGateway != nil {
-				err := k8sClient.Create(t.Context(), test.nginxGateway)
+			if test.bwsGateway != nil {
+				err := k8sClient.Create(t.Context(), test.bwsGateway)
 				g.Expect(err).ToNot(HaveOccurred())
 			}
 
 			updater := NewUpdater(k8sClient, logr.Discard())
 
-			req := PrepareNginxGatewayStatus(test.nginxGateway, transitionTime, test.cpUpdateResult)
+			req := PrepareBwsGatewayStatus(test.bwsGateway, transitionTime, test.cpUpdateResult)
 
-			if test.nginxGateway == nil {
+			if test.bwsGateway == nil {
 				g.Expect(req).To(BeNil())
 			} else {
 				g.Expect(req).ToNot(BeNil())
 				updater.Update(t.Context(), *req)
 
-				var ngw ngfAPI.NginxGateway
+				var ngw ngfAPI.BwsGateway
 
 				err := k8sClient.Get(t.Context(), types.NamespacedName{Namespace: "test", Name: "nginx-gateway"}, &ngw)
 				g.Expect(err).ToNot(HaveOccurred())

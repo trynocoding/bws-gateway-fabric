@@ -27,9 +27,9 @@ import (
 const (
 	keepAliveTime    = 15 * time.Second
 	keepAliveTimeout = 10 * time.Second
-	caCertPath       = "/var/run/secrets/ngf/" + secrets.CAKey
-	tlsCertPath      = "/var/run/secrets/ngf/" + secrets.TLSCertKey
-	tlsKeyPath       = "/var/run/secrets/ngf/" + secrets.TLSKeyKey
+	caCertPath       = "/var/run/secrets/bws-gateway/" + secrets.CAKey
+	tlsCertPath      = "/var/run/secrets/bws-gateway/" + secrets.TLSCertKey
+	tlsKeyPath       = "/var/run/secrets/bws-gateway/" + secrets.TLSKeyKey
 )
 
 var ErrStatusInvalidConnection = status.Error(codes.Unauthenticated, "invalid connection")

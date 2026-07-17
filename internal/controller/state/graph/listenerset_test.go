@@ -33,8 +33,8 @@ func TestBuildListenerSets(t *testing.T) {
 				},
 			},
 		},
-		Valid:               true,
-		EffectiveNginxProxy: &EffectiveNginxProxy{},
+		Valid:             true,
+		EffectiveBwsProxy: &EffectiveBwsProxy{},
 	}
 
 	invalidGateway := &Gateway{
@@ -128,8 +128,8 @@ func TestBuildListenerSets(t *testing.T) {
 				},
 			},
 		},
-		Valid:               true,
-		EffectiveNginxProxy: &EffectiveNginxProxy{},
+		Valid:             true,
+		EffectiveBwsProxy: &EffectiveBwsProxy{},
 	}
 
 	noAllowedListenersGateway := &Gateway{
@@ -142,8 +142,8 @@ func TestBuildListenerSets(t *testing.T) {
 				AllowedListeners: nil,
 			},
 		},
-		Valid:               true,
-		EffectiveNginxProxy: &EffectiveNginxProxy{},
+		Valid:             true,
+		EffectiveBwsProxy: &EffectiveBwsProxy{},
 	}
 
 	// Additional ListenerSet configurations for validation testing
@@ -679,11 +679,11 @@ func TestAttachListenerSetsToGateways(t *testing.T) {
 		)
 
 		return &Gateway{
-			Source:              gw,
-			Valid:               true,
-			EffectiveNginxProxy: &EffectiveNginxProxy{},
-			Listeners:           builtListeners,
-			ListenerFactory:     listenerFactory,
+			Source:            gw,
+			Valid:             true,
+			EffectiveBwsProxy: &EffectiveBwsProxy{},
+			Listeners:         builtListeners,
+			ListenerFactory:   listenerFactory,
 		}
 	}
 
@@ -721,7 +721,7 @@ func TestAttachListenerSetsToGateways(t *testing.T) {
 		return &Gateway{
 			Source:               gw,
 			Valid:                true,
-			EffectiveNginxProxy:  &EffectiveNginxProxy{},
+			EffectiveBwsProxy:    &EffectiveBwsProxy{},
 			Listeners:            listeners,
 			ListenerFactory:      listenerFactory,
 			AttachedListenerSets: attachedListenerSets,

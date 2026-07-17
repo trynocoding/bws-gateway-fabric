@@ -1,6 +1,6 @@
 // Package v1alpha2 contains API Schema definitions for the
-// gateway.nginx.org API group.
+// gateway.bessystem.com API group.
 //
 // +kubebuilder:object:generate=true
-// +groupName=gateway.nginx.org
+// +groupName=gateway.bessystem.com
 package v1alpha2

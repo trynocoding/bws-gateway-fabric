@@ -76,7 +76,7 @@ func TestCollect_Success(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(labels).To(Equal(map[string]string{
-		"product-type":      "ngf",
+		"product-type":      "bws",
 		"product-version":   "my-version",
 		"cluster-id":        "test-uid",
 		"control-name":      "ngf-deployment",
@@ -192,7 +192,7 @@ func TestCollect_Errors(t *testing.T) {
 					},
 				},
 			})),
-			wantErrContain: "failed to get NGF deployment info",
+			wantErrContain: "failed to get BWS Gateway Fabric deployment info",
 		},
 	}
 

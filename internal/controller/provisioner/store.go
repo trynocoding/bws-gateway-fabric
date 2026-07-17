@@ -299,7 +299,7 @@ func gatewayChanged(original, updated *graph.Gateway) bool {
 		return true
 	}
 
-	if !reflect.DeepEqual(original.EffectiveNginxProxy, updated.EffectiveNginxProxy) {
+	if !reflect.DeepEqual(original.EffectiveBwsProxy, updated.EffectiveBwsProxy) {
 		return true
 	}
 

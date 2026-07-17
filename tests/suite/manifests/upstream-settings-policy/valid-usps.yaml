@@ -1,4 +1,4 @@
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: UpstreamSettingsPolicy
 metadata:
   name: multiple-http-svc-usp
@@ -16,7 +16,7 @@ spec:
     time: 10s
     timeout: 50s
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: UpstreamSettingsPolicy
 metadata:
   name: grpc-svc-usp

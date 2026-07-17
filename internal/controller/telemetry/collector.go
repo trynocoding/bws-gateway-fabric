@@ -40,7 +40,7 @@ type ConfigurationGetter interface {
 
 // Data is telemetry data.
 //
-//go:generate go run -tags generator github.com/nginx/telemetry-exporter/cmd/generator -type=Data -scheme -scheme-protocol=NGFProductTelemetry -scheme-df-datatype=ngf-product-telemetry
+//go:generate go run -tags generator github.com/nginx/telemetry-exporter/cmd/generator -type=Data -scheme -scheme-namespace=gateway.bessystem.com -scheme-protocol=BWSProductTelemetry -scheme-df-datatype=bws-product-telemetry
 type Data struct { //nolint //required to skip golangci-lint-full fieldalignment
 	// ImageSource tells whether the image was built by GitHub or locally (values are 'gha', 'local', or 'unknown')
 	ImageSource string
@@ -109,13 +109,13 @@ type NGFResourceCounts struct {
 	RouteAttachedClientSettingsPolicyCount int64
 	// ObservabilityPolicyCount is the number of relevant ObservabilityPolicies.
 	ObservabilityPolicyCount int64
-	// NginxProxyCount is the number of NginxProxies.
-	NginxProxyCount int64
+	// BwsProxyCount is the number of BwsProxies.
+	BwsProxyCount int64
 	// SnippetsFilterCount is the number of SnippetsFilters.
 	SnippetsFilterCount int64
 	// UpstreamSettingsPolicyCount is the number of UpstreamSettingsPolicies.
 	UpstreamSettingsPolicyCount int64
-	// GatewayAttachedNpCount is the total number of NginxProxy resources that are attached to a Gateway.
+	// GatewayAttachedNpCount is the total number of BwsProxy resources that are attached to a Gateway.
 	GatewayAttachedNpCount int64
 	// GatewayAttachedRateLimitPolicyCount is the number of RateLimitPolicy resources attached at the Gateway level.
 	GatewayAttachedRateLimitPolicyCount int64
@@ -143,7 +143,7 @@ type NGFResourceCounts struct {
 	// RouteAttachedWAFPolicyCount is the number of WAFPolicy resources
 	// attached at the Route level.
 	RouteAttachedWAFPolicyCount int64
-	// WAFEnabledGatewayCount is the number of Gateways with WAF enabled on their effective NginxProxy.
+	// WAFEnabledGatewayCount is the number of Gateways with WAF enabled on their effective BwsProxy.
 	WAFEnabledGatewayCount int64
 	// ListenerSetCount is the number of relevant ListenerSets.
 	ListenerSetCount int64
@@ -282,7 +282,7 @@ func (c DataCollectorImpl) Collect(ctx context.Context) (Data, error) {
 
 	data := Data{
 		Data: tel.Data{
-			ProjectName:         "NGF",
+		ProjectName:         "BWS Gateway Fabric",
 			ProjectVersion:      c.cfg.Version,
 			ProjectArchitecture: runtime.GOARCH,
 			ClusterID:           clusterInfo.ClusterID,
@@ -343,12 +343,12 @@ func collectGraphResourceCount(
 	ngfResourceCounts.CountPolicies(g)
 	ngfResourceCounts.CountFilters(g)
 
-	ngfResourceCounts.NginxProxyCount = int64(len(g.ReferencedNginxProxies))
+	ngfResourceCounts.BwsProxyCount = int64(len(g.ReferencedBwsProxies))
 
 	var gatewayAttachedNPCount int64
-	if g.GatewayClass != nil && g.GatewayClass.NginxProxy != nil {
-		gatewayClassNP := g.GatewayClass.NginxProxy
-		for _, np := range g.ReferencedNginxProxies {
+	if g.GatewayClass != nil && g.GatewayClass.BwsProxy != nil {
+		gatewayClassNP := g.GatewayClass.BwsProxy
+		for _, np := range g.ReferencedBwsProxies {
 			if np != gatewayClassNP {
 				gatewayAttachedNPCount++
 			}
@@ -362,7 +362,7 @@ func collectGraphResourceCount(
 
 	ngfResourceCounts.WAFEnabledGatewayCount = int64(0)
 	for _, gateway := range g.Gateways {
-		if graph.WAFEnabledForNginxProxy(gateway.EffectiveNginxProxy) {
+		if graph.WAFEnabledForBwsProxy(gateway.EffectiveBwsProxy) {
 			ngfResourceCounts.WAFEnabledGatewayCount++
 		}
 	}
@@ -700,7 +700,7 @@ func getNginxPodCount(g *graph.Graph, nodeCount int) int64 {
 	for _, gateway := range g.Gateways {
 		replicas := int64(1)
 
-		np := gateway.EffectiveNginxProxy
+		np := gateway.EffectiveBwsProxy
 		if np != nil && np.Kubernetes != nil {
 			if np.Kubernetes.Deployment != nil && np.Kubernetes.Deployment.Replicas != nil {
 				replicas = int64(*np.Kubernetes.Deployment.Replicas)

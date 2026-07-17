@@ -10,7 +10,7 @@ import (
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 // +kubebuilder:metadata:labels="gateway.networking.k8s.io/policy=direct"
-// +kubebuilder:resource:categories=nginx-gateway-fabric,shortName=snippetspolicy
+// +kubebuilder:resource:categories=bws-gateway-fabric,shortName=snippetspolicy
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 
 // SnippetsPolicy provides a way to inject NGINX snippets into the configuration on Gateway level.

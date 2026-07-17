@@ -69,7 +69,7 @@ var (
 	experimentalFeaturesEnabled = false
 )
 
-func createGateway(name, namespace, nginxProxyName string, listeners []gatewayv1.Listener) *gatewayv1.Gateway {
+func createGateway(name, namespace, bwsProxyName string, listeners []gatewayv1.Listener) *gatewayv1.Gateway {
 	gateway := &gatewayv1.Gateway{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -81,12 +81,12 @@ func createGateway(name, namespace, nginxProxyName string, listeners []gatewayv1
 		},
 	}
 
-	if nginxProxyName != "" {
+	if bwsProxyName != "" {
 		gateway.Spec.Infrastructure = &gatewayv1.GatewayInfrastructure{
 			ParametersRef: &gatewayv1.LocalParametersReference{
 				Group: ngfAPIv1alpha2.GroupName,
-				Kind:  kinds.NginxProxy,
-				Name:  nginxProxyName,
+				Kind:  kinds.BwsProxy,
+				Name:  bwsProxyName,
 			},
 		}
 	}
@@ -113,7 +113,7 @@ func createGatewayClass(name, controllerName, npName, npNamespace string) *gatew
 			ControllerName: gatewayv1.GatewayController(controllerName),
 			ParametersRef: &gatewayv1.ParametersReference{
 				Group:     ngfAPIv1alpha2.GroupName,
-				Kind:      kinds.NginxProxy,
+				Kind:      kinds.BwsProxy,
 				Name:      npName,
 				Namespace: helpers.GetPointer(gatewayv1.Namespace(npNamespace)),
 			},
@@ -123,13 +123,13 @@ func createGatewayClass(name, controllerName, npName, npNamespace string) *gatew
 
 func convertedGatewayClass(
 	gc *gatewayv1.GatewayClass,
-	nginxProxy ngfAPIv1alpha2.NginxProxy,
+	bwsProxy ngfAPIv1alpha2.BwsProxy,
 	cond ...conditions.Condition,
 ) *GatewayClass {
 	return &GatewayClass{
 		Source: gc,
-		NginxProxy: &NginxProxy{
-			Source: &nginxProxy,
+		BwsProxy: &BwsProxy{
+			Source: &bwsProxy,
 			Valid:  true,
 		},
 		Valid:      true,
@@ -137,8 +137,8 @@ func convertedGatewayClass(
 	}
 }
 
-func createNginxProxy(name, namespace string, spec ngfAPIv1alpha2.NginxProxySpec) *ngfAPIv1alpha2.NginxProxy {
-	return &ngfAPIv1alpha2.NginxProxy{
+func createBwsProxy(name, namespace string, spec ngfAPIv1alpha2.BwsProxySpec) *ngfAPIv1alpha2.BwsProxy {
+	return &ngfAPIv1alpha2.BwsProxy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -149,18 +149,18 @@ func createNginxProxy(name, namespace string, spec ngfAPIv1alpha2.NginxProxySpec
 
 func convertedGateway(
 	gw *gatewayv1.Gateway,
-	nginxProxy *NginxProxy,
-	effectiveNp *EffectiveNginxProxy,
+	bwsProxy *BwsProxy,
+	effectiveNp *EffectiveBwsProxy,
 	listeners []*Listener,
 	conds []conditions.Condition,
 ) *Gateway {
 	return &Gateway{
-		Source:              gw,
-		Valid:               true,
-		NginxProxy:          nginxProxy,
-		EffectiveNginxProxy: effectiveNp,
-		Listeners:           listeners,
-		Conditions:          conds,
+		Source:            gw,
+		Valid:             true,
+		BwsProxy:          bwsProxy,
+		EffectiveBwsProxy: effectiveNp,
+		Listeners:         listeners,
+		Conditions:        conds,
 		DeploymentName: types.NamespacedName{
 			Name:      gw.Name + "-" + gcName,
 			Namespace: gw.Namespace,
@@ -215,14 +215,14 @@ func convertListener(
 	return l
 }
 
-// Test_MultipleGateways_WithNginxProxy tests how nginx proxy config is inherited or overwritten
+// Test_MultipleGateways_WithBwsProxy tests how nginx proxy config is inherited or overwritten
 // when multiple gateways are present in the cluster.
-func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
-	nginxProxyGlobal := createNginxProxy("nginx-proxy", testNs, ngfAPIv1alpha2.NginxProxySpec{
+func Test_MultipleGateways_WithBwsProxy(t *testing.T) {
+	bwsProxyGlobal := createBwsProxy("nginx-proxy", testNs, ngfAPIv1alpha2.BwsProxySpec{
 		DisableHTTP2: helpers.GetPointer(true),
 	})
 
-	nginxProxyGateway1 := createNginxProxy("nginx-proxy-gateway-1", testNs, ngfAPIv1alpha2.NginxProxySpec{
+	bwsProxyGateway1 := createBwsProxy("nginx-proxy-gateway-1", testNs, ngfAPIv1alpha2.BwsProxySpec{
 		Logging: &ngfAPIv1alpha2.NginxLogging{
 			ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelDebug),
 			AgentLevel: helpers.GetPointer(ngfAPIv1alpha2.AgentLogLevelDebug),
@@ -233,7 +233,7 @@ func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
 		},
 	})
 
-	nginxProxyGateway3 := createNginxProxy("nginx-proxy-gateway-3", "test2", ngfAPIv1alpha2.NginxProxySpec{
+	bwsProxyGateway3 := createBwsProxy("nginx-proxy-gateway-3", "test2", ngfAPIv1alpha2.BwsProxySpec{
 		Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 			Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 				Replicas: helpers.GetPointer(int32(3)),
@@ -242,8 +242,8 @@ func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
 		DisableHTTP2: helpers.GetPointer(false),
 	})
 
-	// Global NginxProxy with log format but no escape
-	nginxProxyGlobalWithFormat := createNginxProxy("nginx-proxy-with-format", testNs, ngfAPIv1alpha2.NginxProxySpec{
+	// Global BwsProxy with log format but no escape
+	bwsProxyGlobalWithFormat := createBwsProxy("nginx-proxy-with-format", testNs, ngfAPIv1alpha2.BwsProxySpec{
 		DisableHTTP2: helpers.GetPointer(true),
 		Logging: &ngfAPIv1alpha2.NginxLogging{
 			AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
@@ -252,8 +252,8 @@ func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
 		},
 	})
 
-	// Gateway NginxProxy that only sets escape (format comes from global)
-	nginxProxyGatewayEscapeOnly := createNginxProxy("nginx-proxy-escape-only", testNs, ngfAPIv1alpha2.NginxProxySpec{
+	// Gateway BwsProxy that only sets escape (format comes from global)
+	bwsProxyGatewayEscapeOnly := createBwsProxy("nginx-proxy-escape-only", testNs, ngfAPIv1alpha2.BwsProxySpec{
 		Logging: &ngfAPIv1alpha2.NginxLogging{
 			AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
 				Escape: helpers.GetPointer(ngfAPIv1alpha2.NginxAccessLogEscapeJSON),
@@ -289,41 +289,41 @@ func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
 					client.ObjectKeyFromObject(gateway2): gateway2,
 					client.ObjectKeyFromObject(gateway3): gateway3,
 				},
-				NginxProxies: map[types.NamespacedName]*ngfAPIv1alpha2.NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobal): nginxProxyGlobal,
+				BwsProxies: map[types.NamespacedName]*ngfAPIv1alpha2.BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobal): bwsProxyGlobal,
 				},
 				Secrets: map[types.NamespacedName]*v1.Secret{
 					client.ObjectKeyFromObject(plusSecret): plusSecret,
 				},
 			},
 			expGraph: &Graph{
-				GatewayClass: convertedGatewayClass(gatewayClass, *nginxProxyGlobal, gcConditions...),
+				GatewayClass: convertedGatewayClass(gatewayClass, *bwsProxyGlobal, gcConditions...),
 				Gateways: map[types.NamespacedName]*Gateway{
 					client.ObjectKeyFromObject(gateway1): convertedGateway(
 						gateway1,
 						nil,
-						&EffectiveNginxProxy{DisableHTTP2: helpers.GetPointer(true)},
+						&EffectiveBwsProxy{DisableHTTP2: helpers.GetPointer(true)},
 						[]*Listener{},
 						nil,
 					),
 					client.ObjectKeyFromObject(gateway2): convertedGateway(
 						gateway2,
 						nil,
-						&EffectiveNginxProxy{DisableHTTP2: helpers.GetPointer(true)},
+						&EffectiveBwsProxy{DisableHTTP2: helpers.GetPointer(true)},
 						[]*Listener{},
 						nil,
 					),
 					client.ObjectKeyFromObject(gateway3): convertedGateway(
 						gateway3,
 						nil,
-						&EffectiveNginxProxy{DisableHTTP2: helpers.GetPointer(true)},
+						&EffectiveBwsProxy{DisableHTTP2: helpers.GetPointer(true)},
 						[]*Listener{},
 						nil,
 					),
 				},
-				ReferencedNginxProxies: map[types.NamespacedName]*NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobal): {
-						Source: nginxProxyGlobal,
+				ReferencedBwsProxies: map[types.NamespacedName]*BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobal): {
+						Source: bwsProxyGlobal,
 						Valid:  true,
 					},
 				},
@@ -343,22 +343,22 @@ func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
 					client.ObjectKeyFromObject(gateway2):       gateway2,
 					client.ObjectKeyFromObject(gateway3withNP): gateway3withNP,
 				},
-				NginxProxies: map[types.NamespacedName]*ngfAPIv1alpha2.NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobal):   nginxProxyGlobal,
-					client.ObjectKeyFromObject(nginxProxyGateway1): nginxProxyGateway1,
-					client.ObjectKeyFromObject(nginxProxyGateway3): nginxProxyGateway3,
+				BwsProxies: map[types.NamespacedName]*ngfAPIv1alpha2.BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobal):   bwsProxyGlobal,
+					client.ObjectKeyFromObject(bwsProxyGateway1): bwsProxyGateway1,
+					client.ObjectKeyFromObject(bwsProxyGateway3): bwsProxyGateway3,
 				},
 				Secrets: map[types.NamespacedName]*v1.Secret{
 					client.ObjectKeyFromObject(plusSecret): plusSecret,
 				},
 			},
 			expGraph: &Graph{
-				GatewayClass: convertedGatewayClass(gatewayClass, *nginxProxyGlobal, gcConditions...),
+				GatewayClass: convertedGatewayClass(gatewayClass, *bwsProxyGlobal, gcConditions...),
 				Gateways: map[types.NamespacedName]*Gateway{
 					client.ObjectKeyFromObject(gateway1withNP): convertedGateway(
 						gateway1withNP,
-						&NginxProxy{Source: nginxProxyGateway1, Valid: true},
-						&EffectiveNginxProxy{
+						&BwsProxy{Source: bwsProxyGateway1, Valid: true},
+						&EffectiveBwsProxy{
 							Logging: &ngfAPIv1alpha2.NginxLogging{
 								ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelDebug),
 								AgentLevel: helpers.GetPointer(ngfAPIv1alpha2.AgentLogLevelDebug),
@@ -375,14 +375,14 @@ func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
 					client.ObjectKeyFromObject(gateway2): convertedGateway(
 						gateway2,
 						nil,
-						&EffectiveNginxProxy{DisableHTTP2: helpers.GetPointer(true)},
+						&EffectiveBwsProxy{DisableHTTP2: helpers.GetPointer(true)},
 						[]*Listener{},
 						nil,
 					),
 					client.ObjectKeyFromObject(gateway3withNP): convertedGateway(
 						gateway3withNP,
-						&NginxProxy{Source: nginxProxyGateway3, Valid: true},
-						&EffectiveNginxProxy{
+						&BwsProxy{Source: bwsProxyGateway3, Valid: true},
+						&EffectiveBwsProxy{
 							Kubernetes: &ngfAPIv1alpha2.KubernetesSpec{
 								Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 									Replicas: helpers.GetPointer(int32(3)),
@@ -394,10 +394,10 @@ func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
 						[]conditions.Condition{conditions.NewGatewayResolvedRefs()},
 					),
 				},
-				ReferencedNginxProxies: map[types.NamespacedName]*NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobal):   {Source: nginxProxyGlobal, Valid: true},
-					client.ObjectKeyFromObject(nginxProxyGateway1): {Source: nginxProxyGateway1, Valid: true},
-					client.ObjectKeyFromObject(nginxProxyGateway3): {Source: nginxProxyGateway3, Valid: true},
+				ReferencedBwsProxies: map[types.NamespacedName]*BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobal):   {Source: bwsProxyGlobal, Valid: true},
+					client.ObjectKeyFromObject(bwsProxyGateway1): {Source: bwsProxyGateway1, Valid: true},
+					client.ObjectKeyFromObject(bwsProxyGateway3): {Source: bwsProxyGateway3, Valid: true},
 				},
 				Routes:      map[RouteKey]*L7Route{},
 				L4Routes:    map[L4RouteKey]*L4Route{},
@@ -413,9 +413,9 @@ func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
 				Gateways: map[types.NamespacedName]*gatewayv1.Gateway{
 					client.ObjectKeyFromObject(gatewayEscape): gatewayEscape,
 				},
-				NginxProxies: map[types.NamespacedName]*ngfAPIv1alpha2.NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobalWithFormat):  nginxProxyGlobalWithFormat,
-					client.ObjectKeyFromObject(nginxProxyGatewayEscapeOnly): nginxProxyGatewayEscapeOnly,
+				BwsProxies: map[types.NamespacedName]*ngfAPIv1alpha2.BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobalWithFormat):  bwsProxyGlobalWithFormat,
+					client.ObjectKeyFromObject(bwsProxyGatewayEscapeOnly): bwsProxyGatewayEscapeOnly,
 				},
 				Secrets: map[types.NamespacedName]*v1.Secret{
 					client.ObjectKeyFromObject(plusSecret): plusSecret,
@@ -424,14 +424,14 @@ func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
 			expGraph: &Graph{
 				GatewayClass: convertedGatewayClass(
 					gatewayClassWithFormat,
-					*nginxProxyGlobalWithFormat,
+					*bwsProxyGlobalWithFormat,
 					gcConditions...,
 				),
 				Gateways: map[types.NamespacedName]*Gateway{
 					client.ObjectKeyFromObject(gatewayEscape): convertedGateway(
 						gatewayEscape,
-						&NginxProxy{Source: nginxProxyGatewayEscapeOnly, Valid: true},
-						&EffectiveNginxProxy{
+						&BwsProxy{Source: bwsProxyGatewayEscapeOnly, Valid: true},
+						&EffectiveBwsProxy{
 							DisableHTTP2: helpers.GetPointer(true),
 							Logging: &ngfAPIv1alpha2.NginxLogging{
 								AccessLog: &ngfAPIv1alpha2.NginxAccessLog{
@@ -445,9 +445,9 @@ func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
 						[]conditions.Condition{conditions.NewGatewayResolvedRefs()},
 					),
 				},
-				ReferencedNginxProxies: map[types.NamespacedName]*NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobalWithFormat):  {Source: nginxProxyGlobalWithFormat, Valid: true},
-					client.ObjectKeyFromObject(nginxProxyGatewayEscapeOnly): {Source: nginxProxyGatewayEscapeOnly, Valid: true},
+				ReferencedBwsProxies: map[types.NamespacedName]*BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobalWithFormat):  {Source: bwsProxyGlobalWithFormat, Valid: true},
+					client.ObjectKeyFromObject(bwsProxyGatewayEscapeOnly): {Source: bwsProxyGatewayEscapeOnly, Valid: true},
 				},
 				Routes:      map[RouteKey]*L7Route{},
 				L4Routes:    map[L4RouteKey]*L4Route{},
@@ -513,7 +513,7 @@ func Test_MultipleGateways_WithNginxProxy(t *testing.T) {
 
 // Test_MultipleGateways_WithListeners tests how listeners attach and interact with multiple gateways.
 func Test_MultipleGateways_WithListeners(t *testing.T) {
-	nginxProxyGlobal := createNginxProxy("nginx-proxy", testNs, ngfAPIv1alpha2.NginxProxySpec{
+	bwsProxyGlobal := createBwsProxy("nginx-proxy", testNs, ngfAPIv1alpha2.BwsProxySpec{
 		DisableHTTP2: helpers.GetPointer(true),
 	})
 	gatewayClass := createGatewayClass(gcName, controllerName, "nginx-proxy", testNs)
@@ -698,20 +698,20 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 					client.ObjectKeyFromObject(gateway1): gateway1,
 					client.ObjectKeyFromObject(gateway2): gateway2,
 				},
-				NginxProxies: map[types.NamespacedName]*ngfAPIv1alpha2.NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobal): nginxProxyGlobal,
+				BwsProxies: map[types.NamespacedName]*ngfAPIv1alpha2.BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobal): bwsProxyGlobal,
 				},
 				ReferenceGrants: map[types.NamespacedName]*gatewayv1.ReferenceGrant{
 					client.ObjectKeyFromObject(rgSecretsToGateway): rgSecretsToGateway,
 				},
 			},
 			expGraph: &Graph{
-				GatewayClass: convertedGatewayClass(gatewayClass, *nginxProxyGlobal, conditions.NewGatewayClassResolvedRefs()),
+				GatewayClass: convertedGatewayClass(gatewayClass, *bwsProxyGlobal, conditions.NewGatewayClassResolvedRefs()),
 				Gateways: map[types.NamespacedName]*Gateway{
 					client.ObjectKeyFromObject(gateway1): convertedGateway(
 						gateway1,
-						&NginxProxy{Source: nginxProxyGlobal, Valid: true},
-						&EffectiveNginxProxy{DisableHTTP2: helpers.GetPointer(true)},
+						&BwsProxy{Source: bwsProxyGlobal, Valid: true},
+						&EffectiveBwsProxy{DisableHTTP2: helpers.GetPointer(true)},
 						[]*Listener{
 							convertListener(
 								gateway1.Spec.Listeners[0],
@@ -726,8 +726,8 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 					),
 					client.ObjectKeyFromObject(gateway2): convertedGateway(
 						gateway2,
-						&NginxProxy{Source: nginxProxyGlobal, Valid: true},
-						&EffectiveNginxProxy{DisableHTTP2: helpers.GetPointer(true)},
+						&BwsProxy{Source: bwsProxyGlobal, Valid: true},
+						&EffectiveBwsProxy{DisableHTTP2: helpers.GetPointer(true)},
 						[]*Listener{
 							convertListener(
 								gateway2.Spec.Listeners[0],
@@ -744,8 +744,8 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 				Routes:      map[RouteKey]*L7Route{},
 				L4Routes:    map[L4RouteKey]*L4Route{},
 				PlusSecrets: convertedPlusSecret,
-				ReferencedNginxProxies: map[types.NamespacedName]*NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobal): {Source: nginxProxyGlobal, Valid: true},
+				ReferencedBwsProxies: map[types.NamespacedName]*BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobal): {Source: bwsProxyGlobal, Valid: true},
 				},
 				ReferencedSecrets: map[types.NamespacedName]*secrets.Secret{
 					client.ObjectKeyFromObject(secretDiffNs): {
@@ -773,8 +773,8 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 					client.ObjectKeyFromObject(gatewayMultipleListeners2): gatewayMultipleListeners2,
 					client.ObjectKeyFromObject(gatewayMultipleListeners3): gatewayMultipleListeners3,
 				},
-				NginxProxies: map[types.NamespacedName]*ngfAPIv1alpha2.NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobal): nginxProxyGlobal,
+				BwsProxies: map[types.NamespacedName]*ngfAPIv1alpha2.BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobal): bwsProxyGlobal,
 				},
 				Secrets: map[types.NamespacedName]*v1.Secret{
 					client.ObjectKeyFromObject(plusSecret):   plusSecret,
@@ -782,12 +782,12 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 				},
 			},
 			expGraph: &Graph{
-				GatewayClass: convertedGatewayClass(gatewayClass, *nginxProxyGlobal, conditions.NewGatewayClassResolvedRefs()),
+				GatewayClass: convertedGatewayClass(gatewayClass, *bwsProxyGlobal, conditions.NewGatewayClassResolvedRefs()),
 				Gateways: map[types.NamespacedName]*Gateway{
 					client.ObjectKeyFromObject(gatewayMultipleListeners1): convertedGateway(
 						gatewayMultipleListeners1,
-						&NginxProxy{Source: nginxProxyGlobal, Valid: true},
-						&EffectiveNginxProxy{DisableHTTP2: helpers.GetPointer(true)},
+						&BwsProxy{Source: bwsProxyGlobal, Valid: true},
+						&EffectiveBwsProxy{DisableHTTP2: helpers.GetPointer(true)},
 						[]*Listener{
 							convertListener(
 								gatewayMultipleListeners1.Spec.Listeners[0],
@@ -818,8 +818,8 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 					),
 					client.ObjectKeyFromObject(gatewayMultipleListeners2): convertedGateway(
 						gatewayMultipleListeners2,
-						&NginxProxy{Source: nginxProxyGlobal, Valid: true},
-						&EffectiveNginxProxy{DisableHTTP2: helpers.GetPointer(true)},
+						&BwsProxy{Source: bwsProxyGlobal, Valid: true},
+						&EffectiveBwsProxy{DisableHTTP2: helpers.GetPointer(true)},
 						[]*Listener{
 							convertListener(
 								gatewayMultipleListeners2.Spec.Listeners[0],
@@ -850,8 +850,8 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 					),
 					client.ObjectKeyFromObject(gatewayMultipleListeners3): convertedGateway(
 						gatewayMultipleListeners3,
-						&NginxProxy{Source: nginxProxyGlobal, Valid: true},
-						&EffectiveNginxProxy{DisableHTTP2: helpers.GetPointer(true)},
+						&BwsProxy{Source: bwsProxyGlobal, Valid: true},
+						&EffectiveBwsProxy{DisableHTTP2: helpers.GetPointer(true)},
 						[]*Listener{
 							convertListener(
 								gatewayMultipleListeners3.Spec.Listeners[0],
@@ -884,8 +884,8 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 				Routes:      map[RouteKey]*L7Route{},
 				L4Routes:    map[L4RouteKey]*L4Route{},
 				PlusSecrets: convertedPlusSecret,
-				ReferencedNginxProxies: map[types.NamespacedName]*NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobal): {Source: nginxProxyGlobal, Valid: true},
+				ReferencedBwsProxies: map[types.NamespacedName]*BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobal): {Source: bwsProxyGlobal, Valid: true},
 				},
 				ReferencedSecrets: map[types.NamespacedName]*secrets.Secret{
 					client.ObjectKeyFromObject(secretSameNs): {
@@ -911,8 +911,8 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 					client.ObjectKeyFromObject(gatewayTLSSamePortHostname):   gatewayTLSSamePortHostname,
 					client.ObjectKeyFromObject(gatewayHTTPSSamePortHostname): gatewayHTTPSSamePortHostname,
 				},
-				NginxProxies: map[types.NamespacedName]*ngfAPIv1alpha2.NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobal): nginxProxyGlobal,
+				BwsProxies: map[types.NamespacedName]*ngfAPIv1alpha2.BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobal): bwsProxyGlobal,
 				},
 				Secrets: map[types.NamespacedName]*v1.Secret{
 					client.ObjectKeyFromObject(plusSecret):   plusSecret,
@@ -920,12 +920,12 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 				},
 			},
 			expGraph: &Graph{
-				GatewayClass: convertedGatewayClass(gatewayClass, *nginxProxyGlobal, conditions.NewGatewayClassResolvedRefs()),
+				GatewayClass: convertedGatewayClass(gatewayClass, *bwsProxyGlobal, conditions.NewGatewayClassResolvedRefs()),
 				Gateways: map[types.NamespacedName]*Gateway{
 					client.ObjectKeyFromObject(gatewayTLSSamePortHostname): convertedGateway(
 						gatewayTLSSamePortHostname,
-						&NginxProxy{Source: nginxProxyGlobal, Valid: true},
-						&EffectiveNginxProxy{DisableHTTP2: helpers.GetPointer(true)},
+						&BwsProxy{Source: bwsProxyGlobal, Valid: true},
+						&EffectiveBwsProxy{DisableHTTP2: helpers.GetPointer(true)},
 						[]*Listener{
 							convertListener(
 								gatewayTLSSamePortHostname.Spec.Listeners[0],
@@ -940,8 +940,8 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 					),
 					client.ObjectKeyFromObject(gatewayHTTPSSamePortHostname): convertedGateway(
 						gatewayHTTPSSamePortHostname,
-						&NginxProxy{Source: nginxProxyGlobal, Valid: true},
-						&EffectiveNginxProxy{DisableHTTP2: helpers.GetPointer(true)},
+						&BwsProxy{Source: bwsProxyGlobal, Valid: true},
+						&EffectiveBwsProxy{DisableHTTP2: helpers.GetPointer(true)},
 						[]*Listener{
 							convertListener(
 								gatewayHTTPSSamePortHostname.Spec.Listeners[0],
@@ -958,8 +958,8 @@ func Test_MultipleGateways_WithListeners(t *testing.T) {
 				Routes:      map[RouteKey]*L7Route{},
 				L4Routes:    map[L4RouteKey]*L4Route{},
 				PlusSecrets: convertedPlusSecret,
-				ReferencedNginxProxies: map[types.NamespacedName]*NginxProxy{
-					client.ObjectKeyFromObject(nginxProxyGlobal): {Source: nginxProxyGlobal, Valid: true},
+				ReferencedBwsProxies: map[types.NamespacedName]*BwsProxy{
+					client.ObjectKeyFromObject(bwsProxyGlobal): {Source: bwsProxyGlobal, Valid: true},
 				},
 				ReferencedSecrets: map[types.NamespacedName]*secrets.Secret{
 					client.ObjectKeyFromObject(secretSameNs): {

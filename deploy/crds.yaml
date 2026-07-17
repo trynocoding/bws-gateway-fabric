@@ -3,12 +3,12 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
-  name: authenticationfilters.gateway.nginx.org
+  name: authenticationfilters.gateway.bessystem.com
 spec:
-  group: gateway.nginx.org
+  group: gateway.bessystem.com
   names:
     categories:
-    - nginx-gateway-fabric
+    - bws-gateway-fabric
     kind: AuthenticationFilter
     listKind: AuthenticationFilterList
     plural: authenticationfilters
@@ -72,262 +72,10 @@ spec:
                 - realm
                 - secretRef
                 type: object
-              jwt:
-                description: JWT configures JSON Web Token authentication (NGINX Plus).
-                properties:
-                  file:
-                    description: |-
-                      File specifies local JWKS configuration.
-                      Required when Source == File.
-                    properties:
-                      secretRef:
-                        description: SecretRef references a Secret containing the
-                          JWKS.
-                        properties:
-                          name:
-                            description: Name is the name of the referenced object.
-                            type: string
-                        required:
-                        - name
-                        type: object
-                    required:
-                    - secretRef
-                    type: object
-                  keyCache:
-                    description: |-
-                      KeyCache is the cache duration for keys.
-                      Configures `auth_jwt_key_cache` directive.
-                      https://nginx.org/en/docs/http/ngx_http_auth_jwt_module.html#auth_jwt_key_cache
-                      Example: "auth_jwt_key_cache 10m;".
-                    pattern: ^[0-9]{1,4}(ms|s|m|h)?$
-                    type: string
-                  realm:
-                    description: |-
-                      Realm used by NGINX `auth_jwt` directive
-                      https://nginx.org/en/docs/http/ngx_http_auth_jwt_module.html#auth_jwt
-                      Configures "realm="<realm_value>" in WWW-Authenticate header in error page location.
-                    type: string
-                  remote:
-                    description: |-
-                      Remote specifies remote JWKS configuration.
-                      Required when Source == Remote.
-                    properties:
-                      caCertificateRefs:
-                        description: |-
-                          CACertificateRefs references a list of secrets containing trusted CA certificates
-                          in PEM format used to verify the server certificate of the JWKS endpoint.
-                          The referenced secrets must contain an entry with the key "ca.crt".
-                          Only one secret can be referenced currently.
-                          If not specified, the system CA bundle is used.
-
-                          Directive: https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_ssl_trusted_certificate
-                        items:
-                          description: LocalObjectReference specifies a local Kubernetes
-                            object.
-                          properties:
-                            name:
-                              description: Name is the name of the referenced object.
-                              type: string
-                          required:
-                          - name
-                          type: object
-                        maxItems: 1
-                        type: array
-                      uri:
-                        description: URI is the JWKS endpoint.
-                        pattern: ^https:\/\/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*(:[0-9]{1,5})?(\/[a-zA-Z0-9._~:\/?@!&'()*+,=-]*)?$
-                        type: string
-                    required:
-                    - uri
-                    type: object
-                  source:
-                    description: 'Source selects how JWT keys are provided: local
-                      file or remote JWKS.'
-                    enum:
-                    - File
-                    - Remote
-                    type: string
-                required:
-                - realm
-                - source
-                type: object
-                x-kubernetes-validations:
-                - message: source File requires spec.file to be set.
-                  rule: self.source != 'File' || has(self.file)
-                - message: source File must not set spec.remote.
-                  rule: self.source != 'File' || !has(self.remote)
-                - message: source Remote requires spec.remote to be set.
-                  rule: self.source != 'Remote' || has(self.remote)
-                - message: source Remote must not set spec.file.
-                  rule: self.source != 'Remote' || !has(self.file)
-              oidc:
-                description: OIDC configures OpenID Connect Authentication (NGINX
-                  Plus).
-                properties:
-                  caCertificateRefs:
-                    description: |-
-                      CACertificateRefs references a list of secrets containing trusted CA certificates
-                      in PEM format used to verify the certificates of the OpenID Provider endpoints.
-                      The referenced secrets must contain an entry with the key "ca.crt".
-                      Only one secret can be referenced currently.
-                      If not specified, the system CA bundle is used.
-
-                      Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#ssl_trusted_certificate
-                      NGINX Default: system CA bundle
-                    items:
-                      description: LocalObjectReference specifies a local Kubernetes
-                        object.
-                      properties:
-                        name:
-                          description: Name is the name of the referenced object.
-                          type: string
-                      required:
-                      - name
-                      type: object
-                    maxItems: 1
-                    type: array
-                  clientID:
-                    description: |-
-                      ClientID is the client identifier registered with the OpenID Provider.
-                      Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#client_id
-                    minLength: 1
-                    type: string
-                  clientSecretRef:
-                    description: |-
-                      ClientSecretRef references a Kubernetes secret which contains the OIDC client secret to be used in the
-                      Authentication Request: https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest.
-                      The referenced Secret must contain an entry with the key "client-secret".
-                      Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#client_secret
-                    properties:
-                      name:
-                        description: Name is the name of the referenced object.
-                        type: string
-                    required:
-                    - name
-                    type: object
-                  configURL:
-                    description: |-
-                      ConfigURL sets a custom URL to retrieve the OpenID Provider metadata.
-                      Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#config_url
-                      NGINX Default: <issuer>/.well-known/openid-configuration
-                    pattern: ^https:\/\/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*(:[0-9]{1,5})?(\/[a-zA-Z0-9._~:\/?@!&'()*+,=-]*)?$
-                    type: string
-                  crlSecretRef:
-                    description: |-
-                      CRLSecretRef references a Secret containing a certificate
-                      revocation list in PEM format. The referenced Secret must contain an entry with the key "ca.crl".
-                      This is used to verify that certificates presented by the OpenID Provider endpoints have not been revoked.
-                    properties:
-                      name:
-                        description: Name is the name of the referenced object.
-                        type: string
-                    required:
-                    - name
-                    type: object
-                  extraAuthArgs:
-                    additionalProperties:
-                      type: string
-                    description: |-
-                      ExtraAuthArgs sets additional query arguments for the authentication request URL.
-                      Arguments are appended with "&". For example: "prompt=consent&audience=api".
-                      Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#extra_auth_args
-                    maxProperties: 16
-                    type: object
-                  issuer:
-                    description: |-
-                      Issuer is the URL of the OpenID Provider.
-                      Must exactly match the "issuer" value from the provider's
-                      .well-known/openid-configuration endpoint.
-                      Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#issuer
-                      Examples:
-                        - Keycloak: "https://keycloak.example.com/realms/my-realm"
-                        - Okta: "https://dev-123456.okta.com/oauth2/default"
-                        - Auth0: "https://my-tenant.auth0.com/"
-                    pattern: ^https:\/\/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*(:[0-9]{1,5})?(\/[a-zA-Z0-9._~:\/?@!&'()*+,=-]*)?$
-                    type: string
-                  logout:
-                    description: Logout defines the logout behavior for OIDC authentication.
-                    properties:
-                      frontChannelLogoutURI:
-                        description: |-
-                          FrontChannelLogoutURI defines the path for front-channel logout.
-                          The OpenID Provider should be configured to set "iss" and "sid" arguments.
-                          Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#frontchannel_logout_uri
-                          Example: /frontchannel_logout
-                        pattern: ^/[A-Za-z0-9._~!&'()*+,=@/-]*$
-                        type: string
-                      postLogoutURI:
-                        description: |-
-                          PostLogoutURI defines the URI to redirect to after logout.
-                          Must match the configuration on the provider's side.
-                          Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#post_logout_uri
-                          Example: /after_logout, https://example.com/after_logout
-                        pattern: ^(https?:\/\/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*(:[0-9]{1,5})?(\/[a-zA-Z0-9._~:\/?@!&'()*+,=-]*)?|\/[a-zA-Z0-9._~:\/?@!&'()*+,=-]*)$
-                        type: string
-                      tokenHint:
-                        description: |-
-                          TokenHint adds the id_token_hint argument to the provider's Logout Endpoint.
-                          Some OpenID Providers require this.
-                          Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#logout_token_hint
-                          NGINX Default: false
-                        type: boolean
-                      uri:
-                        description: |-
-                          URI defines the path for initiating session logout.
-                          Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#logout_uri
-                          Example: /logout
-                        pattern: ^/[A-Za-z0-9._~!&'()*+,=@/-]*$
-                        type: string
-                    type: object
-                  pkce:
-                    description: |-
-                      PKCE enables Proof Key for Code Exchange (PKCE) for the authentication flow.
-                      If nil, NGINX automatically enables PKCE when the OpenID Provider requires it.
-                      Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#pkce
-                    type: boolean
-                  redirectURI:
-                    description: |-
-                      RedirectURI sets a custom redirect URI for the OIDC callback.
-                      If a path-only URI is specified, a callback location block is created to handle the redirect from the OIDC provider.
-                      If a full URI is specified, it points to an external callback handler; no location block is created.
-                      If not specified, defaults to /oidc_callback_<filternamespace>_<filtername>.
-                      Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#redirect_uri
-                      NGINX Default: /oidc_callback
-                      Example: /oidc_callback, https://cafe.example.com:8442/oidc_callback
-                    pattern: ^(https:\/\/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*(:[0-9]{1,5})?(\/[a-zA-Z0-9._~:\/?@!&'()*+,=-]*)?|\/[a-zA-Z0-9._~:\/?@!&'()*+,=-]*)$
-                    type: string
-                  session:
-                    description: Session configures session management for OIDC authentication.
-                    properties:
-                      cookieName:
-                        description: |-
-                          CookieName sets the name of the session cookie.
-                          Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#cookie_name
-                          NGINX Default: NGX_OIDC_SESSION
-                        type: string
-                      timeout:
-                        description: |-
-                          Timeout sets the session timeout duration.
-                          Directive: https://nginx.org/en/docs/http/ngx_http_oidc_module.html#session_timeout
-                          NGINX Default: 8h
-                        pattern: ^[0-9]{1,4}(ms|s|m|h)?$
-                        type: string
-                    type: object
-                required:
-                - clientID
-                - clientSecretRef
-                - issuer
-                type: object
-                x-kubernetes-validations:
-                - message: extraAuthArgs keys must contain only alphanumeric characters,
-                    hyphens, underscores, or dots
-                  rule: '!has(self.extraAuthArgs) || self.extraAuthArgs.all(key, key.matches(''^[a-zA-Z0-9_.-]+$''))'
               type:
                 description: Type selects the authentication mechanism.
                 enum:
                 - Basic
-                - OIDC
-                - JWT
                 type: string
             required:
             - type
@@ -335,22 +83,6 @@ spec:
             x-kubernetes-validations:
             - message: type Basic requires spec.basic to be set
               rule: self.type != 'Basic' || has(self.basic)
-            - message: type Basic must not set spec.jwt
-              rule: self.type != 'Basic' || !has(self.jwt)
-            - message: type Basic must not set spec.oidc
-              rule: self.type != 'Basic' || !has(self.oidc)
-            - message: type OIDC requires spec.oidc to be set
-              rule: self.type != 'OIDC' || has(self.oidc)
-            - message: type OIDC must not set spec.basic
-              rule: self.type != 'OIDC' || !has(self.basic)
-            - message: type OIDC must not set spec.jwt
-              rule: self.type != 'OIDC' || !has(self.jwt)
-            - message: type JWT requires spec.jwt to be set
-              rule: self.type != 'JWT' || has(self.jwt)
-            - message: type JWT must not set spec.basic
-              rule: self.type != 'JWT' || !has(self.basic)
-            - message: type JWT must not set spec.oidc
-              rule: self.type != 'JWT' || !has(self.oidc)
           status:
             description: Status defines the state of the AuthenticationFilter.
             properties:
@@ -462,20 +194,16 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
-  labels:
-    gateway.networking.k8s.io/policy: inherited
-  name: clientsettingspolicies.gateway.nginx.org
+  name: bwsgateways.gateway.bessystem.com
 spec:
-  group: gateway.nginx.org
+  group: gateway.bessystem.com
   names:
     categories:
-    - nginx-gateway-fabric
-    kind: ClientSettingsPolicy
-    listKind: ClientSettingsPolicyList
-    plural: clientsettingspolicies
-    shortNames:
-    - cspolicy
-    singular: clientsettingspolicy
+    - bws-gateway-fabric
+    kind: BwsGateway
+    listKind: BwsGatewayList
+    plural: bwsgateways
+    singular: bwsgateway
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -485,9 +213,8 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: |-
-          ClientSettingsPolicy is an Inherited Attached Policy. It provides a way to configure the behavior of the connection
-          between the client and NGINX Gateway Fabric.
+        description: BwsGateway represents the dynamic configuration for a BWS Gateway
+          Fabric control plane.
         properties:
           apiVersion:
             description: |-
@@ -507,465 +234,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: Spec defines the desired state of the ClientSettingsPolicy.
-            properties:
-              body:
-                description: Body defines the client request body settings.
-                properties:
-                  maxSize:
-                    description: |-
-                      MaxSize sets the maximum allowed size of the client request body.
-                      If the size in a request exceeds the configured value,
-                      the 413 (Request Entity Too Large) error is returned to the client.
-                      Setting size to 0 disables checking of client request body size.
-                      Default: https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size.
-                    pattern: ^\d{1,4}(k|m|g)?$
-                    type: string
-                  timeout:
-                    description: |-
-                      Timeout defines a timeout for reading client request body. The timeout is set only for a period between
-                      two successive read operations, not for the transmission of the whole request body.
-                      If a client does not transmit anything within this time, the request is terminated with the
-                      408 (Request Time-out) error.
-                      Default: https://nginx.org/en/docs/http/ngx_http_core_module.html#client_body_timeout.
-                    pattern: ^[0-9]{1,4}(ms|s|m|h)?$
-                    type: string
-                type: object
-              keepAlive:
-                description: KeepAlive defines the keep-alive settings.
-                properties:
-                  minTimeout:
-                    description: |-
-                      MinTimeout defines the timeout for which the keep-alive client connection
-                      will not be closed on the server side for connection reuse or on
-                      graceful shutdown of worker processes.
-                      Default: https://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_min_timeout.
-                    pattern: ^[0-9]{1,4}(ms|s|m|h)?$
-                    type: string
-                  requests:
-                    description: |-
-                      Requests sets the maximum number of requests that can be served through one keep-alive connection.
-                      After the maximum number of requests are made, the connection is closed. Closing connections periodically
-                      is necessary to free per-connection memory allocations. Therefore, using too high maximum number of requests
-                      is not recommended as it can lead to excessive memory usage.
-                      Default: https://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_requests.
-                    format: int32
-                    minimum: 0
-                    type: integer
-                  time:
-                    description: |-
-                      Time defines the maximum time during which requests can be processed through one keep-alive connection.
-                      After this time is reached, the connection is closed following the subsequent request processing.
-                      Default: https://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_time.
-                    pattern: ^[0-9]{1,4}(ms|s|m|h)?$
-                    type: string
-                  timeout:
-                    description: Timeout defines the keep-alive timeouts for clients.
-                    properties:
-                      header:
-                        description: 'Header sets the timeout in the "Keep-Alive:
-                          timeout=time" response header field.'
-                        pattern: ^[0-9]{1,4}(ms|s|m|h)?$
-                        type: string
-                      server:
-                        description: |-
-                          Server sets the timeout during which a keep-alive client connection will stay open on the server side.
-                          Setting this value to 0 disables keep-alive client connections.
-                        pattern: ^[0-9]{1,4}(ms|s|m|h)?$
-                        type: string
-                    type: object
-                    x-kubernetes-validations:
-                    - message: header can only be specified if server is specified
-                      rule: '!(has(self.header) && !has(self.server))'
-                type: object
-              targetRef:
-                description: |-
-                  TargetRef identifies an API object to apply the policy to.
-                  Object must be in the same namespace as the policy.
-                  Support: Gateway, HTTPRoute, GRPCRoute.
-                properties:
-                  group:
-                    description: Group is the group of the target resource.
-                    maxLength: 253
-                    pattern: ^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
-                    type: string
-                  kind:
-                    description: Kind is kind of the target resource.
-                    maxLength: 63
-                    minLength: 1
-                    pattern: ^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$
-                    type: string
-                  name:
-                    description: Name is the name of the target resource.
-                    maxLength: 253
-                    minLength: 1
-                    type: string
-                required:
-                - group
-                - kind
-                - name
-                type: object
-                x-kubernetes-validations:
-                - message: 'TargetRef Kind must be one of: Gateway, HTTPRoute, or
-                    GRPCRoute'
-                  rule: (self.kind=='Gateway' || self.kind=='HTTPRoute' || self.kind=='GRPCRoute')
-                - message: TargetRef Group must be gateway.networking.k8s.io.
-                  rule: (self.group=='gateway.networking.k8s.io')
-            required:
-            - targetRef
-            type: object
-          status:
-            description: Status defines the state of the ClientSettingsPolicy.
-            properties:
-              ancestors:
-                description: |-
-                  Ancestors is a list of ancestor resources (usually Gateways) that are
-                  associated with the policy, and the status of the policy with respect to
-                  each ancestor. When this policy attaches to a parent, the controller that
-                  manages the parent and the ancestors MUST add an entry to this list when
-                  the controller first sees the policy and SHOULD update the entry as
-                  appropriate when the relevant ancestor is modified.
-
-                  Note that choosing the relevant ancestor is left to the Policy designers;
-                  an important part of Policy design is designing the right object level at
-                  which to namespace this status.
-
-                  Note also that implementations MUST ONLY populate ancestor status for
-                  the Ancestor resources they are responsible for. Implementations MUST
-                  use the ControllerName field to uniquely identify the entries in this list
-                  that they are responsible for.
-
-                  Note that to achieve this, the list of PolicyAncestorStatus structs
-                  MUST be treated as a map with a composite key, made up of the AncestorRef
-                  and ControllerName fields combined.
-
-                  A maximum of 16 ancestors will be represented in this list. An empty list
-                  means the Policy is not relevant for any ancestors.
-
-                  If this slice is full, implementations MUST NOT add further entries.
-                  Instead they MUST consider the policy unimplementable and signal that
-                  on any related resources such as the ancestor that would be referenced
-                  here. For example, if this list was full on BackendTLSPolicy, no
-                  additional Gateways would be able to reference the Service targeted by
-                  the BackendTLSPolicy.
-                items:
-                  description: |-
-                    PolicyAncestorStatus describes the status of a route with respect to an
-                    associated Ancestor.
-
-                    Ancestors refer to objects that are either the Target of a policy or above it
-                    in terms of object hierarchy. For example, if a policy targets a Service, the
-                    Policy's Ancestors are, in order, the Service, the HTTPRoute, the Gateway, and
-                    the GatewayClass. Almost always, in this hierarchy, the Gateway will be the most
-                    useful object to place Policy status on, so we recommend that implementations
-                    SHOULD use Gateway as the PolicyAncestorStatus object unless the designers
-                    have a _very_ good reason otherwise.
-
-                    In the context of policy attachment, the Ancestor is used to distinguish which
-                    resource results in a distinct application of this policy. For example, if a policy
-                    targets a Service, it may have a distinct result per attached Gateway.
-
-                    Policies targeting the same resource may have different effects depending on the
-                    ancestors of those resources. For example, different Gateways targeting the same
-                    Service may have different capabilities, especially if they have different underlying
-                    implementations.
-
-                    For example, in BackendTLSPolicy, the Policy attaches to a Service that is
-                    used as a backend in a HTTPRoute that is itself attached to a Gateway.
-                    In this case, the relevant object for status is the Gateway, and that is the
-                    ancestor object referred to in this status.
-
-                    Note that a parent is also an ancestor, so for objects where the parent is the
-                    relevant object for status, this struct SHOULD still be used.
-
-                    This struct is intended to be used in a slice that's effectively a map,
-                    with a composite key made up of the AncestorRef and the ControllerName.
-                  properties:
-                    ancestorRef:
-                      description: |-
-                        AncestorRef corresponds with a ParentRef in the spec that this
-                        PolicyAncestorStatus struct describes the status of.
-                      properties:
-                        group:
-                          default: gateway.networking.k8s.io
-                          description: |-
-                            Group is the group of the referent.
-                            When unspecified, "gateway.networking.k8s.io" is inferred.
-                            To set the core API group (such as for a "Service" kind referent),
-                            Group must be explicitly set to "" (empty string).
-
-                            Support: Core
-                          maxLength: 253
-                          pattern: ^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
-                          type: string
-                        kind:
-                          default: Gateway
-                          description: |-
-                            Kind is kind of the referent.
-
-                            There are two kinds of parent resources with "Core" support:
-
-                            * Gateway (Gateway conformance profile)
-                            * Service (Mesh conformance profile, ClusterIP Services only)
-
-                            Support for other resources is Implementation-Specific.
-                          maxLength: 63
-                          minLength: 1
-                          pattern: ^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$
-                          type: string
-                        name:
-                          description: |-
-                            Name is the name of the referent.
-
-                            Support: Core
-                          maxLength: 253
-                          minLength: 1
-                          type: string
-                        namespace:
-                          description: |-
-                            Namespace is the namespace of the referent. When unspecified, this refers
-                            to the local namespace of the Route.
-
-                            Note that there are specific rules for ParentRefs which cross namespace
-                            boundaries. Cross-namespace references are only valid if they are explicitly
-                            allowed by something in the namespace they are referring to. For example:
-                            Gateway has the AllowedRoutes field, and ReferenceGrant provides a
-                            generic way to enable any other kind of cross-namespace reference.
-
-                            <gateway:experimental:description>
-                            ParentRefs from a Route to a Service in the same namespace are "producer"
-                            routes, which apply default routing rules to inbound connections from
-                            any namespace to the Service.
-
-                            ParentRefs from a Route to a Service in a different namespace are
-                            "consumer" routes, and these routing rules are only applied to outbound
-                            connections originating from the same namespace as the Route, for which
-                            the intended destination of the connections are a Service targeted as a
-                            ParentRef of the Route.
-                            </gateway:experimental:description>
-
-                            Support: Core
-                          maxLength: 63
-                          minLength: 1
-                          pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
-                          type: string
-                        port:
-                          description: |-
-                            Port is the network port this Route targets. It can be interpreted
-                            differently based on the type of parent resource.
-
-                            When the parent resource is a Gateway, this targets all listeners
-                            listening on the specified port that also support this kind of Route(and
-                            select this Route). It's not recommended to set `Port` unless the
-                            networking behaviors specified in a Route must apply to a specific port
-                            as opposed to a listener(s) whose port(s) may be changed. When both Port
-                            and SectionName are specified, the name and port of the selected listener
-                            must match both specified values.
-
-                            <gateway:experimental:description>
-                            When the parent resource is a Service, this targets a specific port in the
-                            Service spec. When both Port (experimental) and SectionName are specified,
-                            the name and port of the selected port must match both specified values.
-                            </gateway:experimental:description>
-
-                            Implementations MAY choose to support other parent resources.
-                            Implementations supporting other types of parent resources MUST clearly
-                            document how/if Port is interpreted.
-
-                            For the purpose of status, an attachment is considered successful as
-                            long as the parent resource accepts it partially. For example, Gateway
-                            listeners can restrict which Routes can attach to them by Route kind,
-                            namespace, or hostname. If 1 of 2 Gateway listeners accept attachment
-                            from the referencing Route, the Route MUST be considered successfully
-                            attached. If no Gateway listeners accept attachment from this Route,
-                            the Route MUST be considered detached from the Gateway.
-
-                            Support: Extended
-                          format: int32
-                          maximum: 65535
-                          minimum: 1
-                          type: integer
-                        sectionName:
-                          description: |-
-                            SectionName is the name of a section within the target resource. In the
-                            following resources, SectionName is interpreted as the following:
-
-                            * Gateway: Listener name. When both Port (experimental) and SectionName
-                            are specified, the name and port of the selected listener must match
-                            both specified values.
-                            * Service: Port name. When both Port (experimental) and SectionName
-                            are specified, the name and port of the selected listener must match
-                            both specified values.
-
-                            Implementations MAY choose to support attaching Routes to other resources.
-                            If that is the case, they MUST clearly document how SectionName is
-                            interpreted.
-
-                            When unspecified (empty string), this will reference the entire resource.
-                            For the purpose of status, an attachment is considered successful if at
-                            least one section in the parent resource accepts it. For example, Gateway
-                            listeners can restrict which Routes can attach to them by Route kind,
-                            namespace, or hostname. If 1 of 2 Gateway listeners accept attachment from
-                            the referencing Route, the Route MUST be considered successfully
-                            attached. If no Gateway listeners accept attachment from this Route, the
-                            Route MUST be considered detached from the Gateway.
-
-                            Support: Core
-                          maxLength: 253
-                          minLength: 1
-                          pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
-                          type: string
-                      required:
-                      - name
-                      type: object
-                    conditions:
-                      description: Conditions describes the status of the Policy with
-                        respect to the given Ancestor.
-                      items:
-                        description: Condition contains details for one aspect of
-                          the current state of this API Resource.
-                        properties:
-                          lastTransitionTime:
-                            description: |-
-                              lastTransitionTime is the last time the condition transitioned from one status to another.
-                              This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
-                            format: date-time
-                            type: string
-                          message:
-                            description: |-
-                              message is a human readable message indicating details about the transition.
-                              This may be an empty string.
-                            maxLength: 32768
-                            type: string
-                          observedGeneration:
-                            description: |-
-                              observedGeneration represents the .metadata.generation that the condition was set based upon.
-                              For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-                              with respect to the current state of the instance.
-                            format: int64
-                            minimum: 0
-                            type: integer
-                          reason:
-                            description: |-
-                              reason contains a programmatic identifier indicating the reason for the condition's last transition.
-                              Producers of specific condition types may define expected values and meanings for this field,
-                              and whether the values are considered a guaranteed API.
-                              The value should be a CamelCase string.
-                              This field may not be empty.
-                            maxLength: 1024
-                            minLength: 1
-                            pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
-                            type: string
-                          status:
-                            description: status of the condition, one of True, False,
-                              Unknown.
-                            enum:
-                            - "True"
-                            - "False"
-                            - Unknown
-                            type: string
-                          type:
-                            description: type of condition in CamelCase or in foo.example.com/CamelCase.
-                            maxLength: 316
-                            pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
-                            type: string
-                        required:
-                        - lastTransitionTime
-                        - message
-                        - reason
-                        - status
-                        - type
-                        type: object
-                      maxItems: 8
-                      minItems: 1
-                      type: array
-                      x-kubernetes-list-map-keys:
-                      - type
-                      x-kubernetes-list-type: map
-                    controllerName:
-                      description: |-
-                        ControllerName is a domain/path string that indicates the name of the
-                        controller that wrote this status. This corresponds with the
-                        controllerName field on GatewayClass.
-
-                        Example: "example.net/gateway-controller".
-
-                        The format of this field is DOMAIN "/" PATH, where DOMAIN and PATH are
-                        valid Kubernetes names
-                        (https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-
-                        Controllers MUST populate this field when writing status. Controllers should ensure that
-                        entries to status populated with their ControllerName are cleaned up when they are no
-                        longer necessary.
-                      maxLength: 253
-                      minLength: 1
-                      pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*\/[A-Za-z0-9\/\-._~%!$&'()*+,;=:]+$
-                      type: string
-                  required:
-                  - ancestorRef
-                  - conditions
-                  - controllerName
-                  type: object
-                maxItems: 16
-                type: array
-                x-kubernetes-list-type: atomic
-            required:
-            - ancestors
-            type: object
-        required:
-        - spec
-        type: object
-    served: true
-    storage: true
-    subresources:
-      status: {}
----
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
-  name: nginxgateways.gateway.nginx.org
-spec:
-  group: gateway.nginx.org
-  names:
-    categories:
-    - nginx-gateway-fabric
-    kind: NginxGateway
-    listKind: NginxGatewayList
-    plural: nginxgateways
-    singular: nginxgateway
-  scope: Namespaced
-  versions:
-  - additionalPrinterColumns:
-    - jsonPath: .metadata.creationTimestamp
-      name: Age
-      type: date
-    name: v1alpha1
-    schema:
-      openAPIV3Schema:
-        description: NginxGateway represents the dynamic configuration for an NGINX
-          Gateway Fabric control plane.
-        properties:
-          apiVersion:
-            description: |-
-              APIVersion defines the versioned schema of this representation of an object.
-              Servers should convert recognized schemas to the latest internal value, and
-              may reject unrecognized values.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-            type: string
-          kind:
-            description: |-
-              Kind is a string value representing the REST resource this object represents.
-              Servers may infer this from the endpoint the client submits requests to.
-              Cannot be updated.
-              In CamelCase.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-            type: string
-          metadata:
-            type: object
-          spec:
-            description: NginxGatewaySpec defines the desired state of the NginxGateway.
+            description: BwsGatewaySpec defines the desired state of the BwsGateway.
             properties:
               logging:
                 description: Logging defines logging related settings for the control
@@ -982,7 +251,7 @@ spec:
                 type: object
             type: object
           status:
-            description: NginxGatewayStatus defines the state of the NginxGateway.
+            description: BwsGatewayStatus defines the state of the BwsGateway.
             properties:
               conditions:
                 items:
@@ -1058,16 +327,16 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
-  name: nginxproxies.gateway.nginx.org
+  name: bwsproxies.gateway.bessystem.com
 spec:
-  group: gateway.nginx.org
+  group: gateway.bessystem.com
   names:
     categories:
-    - nginx-gateway-fabric
-    kind: NginxProxy
-    listKind: NginxProxyList
-    plural: nginxproxies
-    singular: nginxproxy
+    - bws-gateway-fabric
+    kind: BwsProxy
+    listKind: BwsProxyList
+    plural: bwsproxies
+    singular: bwsproxy
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -1078,12 +347,12 @@ spec:
     schema:
       openAPIV3Schema:
         description: |-
-          NginxProxy is a configuration object that can be referenced from a GatewayClass parametersRef
+          BwsProxy is a configuration object that can be referenced from a GatewayClass parametersRef
           or a Gateway infrastructure.parametersRef. It provides a way to configure data plane settings.
           If referenced from a GatewayClass, the settings apply to all Gateways attached to the GatewayClass.
           If referenced from a Gateway, the settings apply to that Gateway alone. If both a Gateway and its GatewayClass
-          reference an NginxProxy, the settings are merged. Settings specified on the Gateway NginxProxy override those
-          set on the GatewayClass NginxProxy.
+          reference an BwsProxy, the settings are merged. Settings specified on the Gateway BwsProxy override those
+          set on the GatewayClass BwsProxy.
         properties:
           apiVersion:
             description: |-
@@ -1103,7 +372,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: Spec defines the desired state of the NginxProxy.
+            description: Spec defines the desired state of the BwsProxy.
             properties:
               disableHTTP2:
                 description: |-
@@ -1173,7 +442,7 @@ spec:
               ipFamily:
                 default: dual
                 description: |-
-                  IPFamily specifies the IP family to be used by the NGINX.
+                  IPFamily specifies the IP family to be used by BWS.
                   Default is "dual", meaning the server will use both IPv4 and IPv6.
                 enum:
                 - dual
@@ -1181,29 +450,25 @@ spec:
                 - ipv6
                 type: string
               kubernetes:
-                description: Kubernetes contains the configuration for the NGINX Deployment
+                description: Kubernetes contains the configuration for the BWS Deployment
                   and Service Kubernetes objects.
                 properties:
                   daemonSet:
-                    description: DaemonSet is the configuration for the NGINX DaemonSet.
+                    description: DaemonSet is the configuration for the BWS DaemonSet.
                     properties:
                       container:
-                        description: Container defines container fields for the NGINX
+                        description: Container defines container fields for the BWS
                           container.
                         properties:
-                          debug:
-                            description: Debug enables debugging for NGINX by using
-                              the nginx-debug binary.
-                            type: boolean
                           hostPorts:
                             description: HostPorts are the list of ports to expose
                               on the host.
                             items:
-                              description: HostPort exposes an nginx container port
-                                on the host.
+                              description: HostPort exposes a BWS container port on
+                                the host.
                               properties:
                                 containerPort:
-                                  description: ContainerPort is the port on the nginx
+                                  description: ContainerPort is the port on the BWS
                                     container to map to the HostPort.
                                   format: int32
                                   maximum: 65535
@@ -1221,7 +486,7 @@ spec:
                               type: object
                             type: array
                           image:
-                            description: Image is the NGINX image to use.
+                            description: Image is the BWS image to use.
                             properties:
                               pullPolicy:
                                 default: IfNotPresent
@@ -1235,7 +500,7 @@ spec:
                               repository:
                                 description: |-
                                   Repository is the image path.
-                                  Default is ghcr.io/nginx/nginx-gateway-fabric/nginx.
+                                  Default is bws-gateway-fabric/bws.
                                 type: string
                               tag:
                                 description: Tag is the image tag to use. Default
@@ -1478,7 +743,7 @@ spec:
                             type: object
                           readinessProbe:
                             description: ReadinessProbe defines the readiness probe
-                              for the NGINX container.
+                              for the BWS container.
                             properties:
                               expose:
                                 description: |-
@@ -1639,7 +904,7 @@ spec:
                             type: array
                         type: object
                       patches:
-                        description: Patches are custom patches to apply to the NGINX
+                        description: Patches are custom patches to apply to the BWS
                           DaemonSet.
                         items:
                           description: Patch defines a patch to apply to a Kubernetes
@@ -4770,326 +4035,10 @@ spec:
                               type: object
                             type: array
                         type: object
-                      wafContainers:
-                        description: |-
-                          WAFContainers defines container specifications for NGINX App Protect WAF v5 containers.
-                          These containers are only deployed when WAF is enabled in the NginxProxy spec.
-                        properties:
-                          configManager:
-                            description: |-
-                              ConfigManager defines the configuration for the WAF configuration manager container.
-                              This container manages policy configuration and communication with the enforcer.
-                            properties:
-                              image:
-                                description: Image is the container image to use for
-                                  this WAF container.
-                                properties:
-                                  pullPolicy:
-                                    default: IfNotPresent
-                                    description: PullPolicy describes a policy for
-                                      if/when to pull a container image.
-                                    enum:
-                                    - Always
-                                    - Never
-                                    - IfNotPresent
-                                    type: string
-                                  repository:
-                                    description: |-
-                                      Repository is the image path.
-                                      Default is ghcr.io/nginx/nginx-gateway-fabric/nginx.
-                                    type: string
-                                  tag:
-                                    description: Tag is the image tag to use. Default
-                                      matches the tag of the control plane.
-                                    type: string
-                                type: object
-                              resources:
-                                description: Resources describes the compute resource
-                                  requirements for this WAF container.
-                                properties:
-                                  claims:
-                                    description: |-
-                                      Claims lists the names of resources, defined in spec.resourceClaims,
-                                      that are used by this container.
-
-                                      This field depends on the
-                                      DynamicResourceAllocation feature gate.
-
-                                      This field is immutable. It can only be set for containers.
-                                    items:
-                                      description: ResourceClaim references one entry
-                                        in PodSpec.ResourceClaims.
-                                      properties:
-                                        name:
-                                          description: |-
-                                            Name must match the name of one entry in pod.spec.resourceClaims of
-                                            the Pod where this field is used. It makes that resource available
-                                            inside a container.
-                                          type: string
-                                        request:
-                                          description: |-
-                                            Request is the name chosen for a request in the referenced claim.
-                                            If empty, everything from the claim is made available, otherwise
-                                            only the result of this request.
-                                          type: string
-                                      required:
-                                      - name
-                                      type: object
-                                    type: array
-                                    x-kubernetes-list-map-keys:
-                                    - name
-                                    x-kubernetes-list-type: map
-                                  limits:
-                                    additionalProperties:
-                                      anyOf:
-                                      - type: integer
-                                      - type: string
-                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                      x-kubernetes-int-or-string: true
-                                    description: |-
-                                      Limits describes the maximum amount of compute resources allowed.
-                                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-                                    type: object
-                                  requests:
-                                    additionalProperties:
-                                      anyOf:
-                                      - type: integer
-                                      - type: string
-                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                      x-kubernetes-int-or-string: true
-                                    description: |-
-                                      Requests describes the minimum amount of compute resources required.
-                                      If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
-                                      otherwise to an implementation-defined value. Requests cannot exceed Limits.
-                                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-                                    type: object
-                                type: object
-                              volumeMounts:
-                                description: VolumeMounts describe the mounting of
-                                  Volumes within the WAF container.
-                                items:
-                                  description: VolumeMount describes a mounting of
-                                    a Volume within a container.
-                                  properties:
-                                    mountPath:
-                                      description: |-
-                                        Path within the container at which the volume should be mounted.  Must
-                                        not contain ':'.
-                                      type: string
-                                    mountPropagation:
-                                      description: |-
-                                        mountPropagation determines how mounts are propagated from the host
-                                        to container and the other way around.
-                                        When not set, MountPropagationNone is used.
-                                        This field is beta in 1.10.
-                                        When RecursiveReadOnly is set to IfPossible or to Enabled, MountPropagation must be None or unspecified
-                                        (which defaults to None).
-                                      type: string
-                                    name:
-                                      description: This must match the Name of a Volume.
-                                      type: string
-                                    readOnly:
-                                      description: |-
-                                        Mounted read-only if true, read-write otherwise (false or unspecified).
-                                        Defaults to false.
-                                      type: boolean
-                                    recursiveReadOnly:
-                                      description: |-
-                                        RecursiveReadOnly specifies whether read-only mounts should be handled
-                                        recursively.
-
-                                        If ReadOnly is false, this field has no meaning and must be unspecified.
-
-                                        If ReadOnly is true, and this field is set to Disabled, the mount is not made
-                                        recursively read-only.  If this field is set to IfPossible, the mount is made
-                                        recursively read-only, if it is supported by the container runtime.  If this
-                                        field is set to Enabled, the mount is made recursively read-only if it is
-                                        supported by the container runtime, otherwise the pod will not be started and
-                                        an error will be generated to indicate the reason.
-
-                                        If this field is set to IfPossible or Enabled, MountPropagation must be set to
-                                        None (or be unspecified, which defaults to None).
-
-                                        If this field is not specified, it is treated as an equivalent of Disabled.
-                                      type: string
-                                    subPath:
-                                      description: |-
-                                        Path within the volume from which the container's volume should be mounted.
-                                        Defaults to "" (volume's root).
-                                      type: string
-                                    subPathExpr:
-                                      description: |-
-                                        Expanded path within the volume from which the container's volume should be mounted.
-                                        Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container's environment.
-                                        Defaults to "" (volume's root).
-                                        SubPathExpr and SubPath are mutually exclusive.
-                                      type: string
-                                  required:
-                                  - mountPath
-                                  - name
-                                  type: object
-                                type: array
-                            type: object
-                          enforcer:
-                            description: |-
-                              Enforcer defines the configuration for the WAF enforcer container.
-                              This container performs the actual WAF enforcement and policy application.
-                            properties:
-                              image:
-                                description: Image is the container image to use for
-                                  this WAF container.
-                                properties:
-                                  pullPolicy:
-                                    default: IfNotPresent
-                                    description: PullPolicy describes a policy for
-                                      if/when to pull a container image.
-                                    enum:
-                                    - Always
-                                    - Never
-                                    - IfNotPresent
-                                    type: string
-                                  repository:
-                                    description: |-
-                                      Repository is the image path.
-                                      Default is ghcr.io/nginx/nginx-gateway-fabric/nginx.
-                                    type: string
-                                  tag:
-                                    description: Tag is the image tag to use. Default
-                                      matches the tag of the control plane.
-                                    type: string
-                                type: object
-                              resources:
-                                description: Resources describes the compute resource
-                                  requirements for this WAF container.
-                                properties:
-                                  claims:
-                                    description: |-
-                                      Claims lists the names of resources, defined in spec.resourceClaims,
-                                      that are used by this container.
-
-                                      This field depends on the
-                                      DynamicResourceAllocation feature gate.
-
-                                      This field is immutable. It can only be set for containers.
-                                    items:
-                                      description: ResourceClaim references one entry
-                                        in PodSpec.ResourceClaims.
-                                      properties:
-                                        name:
-                                          description: |-
-                                            Name must match the name of one entry in pod.spec.resourceClaims of
-                                            the Pod where this field is used. It makes that resource available
-                                            inside a container.
-                                          type: string
-                                        request:
-                                          description: |-
-                                            Request is the name chosen for a request in the referenced claim.
-                                            If empty, everything from the claim is made available, otherwise
-                                            only the result of this request.
-                                          type: string
-                                      required:
-                                      - name
-                                      type: object
-                                    type: array
-                                    x-kubernetes-list-map-keys:
-                                    - name
-                                    x-kubernetes-list-type: map
-                                  limits:
-                                    additionalProperties:
-                                      anyOf:
-                                      - type: integer
-                                      - type: string
-                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                      x-kubernetes-int-or-string: true
-                                    description: |-
-                                      Limits describes the maximum amount of compute resources allowed.
-                                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-                                    type: object
-                                  requests:
-                                    additionalProperties:
-                                      anyOf:
-                                      - type: integer
-                                      - type: string
-                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                      x-kubernetes-int-or-string: true
-                                    description: |-
-                                      Requests describes the minimum amount of compute resources required.
-                                      If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
-                                      otherwise to an implementation-defined value. Requests cannot exceed Limits.
-                                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-                                    type: object
-                                type: object
-                              volumeMounts:
-                                description: VolumeMounts describe the mounting of
-                                  Volumes within the WAF container.
-                                items:
-                                  description: VolumeMount describes a mounting of
-                                    a Volume within a container.
-                                  properties:
-                                    mountPath:
-                                      description: |-
-                                        Path within the container at which the volume should be mounted.  Must
-                                        not contain ':'.
-                                      type: string
-                                    mountPropagation:
-                                      description: |-
-                                        mountPropagation determines how mounts are propagated from the host
-                                        to container and the other way around.
-                                        When not set, MountPropagationNone is used.
-                                        This field is beta in 1.10.
-                                        When RecursiveReadOnly is set to IfPossible or to Enabled, MountPropagation must be None or unspecified
-                                        (which defaults to None).
-                                      type: string
-                                    name:
-                                      description: This must match the Name of a Volume.
-                                      type: string
-                                    readOnly:
-                                      description: |-
-                                        Mounted read-only if true, read-write otherwise (false or unspecified).
-                                        Defaults to false.
-                                      type: boolean
-                                    recursiveReadOnly:
-                                      description: |-
-                                        RecursiveReadOnly specifies whether read-only mounts should be handled
-                                        recursively.
-
-                                        If ReadOnly is false, this field has no meaning and must be unspecified.
-
-                                        If ReadOnly is true, and this field is set to Disabled, the mount is not made
-                                        recursively read-only.  If this field is set to IfPossible, the mount is made
-                                        recursively read-only, if it is supported by the container runtime.  If this
-                                        field is set to Enabled, the mount is made recursively read-only if it is
-                                        supported by the container runtime, otherwise the pod will not be started and
-                                        an error will be generated to indicate the reason.
-
-                                        If this field is set to IfPossible or Enabled, MountPropagation must be set to
-                                        None (or be unspecified, which defaults to None).
-
-                                        If this field is not specified, it is treated as an equivalent of Disabled.
-                                      type: string
-                                    subPath:
-                                      description: |-
-                                        Path within the volume from which the container's volume should be mounted.
-                                        Defaults to "" (volume's root).
-                                      type: string
-                                    subPathExpr:
-                                      description: |-
-                                        Expanded path within the volume from which the container's volume should be mounted.
-                                        Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container's environment.
-                                        Defaults to "" (volume's root).
-                                        SubPathExpr and SubPath are mutually exclusive.
-                                      type: string
-                                  required:
-                                  - mountPath
-                                  - name
-                                  type: object
-                                type: array
-                            type: object
-                        type: object
                     type: object
                   deployment:
                     description: |-
-                      Deployment is the configuration for the NGINX Deployment.
+                      Deployment is the configuration for the BWS Deployment.
                       This is the default deployment option.
                     properties:
                       autoscaling:
@@ -5763,22 +4712,18 @@ spec:
                         - message: minReplicas must be less than or equal to maxReplicas
                           rule: (!has(self.minReplicas)) || (self.minReplicas <= self.maxReplicas)
                       container:
-                        description: Container defines container fields for the NGINX
+                        description: Container defines container fields for the BWS
                           container.
                         properties:
-                          debug:
-                            description: Debug enables debugging for NGINX by using
-                              the nginx-debug binary.
-                            type: boolean
                           hostPorts:
                             description: HostPorts are the list of ports to expose
                               on the host.
                             items:
-                              description: HostPort exposes an nginx container port
-                                on the host.
+                              description: HostPort exposes a BWS container port on
+                                the host.
                               properties:
                                 containerPort:
-                                  description: ContainerPort is the port on the nginx
+                                  description: ContainerPort is the port on the BWS
                                     container to map to the HostPort.
                                   format: int32
                                   maximum: 65535
@@ -5796,7 +4741,7 @@ spec:
                               type: object
                             type: array
                           image:
-                            description: Image is the NGINX image to use.
+                            description: Image is the BWS image to use.
                             properties:
                               pullPolicy:
                                 default: IfNotPresent
@@ -5810,7 +4755,7 @@ spec:
                               repository:
                                 description: |-
                                   Repository is the image path.
-                                  Default is ghcr.io/nginx/nginx-gateway-fabric/nginx.
+                                  Default is bws-gateway-fabric/bws.
                                 type: string
                               tag:
                                 description: Tag is the image tag to use. Default
@@ -6053,7 +4998,7 @@ spec:
                             type: object
                           readinessProbe:
                             description: ReadinessProbe defines the readiness probe
-                              for the NGINX container.
+                              for the BWS container.
                             properties:
                               expose:
                                 description: |-
@@ -6214,7 +5159,7 @@ spec:
                             type: array
                         type: object
                       patches:
-                        description: Patches are custom patches to apply to the NGINX
+                        description: Patches are custom patches to apply to the BWS
                           Deployment.
                         items:
                           description: Patch defines a patch to apply to a Kubernetes
@@ -9349,325 +8294,9 @@ spec:
                         description: Number of desired Pods.
                         format: int32
                         type: integer
-                      wafContainers:
-                        description: |-
-                          WAFContainers defines container specifications for NGINX App Protect WAF v5 containers.
-                          These containers are only deployed when WAF is enabled in the NginxProxy spec.
-                        properties:
-                          configManager:
-                            description: |-
-                              ConfigManager defines the configuration for the WAF configuration manager container.
-                              This container manages policy configuration and communication with the enforcer.
-                            properties:
-                              image:
-                                description: Image is the container image to use for
-                                  this WAF container.
-                                properties:
-                                  pullPolicy:
-                                    default: IfNotPresent
-                                    description: PullPolicy describes a policy for
-                                      if/when to pull a container image.
-                                    enum:
-                                    - Always
-                                    - Never
-                                    - IfNotPresent
-                                    type: string
-                                  repository:
-                                    description: |-
-                                      Repository is the image path.
-                                      Default is ghcr.io/nginx/nginx-gateway-fabric/nginx.
-                                    type: string
-                                  tag:
-                                    description: Tag is the image tag to use. Default
-                                      matches the tag of the control plane.
-                                    type: string
-                                type: object
-                              resources:
-                                description: Resources describes the compute resource
-                                  requirements for this WAF container.
-                                properties:
-                                  claims:
-                                    description: |-
-                                      Claims lists the names of resources, defined in spec.resourceClaims,
-                                      that are used by this container.
-
-                                      This field depends on the
-                                      DynamicResourceAllocation feature gate.
-
-                                      This field is immutable. It can only be set for containers.
-                                    items:
-                                      description: ResourceClaim references one entry
-                                        in PodSpec.ResourceClaims.
-                                      properties:
-                                        name:
-                                          description: |-
-                                            Name must match the name of one entry in pod.spec.resourceClaims of
-                                            the Pod where this field is used. It makes that resource available
-                                            inside a container.
-                                          type: string
-                                        request:
-                                          description: |-
-                                            Request is the name chosen for a request in the referenced claim.
-                                            If empty, everything from the claim is made available, otherwise
-                                            only the result of this request.
-                                          type: string
-                                      required:
-                                      - name
-                                      type: object
-                                    type: array
-                                    x-kubernetes-list-map-keys:
-                                    - name
-                                    x-kubernetes-list-type: map
-                                  limits:
-                                    additionalProperties:
-                                      anyOf:
-                                      - type: integer
-                                      - type: string
-                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                      x-kubernetes-int-or-string: true
-                                    description: |-
-                                      Limits describes the maximum amount of compute resources allowed.
-                                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-                                    type: object
-                                  requests:
-                                    additionalProperties:
-                                      anyOf:
-                                      - type: integer
-                                      - type: string
-                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                      x-kubernetes-int-or-string: true
-                                    description: |-
-                                      Requests describes the minimum amount of compute resources required.
-                                      If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
-                                      otherwise to an implementation-defined value. Requests cannot exceed Limits.
-                                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-                                    type: object
-                                type: object
-                              volumeMounts:
-                                description: VolumeMounts describe the mounting of
-                                  Volumes within the WAF container.
-                                items:
-                                  description: VolumeMount describes a mounting of
-                                    a Volume within a container.
-                                  properties:
-                                    mountPath:
-                                      description: |-
-                                        Path within the container at which the volume should be mounted.  Must
-                                        not contain ':'.
-                                      type: string
-                                    mountPropagation:
-                                      description: |-
-                                        mountPropagation determines how mounts are propagated from the host
-                                        to container and the other way around.
-                                        When not set, MountPropagationNone is used.
-                                        This field is beta in 1.10.
-                                        When RecursiveReadOnly is set to IfPossible or to Enabled, MountPropagation must be None or unspecified
-                                        (which defaults to None).
-                                      type: string
-                                    name:
-                                      description: This must match the Name of a Volume.
-                                      type: string
-                                    readOnly:
-                                      description: |-
-                                        Mounted read-only if true, read-write otherwise (false or unspecified).
-                                        Defaults to false.
-                                      type: boolean
-                                    recursiveReadOnly:
-                                      description: |-
-                                        RecursiveReadOnly specifies whether read-only mounts should be handled
-                                        recursively.
-
-                                        If ReadOnly is false, this field has no meaning and must be unspecified.
-
-                                        If ReadOnly is true, and this field is set to Disabled, the mount is not made
-                                        recursively read-only.  If this field is set to IfPossible, the mount is made
-                                        recursively read-only, if it is supported by the container runtime.  If this
-                                        field is set to Enabled, the mount is made recursively read-only if it is
-                                        supported by the container runtime, otherwise the pod will not be started and
-                                        an error will be generated to indicate the reason.
-
-                                        If this field is set to IfPossible or Enabled, MountPropagation must be set to
-                                        None (or be unspecified, which defaults to None).
-
-                                        If this field is not specified, it is treated as an equivalent of Disabled.
-                                      type: string
-                                    subPath:
-                                      description: |-
-                                        Path within the volume from which the container's volume should be mounted.
-                                        Defaults to "" (volume's root).
-                                      type: string
-                                    subPathExpr:
-                                      description: |-
-                                        Expanded path within the volume from which the container's volume should be mounted.
-                                        Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container's environment.
-                                        Defaults to "" (volume's root).
-                                        SubPathExpr and SubPath are mutually exclusive.
-                                      type: string
-                                  required:
-                                  - mountPath
-                                  - name
-                                  type: object
-                                type: array
-                            type: object
-                          enforcer:
-                            description: |-
-                              Enforcer defines the configuration for the WAF enforcer container.
-                              This container performs the actual WAF enforcement and policy application.
-                            properties:
-                              image:
-                                description: Image is the container image to use for
-                                  this WAF container.
-                                properties:
-                                  pullPolicy:
-                                    default: IfNotPresent
-                                    description: PullPolicy describes a policy for
-                                      if/when to pull a container image.
-                                    enum:
-                                    - Always
-                                    - Never
-                                    - IfNotPresent
-                                    type: string
-                                  repository:
-                                    description: |-
-                                      Repository is the image path.
-                                      Default is ghcr.io/nginx/nginx-gateway-fabric/nginx.
-                                    type: string
-                                  tag:
-                                    description: Tag is the image tag to use. Default
-                                      matches the tag of the control plane.
-                                    type: string
-                                type: object
-                              resources:
-                                description: Resources describes the compute resource
-                                  requirements for this WAF container.
-                                properties:
-                                  claims:
-                                    description: |-
-                                      Claims lists the names of resources, defined in spec.resourceClaims,
-                                      that are used by this container.
-
-                                      This field depends on the
-                                      DynamicResourceAllocation feature gate.
-
-                                      This field is immutable. It can only be set for containers.
-                                    items:
-                                      description: ResourceClaim references one entry
-                                        in PodSpec.ResourceClaims.
-                                      properties:
-                                        name:
-                                          description: |-
-                                            Name must match the name of one entry in pod.spec.resourceClaims of
-                                            the Pod where this field is used. It makes that resource available
-                                            inside a container.
-                                          type: string
-                                        request:
-                                          description: |-
-                                            Request is the name chosen for a request in the referenced claim.
-                                            If empty, everything from the claim is made available, otherwise
-                                            only the result of this request.
-                                          type: string
-                                      required:
-                                      - name
-                                      type: object
-                                    type: array
-                                    x-kubernetes-list-map-keys:
-                                    - name
-                                    x-kubernetes-list-type: map
-                                  limits:
-                                    additionalProperties:
-                                      anyOf:
-                                      - type: integer
-                                      - type: string
-                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                      x-kubernetes-int-or-string: true
-                                    description: |-
-                                      Limits describes the maximum amount of compute resources allowed.
-                                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-                                    type: object
-                                  requests:
-                                    additionalProperties:
-                                      anyOf:
-                                      - type: integer
-                                      - type: string
-                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                      x-kubernetes-int-or-string: true
-                                    description: |-
-                                      Requests describes the minimum amount of compute resources required.
-                                      If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
-                                      otherwise to an implementation-defined value. Requests cannot exceed Limits.
-                                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-                                    type: object
-                                type: object
-                              volumeMounts:
-                                description: VolumeMounts describe the mounting of
-                                  Volumes within the WAF container.
-                                items:
-                                  description: VolumeMount describes a mounting of
-                                    a Volume within a container.
-                                  properties:
-                                    mountPath:
-                                      description: |-
-                                        Path within the container at which the volume should be mounted.  Must
-                                        not contain ':'.
-                                      type: string
-                                    mountPropagation:
-                                      description: |-
-                                        mountPropagation determines how mounts are propagated from the host
-                                        to container and the other way around.
-                                        When not set, MountPropagationNone is used.
-                                        This field is beta in 1.10.
-                                        When RecursiveReadOnly is set to IfPossible or to Enabled, MountPropagation must be None or unspecified
-                                        (which defaults to None).
-                                      type: string
-                                    name:
-                                      description: This must match the Name of a Volume.
-                                      type: string
-                                    readOnly:
-                                      description: |-
-                                        Mounted read-only if true, read-write otherwise (false or unspecified).
-                                        Defaults to false.
-                                      type: boolean
-                                    recursiveReadOnly:
-                                      description: |-
-                                        RecursiveReadOnly specifies whether read-only mounts should be handled
-                                        recursively.
-
-                                        If ReadOnly is false, this field has no meaning and must be unspecified.
-
-                                        If ReadOnly is true, and this field is set to Disabled, the mount is not made
-                                        recursively read-only.  If this field is set to IfPossible, the mount is made
-                                        recursively read-only, if it is supported by the container runtime.  If this
-                                        field is set to Enabled, the mount is made recursively read-only if it is
-                                        supported by the container runtime, otherwise the pod will not be started and
-                                        an error will be generated to indicate the reason.
-
-                                        If this field is set to IfPossible or Enabled, MountPropagation must be set to
-                                        None (or be unspecified, which defaults to None).
-
-                                        If this field is not specified, it is treated as an equivalent of Disabled.
-                                      type: string
-                                    subPath:
-                                      description: |-
-                                        Path within the volume from which the container's volume should be mounted.
-                                        Defaults to "" (volume's root).
-                                      type: string
-                                    subPathExpr:
-                                      description: |-
-                                        Expanded path within the volume from which the container's volume should be mounted.
-                                        Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container's environment.
-                                        Defaults to "" (volume's root).
-                                        SubPathExpr and SubPath are mutually exclusive.
-                                      type: string
-                                  required:
-                                  - mountPath
-                                  - name
-                                  type: object
-                                type: array
-                            type: object
-                        type: object
                     type: object
                   service:
-                    description: Service is the configuration for the NGINX Service.
+                    description: Service is the configuration for the BWS Service.
                     properties:
                       externalTrafficPolicy:
                         default: Local
@@ -9697,12 +8326,12 @@ spec:
                         type: array
                       nodePorts:
                         description: |-
-                          NodePorts are the list of NodePorts to expose on the NGINX data plane service.
+                          NodePorts are the list of NodePorts to expose on the BWS data plane service.
                           Each NodePort MUST map to a Gateway listener port, otherwise it will be ignored.
                           The default NodePort range enforced by Kubernetes is 30000-32767.
                         items:
                           description: |-
-                            NodePort creates a port on each node on which the NGINX data plane service is exposed. The NodePort MUST
+                            NodePort creates a port on each node on which the BWS data plane service is exposed. The NodePort MUST
                             map to a Gateway listener port, otherwise it will be ignored. If not specified, Kubernetes allocates a NodePort
                             automatically if required. The default NodePort range enforced by Kubernetes is 30000-32767.
                           properties:
@@ -9725,7 +8354,7 @@ spec:
                           type: object
                         type: array
                       patches:
-                        description: Patches are custom patches to apply to the NGINX
+                        description: Patches are custom patches to apply to the BWS
                           Service.
                         items:
                           description: Patch defines a patch to apply to a Kubernetes
@@ -9764,7 +8393,7 @@ spec:
                   rule: (!has(self.deployment) && !has(self.daemonSet)) || ((has(self.deployment)
                     && !has(self.daemonSet)) || (!has(self.deployment) && has(self.daemonSet)))
               logging:
-                description: Logging defines logging related settings for NGINX.
+                description: Logging defines logging-related settings for BWS.
                 properties:
                   accessLog:
                     description: |-
@@ -9801,8 +8430,8 @@ spec:
                   agentLevel:
                     default: info
                     description: |-
-                      AgentLevel defines the log level of the NGINX agent process. Changing this value results in a
-                      re-roll of the NGINX deployment.
+                      AgentLevel defines the log level of the BWS Agent process. Changing this value results in a
+                      re-roll of the BWS deployment.
                     enum:
                     - debug
                     - info
@@ -9831,7 +8460,7 @@ spec:
               metrics:
                 description: |-
                   Metrics defines the configuration for Prometheus scraping metrics. Changing this value results in a
-                  re-roll of the NGINX deployment.
+                  re-roll of the BWS deployment.
                 properties:
                   disable:
                     description: Disable serving Prometheus metrics on the listen
@@ -9844,41 +8473,16 @@ spec:
                     minimum: 1
                     type: integer
                 type: object
-              nginxPlus:
-                description: NginxPlus specifies NGINX Plus additional settings.
-                properties:
-                  allowedAddresses:
-                    description: AllowedAddresses specifies IPAddresses or CIDR blocks
-                      to the allow list for accessing the NGINX Plus API.
-                    items:
-                      description: NginxPlusAllowAddress specifies the address type
-                        and value for an NginxPlus allow address.
-                      properties:
-                        type:
-                          description: Type specifies the type of address.
-                          enum:
-                          - CIDR
-                          - IPAddress
-                          type: string
-                        value:
-                          description: Value specifies the address value.
-                          type: string
-                      required:
-                      - type
-                      - value
-                      type: object
-                    type: array
-                type: object
               rewriteClientIP:
                 description: RewriteClientIP defines configuration for rewriting the
                   client IP to the original client's IP.
                 properties:
                   mode:
                     description: |-
-                      Mode defines how NGINX will rewrite the client's IP address.
+                      Mode defines how BWS will rewrite the client's IP address.
                       There are two possible modes:
-                      - ProxyProtocol: NGINX will rewrite the client's IP using the PROXY protocol header.
-                      - XForwardedFor: NGINX will rewrite the client's IP using the X-Forwarded-For header.
+                      - ProxyProtocol: BWS will rewrite the client's IP using the PROXY protocol header.
+                      - XForwardedFor: BWS will rewrite the client's IP using the X-Forwarded-For header.
                       Sets NGINX directive real_ip_header: https://nginx.org/en/docs/http/ngx_http_realip_module.html#real_ip_header
                     enum:
                     - ProxyProtocol
@@ -9888,22 +8492,22 @@ spec:
                     description: |-
                       SetIPRecursively configures whether recursive search is used when selecting the client's address from
                       the X-Forwarded-For header. It is used in conjunction with TrustedAddresses.
-                      If enabled, NGINX will recurse on the values in X-Forwarded-Header from the end of array
+                      If enabled, BWS will recurse on the values in X-Forwarded-Header from the end of array
                       to start of array and select the first untrusted IP.
                       For example, if X-Forwarded-For is [11.11.11.11, 22.22.22.22, 55.55.55.1],
-                      and TrustedAddresses is set to 55.55.55.1/32, NGINX will rewrite the client IP to 22.22.22.22.
-                      If disabled, NGINX will select the IP at the end of the array.
+                      and TrustedAddresses is set to 55.55.55.1/32, BWS will rewrite the client IP to 22.22.22.22.
+                      If disabled, BWS will select the IP at the end of the array.
                       In the previous example, 55.55.55.1 would be selected.
                       Sets NGINX directive real_ip_recursive: https://nginx.org/en/docs/http/ngx_http_realip_module.html#real_ip_recursive
                     type: boolean
                   trustedAddresses:
                     description: |-
                       TrustedAddresses specifies the addresses that are trusted to send correct client IP information.
-                      If a request comes from a trusted address, NGINX will rewrite the client IP information,
+                      If a request comes from a trusted address, BWS will rewrite the client IP information,
                       and forward it to the backend in the X-Forwarded-For* and X-Real-IP headers.
-                      If the request does not come from a trusted address, NGINX will not rewrite the client IP information.
+                      If the request does not come from a trusted address, BWS will not rewrite the client IP information.
                       To trust all addresses (not recommended for production), set to 0.0.0.0/0.
-                      If no addresses are provided, NGINX will not rewrite the client IP information.
+                      If no addresses are provided, BWS will not rewrite the client IP information.
                       Sets NGINX directive set_real_ip_from: https://nginx.org/en/docs/http/ngx_http_realip_module.html#set_real_ip_from
                       This field is required if mode is set.
                     items:
@@ -9933,23 +8537,21 @@ spec:
                     == 0))'
               serverTokens:
                 description: |-
-                  ServerTokens configures whether NGINX emits its version in the "Server"
+                  ServerTokens configures whether BWS emits its version in the "Server"
                   response header and on error pages.
 
-                  OSS NGINX accepts:
-                    - "on": Shows nginx and version (e.g. "nginx/1.25.0")
-                    - "off": Shows nginx only (e.g. "nginx")
-                    - "build": Shows version and build name (e.g. "nginx/1.25.0 (build-name)")
-
-                  NGINX Plus additionally accepts:
-                    - "": Suppress the "Server" response header entirely
-                    - <custom string>: Set a custom header value and supports variables
+                  BWS accepts:
+                    - "on": Shows BWS and its version
+                    - "off": Shows BWS without a version
+                    - "build": Shows the BWS version and build name
 
                   See: https://nginx.org/en/docs/http/ngx_http_core_module.html#server_tokens
                   NGINX directive: https://nginx.org/en/docs/http/ngx_http_core_module.html#server_tokens
                   Default is "off".
-                maxLength: 255
-                pattern: ^([^"\\\x0A\x0D]|\\[^\x0A\x0D])*$
+                enum:
+                - "off"
+                - "on"
+                - build
                 type: string
               telemetry:
                 description: Telemetry specifies the OpenTelemetry configuration.
@@ -9997,7 +8599,7 @@ spec:
                   serviceName:
                     description: |-
                       ServiceName is the "service.name" attribute of the OpenTelemetry resource.
-                      Default is 'ngf:<gateway-namespace>:<gateway-name>'. If a value is provided by the user,
+                      Default is 'bws:<gateway-namespace>:<gateway-name>'. If a value is provided by the user,
                       then the default becomes a prefix to that value.
                     maxLength: 127
                     pattern: ^[a-zA-Z0-9_-]+$
@@ -10035,34 +8637,6 @@ spec:
                     - key
                     x-kubernetes-list-type: map
                 type: object
-              waf:
-                description: WAF configures NGINX App Protect WAF functionality.
-                properties:
-                  bundleFailOpen:
-                    description: |-
-                      BundleFailOpen controls the behavior when a WAF policy bundle (policy or log profile)
-                      has not yet been successfully fetched. When set to true, NGINX configuration is pushed
-                      and traffic is served without WAF protection until the bundle becomes available. When
-                      false (the default), the configuration push is withheld until the bundle is fetched,
-                      maintaining a fail-closed posture.
-                    type: boolean
-                  disableCookieSeed:
-                    description: |-
-                      DisableCookieSeed disables the app_protect_cookie_seed directive.
-                      By default, NGF sets this directive to a stable value derived from the Gateway UID,
-                      ensuring WAF session cookies are consistent across multiple NGINX replicas.
-                      Set this to true if you have pre-compiled the cookie seed into your WAF policy bundles
-                      via the compiler global settings, to avoid conflicting with the compiled-in value.
-                      Default is false.
-                    type: boolean
-                  enable:
-                    description: |-
-                      Enable enables NGINX App Protect WAF functionality.
-                      When enabled, NGINX Gateway Fabric will deploy additional WAF containers
-                      (waf-enforcer and waf-config-mgr) alongside the main NGINX container.
-                      Default is false.
-                    type: boolean
-                type: object
               workerConnections:
                 description: |-
                   WorkerConnections specifies the maximum number of simultaneous connections that can be opened by a worker process.
@@ -10085,13 +8659,476 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
   labels:
-    gateway.networking.k8s.io/policy: direct
-  name: observabilitypolicies.gateway.nginx.org
+    gateway.networking.k8s.io/policy: inherited
+  name: clientsettingspolicies.gateway.bessystem.com
 spec:
-  group: gateway.nginx.org
+  group: gateway.bessystem.com
   names:
     categories:
-    - nginx-gateway-fabric
+    - bws-gateway-fabric
+    kind: ClientSettingsPolicy
+    listKind: ClientSettingsPolicyList
+    plural: clientsettingspolicies
+    shortNames:
+    - cspolicy
+    singular: clientsettingspolicy
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          ClientSettingsPolicy is an Inherited Attached Policy. It provides a way to configure the behavior of the connection
+          between the client and BWS Gateway Fabric.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec defines the desired state of the ClientSettingsPolicy.
+            properties:
+              body:
+                description: Body defines the client request body settings.
+                properties:
+                  maxSize:
+                    description: |-
+                      MaxSize sets the maximum allowed size of the client request body.
+                      If the size in a request exceeds the configured value,
+                      the 413 (Request Entity Too Large) error is returned to the client.
+                      Setting size to 0 disables checking of client request body size.
+                      Default: https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size.
+                    pattern: ^\d{1,4}(k|m|g)?$
+                    type: string
+                  timeout:
+                    description: |-
+                      Timeout defines a timeout for reading client request body. The timeout is set only for a period between
+                      two successive read operations, not for the transmission of the whole request body.
+                      If a client does not transmit anything within this time, the request is terminated with the
+                      408 (Request Time-out) error.
+                      Default: https://nginx.org/en/docs/http/ngx_http_core_module.html#client_body_timeout.
+                    pattern: ^[0-9]{1,4}(ms|s|m|h)?$
+                    type: string
+                type: object
+              keepAlive:
+                description: KeepAlive defines the keep-alive settings.
+                properties:
+                  minTimeout:
+                    description: |-
+                      MinTimeout defines the timeout for which the keep-alive client connection
+                      will not be closed on the server side for connection reuse or on
+                      graceful shutdown of worker processes.
+                      Default: https://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_min_timeout.
+                    pattern: ^[0-9]{1,4}(ms|s|m|h)?$
+                    type: string
+                  requests:
+                    description: |-
+                      Requests sets the maximum number of requests that can be served through one keep-alive connection.
+                      After the maximum number of requests are made, the connection is closed. Closing connections periodically
+                      is necessary to free per-connection memory allocations. Therefore, using too high maximum number of requests
+                      is not recommended as it can lead to excessive memory usage.
+                      Default: https://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_requests.
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  time:
+                    description: |-
+                      Time defines the maximum time during which requests can be processed through one keep-alive connection.
+                      After this time is reached, the connection is closed following the subsequent request processing.
+                      Default: https://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_time.
+                    pattern: ^[0-9]{1,4}(ms|s|m|h)?$
+                    type: string
+                  timeout:
+                    description: Timeout defines the keep-alive timeouts for clients.
+                    properties:
+                      header:
+                        description: 'Header sets the timeout in the "Keep-Alive:
+                          timeout=time" response header field.'
+                        pattern: ^[0-9]{1,4}(ms|s|m|h)?$
+                        type: string
+                      server:
+                        description: |-
+                          Server sets the timeout during which a keep-alive client connection will stay open on the server side.
+                          Setting this value to 0 disables keep-alive client connections.
+                        pattern: ^[0-9]{1,4}(ms|s|m|h)?$
+                        type: string
+                    type: object
+                    x-kubernetes-validations:
+                    - message: header can only be specified if server is specified
+                      rule: '!(has(self.header) && !has(self.server))'
+                type: object
+              targetRef:
+                description: |-
+                  TargetRef identifies an API object to apply the policy to.
+                  Object must be in the same namespace as the policy.
+                  Support: Gateway, HTTPRoute, GRPCRoute.
+                properties:
+                  group:
+                    description: Group is the group of the target resource.
+                    maxLength: 253
+                    pattern: ^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                    type: string
+                  kind:
+                    description: Kind is kind of the target resource.
+                    maxLength: 63
+                    minLength: 1
+                    pattern: ^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$
+                    type: string
+                  name:
+                    description: Name is the name of the target resource.
+                    maxLength: 253
+                    minLength: 1
+                    type: string
+                required:
+                - group
+                - kind
+                - name
+                type: object
+                x-kubernetes-validations:
+                - message: 'TargetRef Kind must be one of: Gateway, HTTPRoute, or
+                    GRPCRoute'
+                  rule: (self.kind=='Gateway' || self.kind=='HTTPRoute' || self.kind=='GRPCRoute')
+                - message: TargetRef Group must be gateway.networking.k8s.io.
+                  rule: (self.group=='gateway.networking.k8s.io')
+            required:
+            - targetRef
+            type: object
+          status:
+            description: Status defines the state of the ClientSettingsPolicy.
+            properties:
+              ancestors:
+                description: |-
+                  Ancestors is a list of ancestor resources (usually Gateways) that are
+                  associated with the policy, and the status of the policy with respect to
+                  each ancestor. When this policy attaches to a parent, the controller that
+                  manages the parent and the ancestors MUST add an entry to this list when
+                  the controller first sees the policy and SHOULD update the entry as
+                  appropriate when the relevant ancestor is modified.
+
+                  Note that choosing the relevant ancestor is left to the Policy designers;
+                  an important part of Policy design is designing the right object level at
+                  which to namespace this status.
+
+                  Note also that implementations MUST ONLY populate ancestor status for
+                  the Ancestor resources they are responsible for. Implementations MUST
+                  use the ControllerName field to uniquely identify the entries in this list
+                  that they are responsible for.
+
+                  Note that to achieve this, the list of PolicyAncestorStatus structs
+                  MUST be treated as a map with a composite key, made up of the AncestorRef
+                  and ControllerName fields combined.
+
+                  A maximum of 16 ancestors will be represented in this list. An empty list
+                  means the Policy is not relevant for any ancestors.
+
+                  If this slice is full, implementations MUST NOT add further entries.
+                  Instead they MUST consider the policy unimplementable and signal that
+                  on any related resources such as the ancestor that would be referenced
+                  here. For example, if this list was full on BackendTLSPolicy, no
+                  additional Gateways would be able to reference the Service targeted by
+                  the BackendTLSPolicy.
+                items:
+                  description: |-
+                    PolicyAncestorStatus describes the status of a route with respect to an
+                    associated Ancestor.
+
+                    Ancestors refer to objects that are either the Target of a policy or above it
+                    in terms of object hierarchy. For example, if a policy targets a Service, the
+                    Policy's Ancestors are, in order, the Service, the HTTPRoute, the Gateway, and
+                    the GatewayClass. Almost always, in this hierarchy, the Gateway will be the most
+                    useful object to place Policy status on, so we recommend that implementations
+                    SHOULD use Gateway as the PolicyAncestorStatus object unless the designers
+                    have a _very_ good reason otherwise.
+
+                    In the context of policy attachment, the Ancestor is used to distinguish which
+                    resource results in a distinct application of this policy. For example, if a policy
+                    targets a Service, it may have a distinct result per attached Gateway.
+
+                    Policies targeting the same resource may have different effects depending on the
+                    ancestors of those resources. For example, different Gateways targeting the same
+                    Service may have different capabilities, especially if they have different underlying
+                    implementations.
+
+                    For example, in BackendTLSPolicy, the Policy attaches to a Service that is
+                    used as a backend in a HTTPRoute that is itself attached to a Gateway.
+                    In this case, the relevant object for status is the Gateway, and that is the
+                    ancestor object referred to in this status.
+
+                    Note that a parent is also an ancestor, so for objects where the parent is the
+                    relevant object for status, this struct SHOULD still be used.
+
+                    This struct is intended to be used in a slice that's effectively a map,
+                    with a composite key made up of the AncestorRef and the ControllerName.
+                  properties:
+                    ancestorRef:
+                      description: |-
+                        AncestorRef corresponds with a ParentRef in the spec that this
+                        PolicyAncestorStatus struct describes the status of.
+                      properties:
+                        group:
+                          default: gateway.networking.k8s.io
+                          description: |-
+                            Group is the group of the referent.
+                            When unspecified, "gateway.networking.k8s.io" is inferred.
+                            To set the core API group (such as for a "Service" kind referent),
+                            Group must be explicitly set to "" (empty string).
+
+                            Support: Core
+                          maxLength: 253
+                          pattern: ^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                          type: string
+                        kind:
+                          default: Gateway
+                          description: |-
+                            Kind is kind of the referent.
+
+                            There are two kinds of parent resources with "Core" support:
+
+                            * Gateway (Gateway conformance profile)
+                            * Service (Mesh conformance profile, ClusterIP Services only)
+
+                            Support for other resources is Implementation-Specific.
+                          maxLength: 63
+                          minLength: 1
+                          pattern: ^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$
+                          type: string
+                        name:
+                          description: |-
+                            Name is the name of the referent.
+
+                            Support: Core
+                          maxLength: 253
+                          minLength: 1
+                          type: string
+                        namespace:
+                          description: |-
+                            Namespace is the namespace of the referent. When unspecified, this refers
+                            to the local namespace of the Route.
+
+                            Note that there are specific rules for ParentRefs which cross namespace
+                            boundaries. Cross-namespace references are only valid if they are explicitly
+                            allowed by something in the namespace they are referring to. For example:
+                            Gateway has the AllowedRoutes field, and ReferenceGrant provides a
+                            generic way to enable any other kind of cross-namespace reference.
+
+                            <gateway:experimental:description>
+                            ParentRefs from a Route to a Service in the same namespace are "producer"
+                            routes, which apply default routing rules to inbound connections from
+                            any namespace to the Service.
+
+                            ParentRefs from a Route to a Service in a different namespace are
+                            "consumer" routes, and these routing rules are only applied to outbound
+                            connections originating from the same namespace as the Route, for which
+                            the intended destination of the connections are a Service targeted as a
+                            ParentRef of the Route.
+                            </gateway:experimental:description>
+
+                            Support: Core
+                          maxLength: 63
+                          minLength: 1
+                          pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                          type: string
+                        port:
+                          description: |-
+                            Port is the network port this Route targets. It can be interpreted
+                            differently based on the type of parent resource.
+
+                            When the parent resource is a Gateway, this targets all listeners
+                            listening on the specified port that also support this kind of Route(and
+                            select this Route). It's not recommended to set `Port` unless the
+                            networking behaviors specified in a Route must apply to a specific port
+                            as opposed to a listener(s) whose port(s) may be changed. When both Port
+                            and SectionName are specified, the name and port of the selected listener
+                            must match both specified values.
+
+                            <gateway:experimental:description>
+                            When the parent resource is a Service, this targets a specific port in the
+                            Service spec. When both Port (experimental) and SectionName are specified,
+                            the name and port of the selected port must match both specified values.
+                            </gateway:experimental:description>
+
+                            Implementations MAY choose to support other parent resources.
+                            Implementations supporting other types of parent resources MUST clearly
+                            document how/if Port is interpreted.
+
+                            For the purpose of status, an attachment is considered successful as
+                            long as the parent resource accepts it partially. For example, Gateway
+                            listeners can restrict which Routes can attach to them by Route kind,
+                            namespace, or hostname. If 1 of 2 Gateway listeners accept attachment
+                            from the referencing Route, the Route MUST be considered successfully
+                            attached. If no Gateway listeners accept attachment from this Route,
+                            the Route MUST be considered detached from the Gateway.
+
+                            Support: Extended
+                          format: int32
+                          maximum: 65535
+                          minimum: 1
+                          type: integer
+                        sectionName:
+                          description: |-
+                            SectionName is the name of a section within the target resource. In the
+                            following resources, SectionName is interpreted as the following:
+
+                            * Gateway: Listener name. When both Port (experimental) and SectionName
+                            are specified, the name and port of the selected listener must match
+                            both specified values.
+                            * Service: Port name. When both Port (experimental) and SectionName
+                            are specified, the name and port of the selected listener must match
+                            both specified values.
+
+                            Implementations MAY choose to support attaching Routes to other resources.
+                            If that is the case, they MUST clearly document how SectionName is
+                            interpreted.
+
+                            When unspecified (empty string), this will reference the entire resource.
+                            For the purpose of status, an attachment is considered successful if at
+                            least one section in the parent resource accepts it. For example, Gateway
+                            listeners can restrict which Routes can attach to them by Route kind,
+                            namespace, or hostname. If 1 of 2 Gateway listeners accept attachment from
+                            the referencing Route, the Route MUST be considered successfully
+                            attached. If no Gateway listeners accept attachment from this Route, the
+                            Route MUST be considered detached from the Gateway.
+
+                            Support: Core
+                          maxLength: 253
+                          minLength: 1
+                          pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    conditions:
+                      description: Conditions describes the status of the Policy with
+                        respect to the given Ancestor.
+                      items:
+                        description: Condition contains details for one aspect of
+                          the current state of this API Resource.
+                        properties:
+                          lastTransitionTime:
+                            description: |-
+                              lastTransitionTime is the last time the condition transitioned from one status to another.
+                              This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                            format: date-time
+                            type: string
+                          message:
+                            description: |-
+                              message is a human readable message indicating details about the transition.
+                              This may be an empty string.
+                            maxLength: 32768
+                            type: string
+                          observedGeneration:
+                            description: |-
+                              observedGeneration represents the .metadata.generation that the condition was set based upon.
+                              For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                              with respect to the current state of the instance.
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          reason:
+                            description: |-
+                              reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                              Producers of specific condition types may define expected values and meanings for this field,
+                              and whether the values are considered a guaranteed API.
+                              The value should be a CamelCase string.
+                              This field may not be empty.
+                            maxLength: 1024
+                            minLength: 1
+                            pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                            type: string
+                          status:
+                            description: status of the condition, one of True, False,
+                              Unknown.
+                            enum:
+                            - "True"
+                            - "False"
+                            - Unknown
+                            type: string
+                          type:
+                            description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                            maxLength: 316
+                            pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                            type: string
+                        required:
+                        - lastTransitionTime
+                        - message
+                        - reason
+                        - status
+                        - type
+                        type: object
+                      maxItems: 8
+                      minItems: 1
+                      type: array
+                      x-kubernetes-list-map-keys:
+                      - type
+                      x-kubernetes-list-type: map
+                    controllerName:
+                      description: |-
+                        ControllerName is a domain/path string that indicates the name of the
+                        controller that wrote this status. This corresponds with the
+                        controllerName field on GatewayClass.
+
+                        Example: "example.net/gateway-controller".
+
+                        The format of this field is DOMAIN "/" PATH, where DOMAIN and PATH are
+                        valid Kubernetes names
+                        (https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+
+                        Controllers MUST populate this field when writing status. Controllers should ensure that
+                        entries to status populated with their ControllerName are cleaned up when they are no
+                        longer necessary.
+                      maxLength: 253
+                      minLength: 1
+                      pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*\/[A-Za-z0-9\/\-._~%!$&'()*+,;=:]+$
+                      type: string
+                  required:
+                  - ancestorRef
+                  - conditions
+                  - controllerName
+                  type: object
+                maxItems: 16
+                type: array
+                x-kubernetes-list-type: atomic
+            required:
+            - ancestors
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  labels:
+    gateway.networking.k8s.io/policy: direct
+  name: observabilitypolicies.gateway.bessystem.com
+spec:
+  group: gateway.bessystem.com
+  names:
+    categories:
+    - bws-gateway-fabric
     kind: ObservabilityPolicy
     listKind: ObservabilityPolicyList
     plural: observabilitypolicies
@@ -10107,7 +9144,7 @@ spec:
       openAPIV3Schema:
         description: |-
           ObservabilityPolicy is a Direct Attached Policy. It provides a way to configure observability settings for
-          the NGINX Gateway Fabric data plane. Used in conjunction with the NginxProxy CRD that is attached to the
+          the BWS Gateway Fabric data plane. Used in conjunction with the BwsProxy CRD that is attached to the
           GatewayClass parametersRef.
         properties:
           apiVersion:
@@ -10570,12 +9607,12 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.20.1
   labels:
     gateway.networking.k8s.io/policy: inherited
-  name: proxysettingspolicies.gateway.nginx.org
+  name: proxysettingspolicies.gateway.bessystem.com
 spec:
-  group: gateway.nginx.org
+  group: gateway.bessystem.com
   names:
     categories:
-    - nginx-gateway-fabric
+    - bws-gateway-fabric
     kind: ProxySettingsPolicy
     listKind: ProxySettingsPolicyList
     plural: proxysettingspolicies
@@ -10593,7 +9630,7 @@ spec:
       openAPIV3Schema:
         description: |-
           ProxySettingsPolicy is an Inherited Attached Policy. It provides a way to configure the behavior of the connection
-          between NGINX Gateway Fabric and the upstream applications (backends).
+          between BWS Gateway Fabric and the upstream applications (backends).
         properties:
           apiVersion:
             description: |-
@@ -11050,12 +10087,12 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.20.1
   labels:
     gateway.networking.k8s.io/policy: inherited
-  name: ratelimitpolicies.gateway.nginx.org
+  name: ratelimitpolicies.gateway.bessystem.com
 spec:
-  group: gateway.nginx.org
+  group: gateway.bessystem.com
   names:
     categories:
-    - nginx-gateway-fabric
+    - bws-gateway-fabric
     kind: RateLimitPolicy
     listKind: RateLimitPolicyList
     plural: ratelimitpolicies
@@ -11072,7 +10109,7 @@ spec:
     schema:
       openAPIV3Schema:
         description: RateLimitPolicy is an Inherited Attached Policy. It provides
-          a way to set local rate limiting rules in NGINX.
+          a way to set local rate limiting rules in BWS.
         properties:
           apiVersion:
             description: |-
@@ -11559,12 +10596,12 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
-  name: snippetsfilters.gateway.nginx.org
+  name: snippetsfilters.gateway.bessystem.com
 spec:
-  group: gateway.nginx.org
+  group: gateway.bessystem.com
   names:
     categories:
-    - nginx-gateway-fabric
+    - bws-gateway-fabric
     kind: SnippetsFilter
     listKind: SnippetsFilterList
     plural: snippetsfilters
@@ -11750,12 +10787,12 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.20.1
   labels:
     gateway.networking.k8s.io/policy: direct
-  name: snippetspolicies.gateway.nginx.org
+  name: snippetspolicies.gateway.bessystem.com
 spec:
-  group: gateway.nginx.org
+  group: gateway.bessystem.com
   names:
     categories:
-    - nginx-gateway-fabric
+    - bws-gateway-fabric
     kind: SnippetsPolicy
     listKind: SnippetsPolicyList
     plural: snippetspolicies
@@ -12180,12 +11217,12 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.20.1
   labels:
     gateway.networking.k8s.io/policy: direct
-  name: upstreamsettingspolicies.gateway.nginx.org
+  name: upstreamsettingspolicies.gateway.bessystem.com
 spec:
-  group: gateway.nginx.org
+  group: gateway.bessystem.com
   names:
     categories:
-    - nginx-gateway-fabric
+    - bws-gateway-fabric
     kind: UpstreamSettingsPolicy
     listKind: UpstreamSettingsPolicyList
     plural: upstreamsettingspolicies
@@ -12203,7 +11240,7 @@ spec:
       openAPIV3Schema:
         description: |-
           UpstreamSettingsPolicy is a Direct Attached Policy. It provides a way to configure the behavior of
-          the connection between NGINX and the upstream applications.
+          the connection between BWS and the upstream applications.
         properties:
           apiVersion:
             description: |-
@@ -12270,7 +11307,7 @@ spec:
               loadBalancingMethod:
                 description: |-
                   LoadBalancingMethod specifies the load balancing algorithm to be used for the upstream.
-                  If not specified, NGINX Gateway Fabric defaults to `random two least_conn`,
+                  If not specified, BWS Gateway Fabric defaults to `random two least_conn`,
                   which differs from the standard NGINX default `round-robin`.
                 enum:
                 - round_robin
@@ -12354,913 +11391,6 @@ spec:
                 has(self.hashMethodKey)'
           status:
             description: Status defines the state of the UpstreamSettingsPolicy.
-            properties:
-              ancestors:
-                description: |-
-                  Ancestors is a list of ancestor resources (usually Gateways) that are
-                  associated with the policy, and the status of the policy with respect to
-                  each ancestor. When this policy attaches to a parent, the controller that
-                  manages the parent and the ancestors MUST add an entry to this list when
-                  the controller first sees the policy and SHOULD update the entry as
-                  appropriate when the relevant ancestor is modified.
-
-                  Note that choosing the relevant ancestor is left to the Policy designers;
-                  an important part of Policy design is designing the right object level at
-                  which to namespace this status.
-
-                  Note also that implementations MUST ONLY populate ancestor status for
-                  the Ancestor resources they are responsible for. Implementations MUST
-                  use the ControllerName field to uniquely identify the entries in this list
-                  that they are responsible for.
-
-                  Note that to achieve this, the list of PolicyAncestorStatus structs
-                  MUST be treated as a map with a composite key, made up of the AncestorRef
-                  and ControllerName fields combined.
-
-                  A maximum of 16 ancestors will be represented in this list. An empty list
-                  means the Policy is not relevant for any ancestors.
-
-                  If this slice is full, implementations MUST NOT add further entries.
-                  Instead they MUST consider the policy unimplementable and signal that
-                  on any related resources such as the ancestor that would be referenced
-                  here. For example, if this list was full on BackendTLSPolicy, no
-                  additional Gateways would be able to reference the Service targeted by
-                  the BackendTLSPolicy.
-                items:
-                  description: |-
-                    PolicyAncestorStatus describes the status of a route with respect to an
-                    associated Ancestor.
-
-                    Ancestors refer to objects that are either the Target of a policy or above it
-                    in terms of object hierarchy. For example, if a policy targets a Service, the
-                    Policy's Ancestors are, in order, the Service, the HTTPRoute, the Gateway, and
-                    the GatewayClass. Almost always, in this hierarchy, the Gateway will be the most
-                    useful object to place Policy status on, so we recommend that implementations
-                    SHOULD use Gateway as the PolicyAncestorStatus object unless the designers
-                    have a _very_ good reason otherwise.
-
-                    In the context of policy attachment, the Ancestor is used to distinguish which
-                    resource results in a distinct application of this policy. For example, if a policy
-                    targets a Service, it may have a distinct result per attached Gateway.
-
-                    Policies targeting the same resource may have different effects depending on the
-                    ancestors of those resources. For example, different Gateways targeting the same
-                    Service may have different capabilities, especially if they have different underlying
-                    implementations.
-
-                    For example, in BackendTLSPolicy, the Policy attaches to a Service that is
-                    used as a backend in a HTTPRoute that is itself attached to a Gateway.
-                    In this case, the relevant object for status is the Gateway, and that is the
-                    ancestor object referred to in this status.
-
-                    Note that a parent is also an ancestor, so for objects where the parent is the
-                    relevant object for status, this struct SHOULD still be used.
-
-                    This struct is intended to be used in a slice that's effectively a map,
-                    with a composite key made up of the AncestorRef and the ControllerName.
-                  properties:
-                    ancestorRef:
-                      description: |-
-                        AncestorRef corresponds with a ParentRef in the spec that this
-                        PolicyAncestorStatus struct describes the status of.
-                      properties:
-                        group:
-                          default: gateway.networking.k8s.io
-                          description: |-
-                            Group is the group of the referent.
-                            When unspecified, "gateway.networking.k8s.io" is inferred.
-                            To set the core API group (such as for a "Service" kind referent),
-                            Group must be explicitly set to "" (empty string).
-
-                            Support: Core
-                          maxLength: 253
-                          pattern: ^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
-                          type: string
-                        kind:
-                          default: Gateway
-                          description: |-
-                            Kind is kind of the referent.
-
-                            There are two kinds of parent resources with "Core" support:
-
-                            * Gateway (Gateway conformance profile)
-                            * Service (Mesh conformance profile, ClusterIP Services only)
-
-                            Support for other resources is Implementation-Specific.
-                          maxLength: 63
-                          minLength: 1
-                          pattern: ^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$
-                          type: string
-                        name:
-                          description: |-
-                            Name is the name of the referent.
-
-                            Support: Core
-                          maxLength: 253
-                          minLength: 1
-                          type: string
-                        namespace:
-                          description: |-
-                            Namespace is the namespace of the referent. When unspecified, this refers
-                            to the local namespace of the Route.
-
-                            Note that there are specific rules for ParentRefs which cross namespace
-                            boundaries. Cross-namespace references are only valid if they are explicitly
-                            allowed by something in the namespace they are referring to. For example:
-                            Gateway has the AllowedRoutes field, and ReferenceGrant provides a
-                            generic way to enable any other kind of cross-namespace reference.
-
-                            <gateway:experimental:description>
-                            ParentRefs from a Route to a Service in the same namespace are "producer"
-                            routes, which apply default routing rules to inbound connections from
-                            any namespace to the Service.
-
-                            ParentRefs from a Route to a Service in a different namespace are
-                            "consumer" routes, and these routing rules are only applied to outbound
-                            connections originating from the same namespace as the Route, for which
-                            the intended destination of the connections are a Service targeted as a
-                            ParentRef of the Route.
-                            </gateway:experimental:description>
-
-                            Support: Core
-                          maxLength: 63
-                          minLength: 1
-                          pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
-                          type: string
-                        port:
-                          description: |-
-                            Port is the network port this Route targets. It can be interpreted
-                            differently based on the type of parent resource.
-
-                            When the parent resource is a Gateway, this targets all listeners
-                            listening on the specified port that also support this kind of Route(and
-                            select this Route). It's not recommended to set `Port` unless the
-                            networking behaviors specified in a Route must apply to a specific port
-                            as opposed to a listener(s) whose port(s) may be changed. When both Port
-                            and SectionName are specified, the name and port of the selected listener
-                            must match both specified values.
-
-                            <gateway:experimental:description>
-                            When the parent resource is a Service, this targets a specific port in the
-                            Service spec. When both Port (experimental) and SectionName are specified,
-                            the name and port of the selected port must match both specified values.
-                            </gateway:experimental:description>
-
-                            Implementations MAY choose to support other parent resources.
-                            Implementations supporting other types of parent resources MUST clearly
-                            document how/if Port is interpreted.
-
-                            For the purpose of status, an attachment is considered successful as
-                            long as the parent resource accepts it partially. For example, Gateway
-                            listeners can restrict which Routes can attach to them by Route kind,
-                            namespace, or hostname. If 1 of 2 Gateway listeners accept attachment
-                            from the referencing Route, the Route MUST be considered successfully
-                            attached. If no Gateway listeners accept attachment from this Route,
-                            the Route MUST be considered detached from the Gateway.
-
-                            Support: Extended
-                          format: int32
-                          maximum: 65535
-                          minimum: 1
-                          type: integer
-                        sectionName:
-                          description: |-
-                            SectionName is the name of a section within the target resource. In the
-                            following resources, SectionName is interpreted as the following:
-
-                            * Gateway: Listener name. When both Port (experimental) and SectionName
-                            are specified, the name and port of the selected listener must match
-                            both specified values.
-                            * Service: Port name. When both Port (experimental) and SectionName
-                            are specified, the name and port of the selected listener must match
-                            both specified values.
-
-                            Implementations MAY choose to support attaching Routes to other resources.
-                            If that is the case, they MUST clearly document how SectionName is
-                            interpreted.
-
-                            When unspecified (empty string), this will reference the entire resource.
-                            For the purpose of status, an attachment is considered successful if at
-                            least one section in the parent resource accepts it. For example, Gateway
-                            listeners can restrict which Routes can attach to them by Route kind,
-                            namespace, or hostname. If 1 of 2 Gateway listeners accept attachment from
-                            the referencing Route, the Route MUST be considered successfully
-                            attached. If no Gateway listeners accept attachment from this Route, the
-                            Route MUST be considered detached from the Gateway.
-
-                            Support: Core
-                          maxLength: 253
-                          minLength: 1
-                          pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
-                          type: string
-                      required:
-                      - name
-                      type: object
-                    conditions:
-                      description: Conditions describes the status of the Policy with
-                        respect to the given Ancestor.
-                      items:
-                        description: Condition contains details for one aspect of
-                          the current state of this API Resource.
-                        properties:
-                          lastTransitionTime:
-                            description: |-
-                              lastTransitionTime is the last time the condition transitioned from one status to another.
-                              This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
-                            format: date-time
-                            type: string
-                          message:
-                            description: |-
-                              message is a human readable message indicating details about the transition.
-                              This may be an empty string.
-                            maxLength: 32768
-                            type: string
-                          observedGeneration:
-                            description: |-
-                              observedGeneration represents the .metadata.generation that the condition was set based upon.
-                              For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-                              with respect to the current state of the instance.
-                            format: int64
-                            minimum: 0
-                            type: integer
-                          reason:
-                            description: |-
-                              reason contains a programmatic identifier indicating the reason for the condition's last transition.
-                              Producers of specific condition types may define expected values and meanings for this field,
-                              and whether the values are considered a guaranteed API.
-                              The value should be a CamelCase string.
-                              This field may not be empty.
-                            maxLength: 1024
-                            minLength: 1
-                            pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
-                            type: string
-                          status:
-                            description: status of the condition, one of True, False,
-                              Unknown.
-                            enum:
-                            - "True"
-                            - "False"
-                            - Unknown
-                            type: string
-                          type:
-                            description: type of condition in CamelCase or in foo.example.com/CamelCase.
-                            maxLength: 316
-                            pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
-                            type: string
-                        required:
-                        - lastTransitionTime
-                        - message
-                        - reason
-                        - status
-                        - type
-                        type: object
-                      maxItems: 8
-                      minItems: 1
-                      type: array
-                      x-kubernetes-list-map-keys:
-                      - type
-                      x-kubernetes-list-type: map
-                    controllerName:
-                      description: |-
-                        ControllerName is a domain/path string that indicates the name of the
-                        controller that wrote this status. This corresponds with the
-                        controllerName field on GatewayClass.
-
-                        Example: "example.net/gateway-controller".
-
-                        The format of this field is DOMAIN "/" PATH, where DOMAIN and PATH are
-                        valid Kubernetes names
-                        (https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-
-                        Controllers MUST populate this field when writing status. Controllers should ensure that
-                        entries to status populated with their ControllerName are cleaned up when they are no
-                        longer necessary.
-                      maxLength: 253
-                      minLength: 1
-                      pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*\/[A-Za-z0-9\/\-._~%!$&'()*+,;=:]+$
-                      type: string
-                  required:
-                  - ancestorRef
-                  - conditions
-                  - controllerName
-                  type: object
-                maxItems: 16
-                type: array
-                x-kubernetes-list-type: atomic
-            required:
-            - ancestors
-            type: object
-        required:
-        - spec
-        type: object
-    served: true
-    storage: true
-    subresources:
-      status: {}
----
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
-  labels:
-    gateway.networking.k8s.io/policy: inherited
-  name: wafpolicies.gateway.nginx.org
-spec:
-  group: gateway.nginx.org
-  names:
-    categories:
-    - nginx-gateway-fabric
-    kind: WAFPolicy
-    listKind: WAFPolicyList
-    plural: wafpolicies
-    shortNames:
-    - wgbpolicy
-    singular: wafpolicy
-  scope: Namespaced
-  versions:
-  - additionalPrinterColumns:
-    - jsonPath: .metadata.creationTimestamp
-      name: Age
-      type: date
-    name: v1alpha1
-    schema:
-      openAPIV3Schema:
-        description: |-
-          WAFPolicy is an Inherited Attached Policy. It provides a way to configure F5 WAF for NGINX
-          for Gateways and Routes by referencing compiled WAF policy bundles. Bundles can be fetched directly from an
-          HTTP/HTTPS URL (type: HTTP), from an NGINX Instance Manager instance (type: NIM), or from an F5 NGINX One
-          Console instance (type: N1C).
-        properties:
-          apiVersion:
-            description: |-
-              APIVersion defines the versioned schema of this representation of an object.
-              Servers should convert recognized schemas to the latest internal value, and
-              may reject unrecognized values.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-            type: string
-          kind:
-            description: |-
-              Kind is a string value representing the REST resource this object represents.
-              Servers may infer this from the endpoint the client submits requests to.
-              Cannot be updated.
-              In CamelCase.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-            type: string
-          metadata:
-            type: object
-          spec:
-            description: Spec defines the desired state of the WAFPolicy.
-            properties:
-              policySource:
-                description: PolicySource holds all policy bundle fetch configuration.
-                properties:
-                  auth:
-                    description: Auth configures authentication credentials for fetching
-                      the bundle.
-                    properties:
-                      secretRef:
-                        description: |-
-                          SecretRef references a Kubernetes Secret in the same namespace as the WAFPolicy.
-                          The Secret may contain:
-                            - "username" and "password" fields for HTTP Basic Authentication
-                            - "token" field for Bearer Token Authentication (NIM) or APIToken Authentication (N1C)
-                        properties:
-                          name:
-                            description: Name is the name of the referenced object.
-                            type: string
-                        required:
-                        - name
-                        type: object
-                    required:
-                    - secretRef
-                    type: object
-                  httpSource:
-                    description: |-
-                      HTTPSource configures direct bundle fetching from an HTTP/HTTPS URL.
-                      Required when type is HTTP; must not be set for other types.
-                    properties:
-                      url:
-                        description: |-
-                          URL is the full URL of the compiled policy bundle (.tgz),
-                          e.g. "https://storage.example.com/bundles/policy.tgz".
-                        maxLength: 2083
-                        minLength: 1
-                        pattern: ^https?://
-                        type: string
-                    required:
-                    - url
-                    type: object
-                  insecureSkipVerify:
-                    description: |-
-                      InsecureSkipVerify disables TLS certificate verification when fetching the bundle.
-                      Not recommended for production use.
-                    type: boolean
-                  n1cSource:
-                    description: |-
-                      N1CSource configures bundle fetching from F5 NGINX One Console.
-                      Required when type is N1C; must not be set for other types.
-                    properties:
-                      namespace:
-                        description: Namespace is the NGINX One Console namespace
-                          that owns the security policy.
-                        maxLength: 253
-                        minLength: 1
-                        type: string
-                      policyName:
-                        description: |-
-                          PolicyName is the name of the security policy in N1C.
-                          Mutually exclusive with policyObjectID.
-                        maxLength: 253
-                        minLength: 1
-                        type: string
-                      policyObjectID:
-                        description: |-
-                          PolicyObjectID is the unique object identifier of the security policy in N1C
-                          (e.g. "pol_-IUuEUN7ST63oRC7AlQPLw").
-                          Mutually exclusive with policyName.
-                        pattern: ^pol_[A-Za-z0-9_-]+$
-                        type: string
-                      policyVersionID:
-                        description: |-
-                          PolicyVersionID pins a specific version of the policy bundle using its opaque version ID
-                          (e.g. "pv_UJ2gL5fOQ3Gnb3OVuVo1XA"). When omitted, the latest available version is used.
-                        pattern: ^pv_[A-Za-z0-9_-]+$
-                        type: string
-                      url:
-                        description: |-
-                          URL is the base URL of the F5 NGINX One Console instance,
-                          e.g. "https://<tenant>.volterra.us".
-                        maxLength: 2083
-                        minLength: 1
-                        pattern: ^https?://
-                        type: string
-                    required:
-                    - namespace
-                    - url
-                    type: object
-                    x-kubernetes-validations:
-                    - message: exactly one of policyName or policyObjectID must be
-                        set
-                      rule: (has(self.policyName) && !has(self.policyObjectID)) ||
-                        (!has(self.policyName) && has(self.policyObjectID))
-                  nimSource:
-                    description: |-
-                      NIMSource configures bundle fetching from NGINX Instance Manager.
-                      Required when type is NIM; must not be set for other types.
-                    properties:
-                      policyName:
-                        description: |-
-                          PolicyName is the name of the compiled policy bundle in NIM.
-                          Mutually exclusive with policyUID.
-                        maxLength: 253
-                        minLength: 1
-                        type: string
-                      policyUID:
-                        description: |-
-                          PolicyUID is the unique identifier of the compiled policy bundle in NIM.
-                          Mutually exclusive with policyName.
-                          Must be a valid UUID (e.g. "2bc1e3ac-7990-4ca4-910a-8634c444c804").
-                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
-                        type: string
-                      url:
-                        description: |-
-                          URL is the base URL of the NGINX Instance Manager instance,
-                          e.g. "https://nim.example.com".
-                        maxLength: 2083
-                        minLength: 1
-                        pattern: ^https?://
-                        type: string
-                    required:
-                    - url
-                    type: object
-                    x-kubernetes-validations:
-                    - message: exactly one of policyName or policyUID must be set
-                      rule: (has(self.policyName) && !has(self.policyUID)) || (!has(self.policyName)
-                        && has(self.policyUID))
-                  polling:
-                    description: Polling configures automatic periodic re-fetching
-                      of the bundle.
-                    properties:
-                      enabled:
-                        description: |-
-                          Enabled activates periodic re-fetching of the bundle.
-                          When true, NGF fetches the bundle on each interval and deploys it only if
-                          its checksum differs from the last successfully fetched version.
-                        type: boolean
-                      interval:
-                        description: |-
-                          Interval is the period between poll cycles.
-                          Defaults to 5m when polling is enabled but no interval is set.
-                        type: string
-                    type: object
-                  retryAttempts:
-                    default: 3
-                    description: |-
-                      RetryAttempts is the maximum number of additional fetch attempts on transient failures
-                      (network errors, HTTP 5xx). Set to 0 to disable retries. Defaults to 3.
-                      Non-transient errors (HTTP 4xx, checksum mismatch) are never retried.
-                    format: int32
-                    maximum: 10
-                    minimum: 0
-                    type: integer
-                  timeout:
-                    description: |-
-                      Timeout is the maximum duration for a single bundle fetch attempt.
-                      Defaults to 30s when not set.
-                    type: string
-                  tlsSecret:
-                    description: |-
-                      TLSSecretRef references a Secret containing a custom CA certificate (key: "ca.crt") for
-                      verifying the bundle server's TLS certificate.
-                    properties:
-                      name:
-                        description: Name is the name of the referenced object.
-                        type: string
-                    required:
-                    - name
-                    type: object
-                  validation:
-                    description: Validation configures integrity verification for
-                      the downloaded bundle.
-                    properties:
-                      expectedChecksum:
-                        description: |-
-                          ExpectedChecksum is the expected SHA256 checksum of the bundle.
-                          If set, the downloaded bundle must match this checksum or it will be rejected.
-                          For N1C sources, the checksum reported by the N1C API is verified automatically;
-                          set this field only if you want to enforce an additional, independently known value.
-                        maxLength: 64
-                        minLength: 64
-                        pattern: ^[0-9a-fA-F]{64}$
-                        type: string
-                      verifyChecksum:
-                        description: |-
-                          VerifyChecksum enables automatic checksum verification by fetching a companion
-                          checksum file at <url>.sha256 and comparing it against the downloaded bundle.
-                          Only supported when the policy source type is HTTP (policySource.httpSource or
-                          logSource.url); setting this for NIM or N1C sources is rejected at admission.
-                          Note: for N1C sources, bundle integrity is always verified automatically using
-                          the checksum returned by the N1C compile API — this field is not needed.
-                          Mutually exclusive with expectedChecksum.
-                        type: boolean
-                    type: object
-                    x-kubernetes-validations:
-                    - message: verifyChecksum and expectedChecksum are mutually exclusive
-                      rule: '!(has(self.verifyChecksum) && self.verifyChecksum &&
-                        has(self.expectedChecksum))'
-                type: object
-              securityLogs:
-                description: SecurityLogs defines security logging configurations.
-                items:
-                  description: |-
-                    WAFSecurityLog defines security logging configuration for app_protect_security_log directives.
-                    Exactly one of logSource.defaultProfile, logSource.httpSource, logSource.nimSource, or logSource.n1cSource must be set.
-                  properties:
-                    destination:
-                      description: Destination defines where security logs are sent.
-                      properties:
-                        file:
-                          description: |-
-                            File defines the file destination configuration.
-                            Only valid when type is "file".
-                          properties:
-                            path:
-                              description: |-
-                                Path is the file path where security logs will be written.
-                                Must be accessible to the waf-enforcer container.
-                              maxLength: 256
-                              minLength: 1
-                              pattern: ^/.*$
-                              type: string
-                          required:
-                          - path
-                          type: object
-                        syslog:
-                          description: |-
-                            Syslog defines the syslog destination configuration.
-                            Only valid when type is "syslog".
-                          properties:
-                            server:
-                              description: Server is the syslog server address in
-                                the format "host:port".
-                              maxLength: 253
-                              minLength: 1
-                              pattern: ^[a-zA-Z0-9.-]+:[0-9]+$
-                              type: string
-                          required:
-                          - server
-                          type: object
-                        type:
-                          default: stderr
-                          description: Type identifies the type of security log destination.
-                          enum:
-                          - stderr
-                          - file
-                          - syslog
-                          type: string
-                      required:
-                      - type
-                      type: object
-                      x-kubernetes-validations:
-                      - message: destination.file must be set if and only if type
-                          is file
-                        rule: (self.type == 'file') == has(self.file)
-                      - message: destination.syslog must be set if and only if type
-                          is syslog
-                        rule: (self.type == 'syslog') == has(self.syslog)
-                    logSource:
-                      description: |-
-                        LogSource configures the log profile bundle source for this log entry.
-                        Exactly one of url or defaultProfile must be set.
-                      properties:
-                        auth:
-                          description: |-
-                            Auth configures authentication credentials for fetching the log bundle.
-                            Only applicable when url is set.
-                          properties:
-                            secretRef:
-                              description: |-
-                                SecretRef references a Kubernetes Secret in the same namespace as the WAFPolicy.
-                                The Secret may contain:
-                                  - "username" and "password" fields for HTTP Basic Authentication
-                                  - "token" field for Bearer Token Authentication (NIM) or APIToken Authentication (N1C)
-                              properties:
-                                name:
-                                  description: Name is the name of the referenced
-                                    object.
-                                  type: string
-                              required:
-                              - name
-                              type: object
-                          required:
-                          - secretRef
-                          type: object
-                        defaultProfile:
-                          description: |-
-                            DefaultProfile selects one of the built-in WAF log profile bundles shipped with the WAF engine.
-                            Mutually exclusive with HTTPSource, NIMSource, and N1CSource.
-                          enum:
-                          - log_default
-                          - log_all
-                          - log_illegal
-                          - log_blocked
-                          - log_grpc_all
-                          - log_grpc_blocked
-                          - log_grpc_illegal
-                          type: string
-                        httpSource:
-                          description: |-
-                            HTTPSource configures direct bundle fetching from an HTTP/HTTPS URL.
-                            Mutually exclusive with DefaultProfile, NIMSource and N1CSource.
-                          properties:
-                            url:
-                              description: |-
-                                URL is the full URL of the compiled policy bundle (.tgz),
-                                e.g. "https://storage.example.com/bundles/policy.tgz".
-                              maxLength: 2083
-                              minLength: 1
-                              pattern: ^https?://
-                              type: string
-                          required:
-                          - url
-                          type: object
-                        insecureSkipVerify:
-                          description: |-
-                            InsecureSkipVerify disables TLS certificate verification when fetching the bundle.
-                            Not recommended for production use.
-                          type: boolean
-                        n1cSource:
-                          description: |-
-                            N1CSource configures bundle fetching from F5 NGINX One Console.
-                            Mutually exclusive with DefaultProfile, HTTPSource, and NIMSource.
-                          properties:
-                            namespace:
-                              description: Namespace is the NGINX One Console namespace
-                                that owns the log profile.
-                              maxLength: 253
-                              minLength: 1
-                              type: string
-                            profileName:
-                              description: ProfileName is the name of the log profile
-                                in N1C that corresponds to the log profile bundle.
-                              maxLength: 253
-                              minLength: 1
-                              type: string
-                            profileObjectID:
-                              description: |-
-                                ProfileObjectID is the unique object identifier of the log profile in N1C
-                                (e.g. "lp_8s8uZxLpThWwEGF7LTn_rA") that corresponds to the log profile bundle.
-                              pattern: ^lp_[A-Za-z0-9_-]+$
-                              type: string
-                            url:
-                              description: |-
-                                URL is the base URL of the F5 NGINX One Console instance,
-                                e.g. "https://<tenant>.volterra.us".
-                              maxLength: 2083
-                              minLength: 1
-                              pattern: ^https?://
-                              type: string
-                          required:
-                          - namespace
-                          - url
-                          type: object
-                          x-kubernetes-validations:
-                          - message: exactly one of profileName or profileObjectID
-                              must be set
-                            rule: (has(self.profileName) && !has(self.profileObjectID))
-                              || (!has(self.profileName) && has(self.profileObjectID))
-                        nimSource:
-                          description: |-
-                            NIMSource configures bundle fetching from NGINX Instance Manager.
-                            Mutually exclusive with DefaultProfile, HTTPSource and N1CSource.
-                          properties:
-                            profileName:
-                              description: ProfileName is the name of the compiled
-                                log profile bundle in NIM.
-                              maxLength: 253
-                              minLength: 1
-                              type: string
-                            url:
-                              description: |-
-                                URL is the base URL of the NGINX Instance Manager instance,
-                                e.g. "https://nim.example.com".
-                              maxLength: 2083
-                              minLength: 1
-                              pattern: ^https?://
-                              type: string
-                          required:
-                          - profileName
-                          - url
-                          type: object
-                        polling:
-                          description: |-
-                            Polling configures automatic periodic re-fetching of the log bundle.
-                            Only applicable when url is set.
-                          properties:
-                            enabled:
-                              description: |-
-                                Enabled activates periodic re-fetching of the bundle.
-                                When true, NGF fetches the bundle on each interval and deploys it only if
-                                its checksum differs from the last successfully fetched version.
-                              type: boolean
-                            interval:
-                              description: |-
-                                Interval is the period between poll cycles.
-                                Defaults to 5m when polling is enabled but no interval is set.
-                              type: string
-                          type: object
-                        retryAttempts:
-                          default: 3
-                          description: |-
-                            RetryAttempts is the maximum number of additional fetch attempts on transient failures
-                            (network errors, HTTP 5xx). Set to 0 to disable retries. Defaults to 3.
-                            Non-transient errors (HTTP 4xx, checksum mismatch) are never retried.
-                            Only applicable when url is set.
-                          format: int32
-                          maximum: 10
-                          minimum: 0
-                          type: integer
-                        timeout:
-                          description: |-
-                            Timeout is the maximum duration for a single log bundle fetch attempt.
-                            Defaults to 30s when not set. Only applicable when url is set.
-                          type: string
-                        tlsSecret:
-                          description: |-
-                            TLSSecretRef references a Secret containing a custom CA certificate (key: "ca.crt").
-                            Only applicable when url is set.
-                          properties:
-                            name:
-                              description: Name is the name of the referenced object.
-                              type: string
-                          required:
-                          - name
-                          type: object
-                        validation:
-                          description: |-
-                            Validation configures integrity verification for the downloaded log bundle.
-                            Only applicable when url is set.
-                          properties:
-                            expectedChecksum:
-                              description: |-
-                                ExpectedChecksum is the expected SHA256 checksum of the bundle.
-                                If set, the downloaded bundle must match this checksum or it will be rejected.
-                                For N1C sources, the checksum reported by the N1C API is verified automatically;
-                                set this field only if you want to enforce an additional, independently known value.
-                              maxLength: 64
-                              minLength: 64
-                              pattern: ^[0-9a-fA-F]{64}$
-                              type: string
-                            verifyChecksum:
-                              description: |-
-                                VerifyChecksum enables automatic checksum verification by fetching a companion
-                                checksum file at <url>.sha256 and comparing it against the downloaded bundle.
-                                Only supported when the policy source type is HTTP (policySource.httpSource or
-                                logSource.url); setting this for NIM or N1C sources is rejected at admission.
-                                Note: for N1C sources, bundle integrity is always verified automatically using
-                                the checksum returned by the N1C compile API — this field is not needed.
-                                Mutually exclusive with expectedChecksum.
-                              type: boolean
-                          type: object
-                          x-kubernetes-validations:
-                          - message: verifyChecksum and expectedChecksum are mutually
-                              exclusive
-                            rule: '!(has(self.verifyChecksum) && self.verifyChecksum
-                              && has(self.expectedChecksum))'
-                      type: object
-                      x-kubernetes-validations:
-                      - message: exactly one of logSource.defaultProfile, logSource.httpSource,
-                          logSource.nimSource, or logSource.n1cSource must be set
-                        rule: (has(self.defaultProfile) && !has(self.httpSource) &&
-                          !has(self.nimSource) && !has(self.n1cSource)) || (!has(self.defaultProfile)
-                          && has(self.httpSource) && !has(self.nimSource) && !has(self.n1cSource))
-                          || (!has(self.defaultProfile) && !has(self.httpSource) &&
-                          has(self.nimSource) && !has(self.n1cSource)) || (!has(self.defaultProfile)
-                          && !has(self.httpSource) && !has(self.nimSource) && has(self.n1cSource))
-                  required:
-                  - destination
-                  - logSource
-                  type: object
-                maxItems: 32
-                type: array
-              targetRefs:
-                description: |-
-                  TargetRefs identifies API object(s) to apply the policy to.
-                  Objects must be in the same namespace as the policy.
-                  All targets must be of the same Kind (all Gateways OR all HTTPRoutes OR all GRPCRoutes).
-                  Support: Gateway, HTTPRoute, GRPCRoute.
-                items:
-                  description: |-
-                    LocalPolicyTargetReference identifies an API object to apply a direct or
-                    inherited policy to. This should be used as part of Policy resources
-                    that can target Gateway API resources. For more information on how this
-                    policy attachment model works, and a sample Policy resource, refer to
-                    the policy attachment documentation for Gateway API.
-                  properties:
-                    group:
-                      description: Group is the group of the target resource.
-                      maxLength: 253
-                      pattern: ^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
-                      type: string
-                    kind:
-                      description: Kind is kind of the target resource.
-                      maxLength: 63
-                      minLength: 1
-                      pattern: ^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$
-                      type: string
-                    name:
-                      description: Name is the name of the target resource.
-                      maxLength: 253
-                      minLength: 1
-                      type: string
-                  required:
-                  - group
-                  - kind
-                  - name
-                  type: object
-                maxItems: 16
-                minItems: 1
-                type: array
-                x-kubernetes-validations:
-                - message: All TargetRefs must be the same Kind
-                  rule: self.all(t1, self.all(t2, t1.kind == t2.kind))
-                - message: 'TargetRef Kind must be one of: Gateway, HTTPRoute, or
-                    GRPCRoute'
-                  rule: self.all(t, t.kind=='Gateway' || t.kind=='HTTPRoute' || t.kind=='GRPCRoute')
-                - message: TargetRef Group must be gateway.networking.k8s.io
-                  rule: self.all(t, t.group=='gateway.networking.k8s.io')
-                - message: TargetRef Name must be unique
-                  rule: self.all(t1, self.exists_one(t2, t1.name == t2.name))
-              type:
-                description: |-
-                  Type identifies the source type for the policy bundle.
-                  HTTP fetches directly from a URL; NIM uses the NGINX Instance Manager bundles API;
-                  N1C uses the F5 NGINX One Console security policies API.
-                enum:
-                - HTTP
-                - NIM
-                - N1C
-                type: string
-            required:
-            - policySource
-            - targetRefs
-            - type
-            type: object
-            x-kubernetes-validations:
-            - message: policySource.httpSource must be set if and only if type is
-                HTTP
-              rule: (self.type == 'HTTP') == (has(self.policySource) && has(self.policySource.httpSource))
-            - message: policySource.nimSource must be set if and only if type is NIM
-              rule: (self.type == 'NIM') == (has(self.policySource) && has(self.policySource.nimSource))
-            - message: policySource.n1cSource must be set if and only if type is N1C
-              rule: (self.type == 'N1C') == (has(self.policySource) && has(self.policySource.n1cSource))
-            - message: policySource.validation.verifyChecksum is only supported for
-                type HTTP
-              rule: '!(self.type != ''HTTP'' && has(self.policySource) && has(self.policySource.validation)
-                && has(self.policySource.validation.verifyChecksum) && self.policySource.validation.verifyChecksum)'
-          status:
-            description: Status defines the state of the WAFPolicy.
             properties:
               ancestors:
                 description: |-

@@ -3180,29 +3180,29 @@ var _ = Describe("ChangeProcessor", func() {
 			})
 		})
 
-		Describe("NginxProxy resource changes", Ordered, func() {
+		Describe("BwsProxy resource changes", Ordered, func() {
 			Context("referenced by a GatewayClass", func() {
 				paramGC := gc.DeepCopy()
 				paramGC.Spec.ParametersRef = &v1.ParametersReference{
 					Group:     ngfAPIv1alpha1.GroupName,
-					Kind:      kinds.NginxProxy,
+					Kind:      kinds.BwsProxy,
 					Name:      "np",
 					Namespace: helpers.GetPointer[v1.Namespace]("test"),
 				}
 
-				np := &ngfAPIv1alpha2.NginxProxy{
+				np := &ngfAPIv1alpha2.BwsProxy{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "np",
 						Namespace: "test",
 					},
 				}
 
-				npUpdated := &ngfAPIv1alpha2.NginxProxy{
+				npUpdated := &ngfAPIv1alpha2.BwsProxy{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "np",
 						Namespace: "test",
 					},
-					Spec: ngfAPIv1alpha2.NginxProxySpec{
+					Spec: ngfAPIv1alpha2.BwsProxySpec{
 						Telemetry: &ngfAPIv1alpha2.Telemetry{
 							Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 								Endpoint:   helpers.GetPointer("my-svc:123"),
@@ -3213,28 +3213,28 @@ var _ = Describe("ChangeProcessor", func() {
 						},
 					},
 				}
-				It("handles upserts for an NginxProxy", func() {
+				It("handles upserts for an BwsProxy", func() {
 					processor.CaptureUpsertChange(np)
 					processor.CaptureUpsertChange(paramGC)
 
 					graph := processor.Process(context.Background())
 					Expect(graph).ToNot(BeNil())
-					Expect(graph.GatewayClass.NginxProxy.Source).To(Equal(np))
+					Expect(graph.GatewayClass.BwsProxy.Source).To(Equal(np))
 				})
-				It("captures changes for an NginxProxy", func() {
+				It("captures changes for an BwsProxy", func() {
 					processor.CaptureUpsertChange(npUpdated)
 					processor.CaptureUpsertChange(paramGC)
 
 					graph := processor.Process(context.Background())
 					Expect(graph).ToNot(BeNil())
-					Expect(graph.GatewayClass.NginxProxy.Source).To(Equal(npUpdated))
+					Expect(graph.GatewayClass.BwsProxy.Source).To(Equal(npUpdated))
 				})
-				It("handles deletes for an NginxProxy", func() {
+				It("handles deletes for an BwsProxy", func() {
 					processor.CaptureDeleteChange(np, client.ObjectKeyFromObject(np))
 
 					graph := processor.Process(context.Background())
 					Expect(graph).ToNot(BeNil())
-					Expect(graph.GatewayClass.NginxProxy).To(BeNil())
+					Expect(graph.GatewayClass.BwsProxy).To(BeNil())
 				})
 			})
 			Context("referenced by a Gateway", func() {
@@ -3257,26 +3257,26 @@ var _ = Describe("ChangeProcessor", func() {
 						Infrastructure: &v1.GatewayInfrastructure{
 							ParametersRef: &v1.LocalParametersReference{
 								Group: ngfAPIv1alpha1.GroupName,
-								Kind:  kinds.NginxProxy,
+								Kind:  kinds.BwsProxy,
 								Name:  "np-gw",
 							},
 						},
 					},
 				}
 
-				np := &ngfAPIv1alpha2.NginxProxy{
+				np := &ngfAPIv1alpha2.BwsProxy{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "np-gw",
 						Namespace: "test",
 					},
 				}
 
-				npUpdated := &ngfAPIv1alpha2.NginxProxy{
+				npUpdated := &ngfAPIv1alpha2.BwsProxy{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "np-gw",
 						Namespace: "test",
 					},
-					Spec: ngfAPIv1alpha2.NginxProxySpec{
+					Spec: ngfAPIv1alpha2.BwsProxySpec{
 						Telemetry: &ngfAPIv1alpha2.Telemetry{
 							Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 								Endpoint:   helpers.GetPointer("my-svc:123"),
@@ -3287,31 +3287,31 @@ var _ = Describe("ChangeProcessor", func() {
 						},
 					},
 				}
-				It("handles upserts for an NginxProxy", func() {
+				It("handles upserts for an BwsProxy", func() {
 					processor.CaptureUpsertChange(np)
 					processor.CaptureUpsertChange(paramGW)
 
 					graph := processor.Process(context.Background())
 					Expect(graph).ToNot(BeNil())
 					gw := graph.Gateways[types.NamespacedName{Namespace: "test", Name: "param-gw"}]
-					Expect(gw.NginxProxy.Source).To(Equal(np))
+					Expect(gw.BwsProxy.Source).To(Equal(np))
 				})
-				It("captures changes for an NginxProxy", func() {
+				It("captures changes for an BwsProxy", func() {
 					processor.CaptureUpsertChange(npUpdated)
 					processor.CaptureUpsertChange(paramGW)
 
 					graph := processor.Process(context.Background())
 					Expect(graph).ToNot(BeNil())
 					gw := graph.Gateways[types.NamespacedName{Namespace: "test", Name: "param-gw"}]
-					Expect(gw.NginxProxy.Source).To(Equal(npUpdated))
+					Expect(gw.BwsProxy.Source).To(Equal(npUpdated))
 				})
-				It("handles deletes for an NginxProxy", func() {
+				It("handles deletes for an BwsProxy", func() {
 					processor.CaptureDeleteChange(np, client.ObjectKeyFromObject(np))
 
 					graph := processor.Process(context.Background())
 					Expect(graph).ToNot(BeNil())
 					gw := graph.Gateways[types.NamespacedName{Namespace: "test", Name: "param-gw"}]
-					Expect(gw.NginxProxy).To(BeNil())
+					Expect(gw.BwsProxy).To(BeNil())
 				})
 			})
 		})
@@ -3778,7 +3778,7 @@ var _ = Describe("ChangeProcessor", func() {
 			secret, secretUpdated, unrelatedSecret, barSecret, barSecretUpdated               *apiv1.Secret
 			cm, cmUpdated, unrelatedCM                                                        *apiv1.ConfigMap
 			btls, btlsUpdated                                                                 *v1.BackendTLSPolicy
-			np, npUpdated                                                                     *ngfAPIv1alpha2.NginxProxy
+			np, npUpdated                                                                     *ngfAPIv1alpha2.BwsProxy
 		)
 
 		BeforeEach(OncePerOrdered, func() {
@@ -4083,11 +4083,11 @@ var _ = Describe("ChangeProcessor", func() {
 			btlsUpdated = btls.DeepCopy()
 
 			npNsName = types.NamespacedName{Name: "np-1"}
-			np = &ngfAPIv1alpha2.NginxProxy{
+			np = &ngfAPIv1alpha2.BwsProxy{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: npNsName.Name,
 				},
-				Spec: ngfAPIv1alpha2.NginxProxySpec{
+				Spec: ngfAPIv1alpha2.BwsProxySpec{
 					Telemetry: &ngfAPIv1alpha2.Telemetry{
 						ServiceName: helpers.GetPointer("my-svc"),
 					},
@@ -4164,7 +4164,7 @@ var _ = Describe("ChangeProcessor", func() {
 					processor.CaptureDeleteChange(&v1.ReferenceGrant{}, rgNsName)
 					processor.CaptureDeleteChange(&v1.BackendTLSPolicy{}, btlsNsName)
 					processor.CaptureDeleteChange(&apiv1.ConfigMap{}, cmNsName)
-					processor.CaptureDeleteChange(&ngfAPIv1alpha2.NginxProxy{}, npNsName)
+					processor.CaptureDeleteChange(&ngfAPIv1alpha2.BwsProxy{}, npNsName)
 
 					// these are non-changing changes
 					processor.CaptureUpsertChange(gw2)

@@ -17,7 +17,7 @@ import (
 type Validator interface {
 	// Validate validates an NGF Policy.
 	Validate(policy Policy) []conditions.Condition
-	// ValidateGlobalSettings validates an NGF Policy with the NginxProxy settings.
+	// ValidateGlobalSettings validates an NGF Policy with the BwsProxy settings.
 	ValidateGlobalSettings(policy Policy, globalSettings *GlobalSettings) []conditions.Condition
 	// Conflicts returns true if the two Policies conflict.
 	Conflicts(a, b Policy) bool
@@ -67,7 +67,7 @@ func (m *CompositeValidator) Validate(policy Policy) []conditions.Condition {
 	return validator.Validate(policy)
 }
 
-// ValidateGlobalSettings validates an NGF Policy with the NginxProxy settings.
+// ValidateGlobalSettings validates an NGF Policy with the BwsProxy settings.
 func (m *CompositeValidator) ValidateGlobalSettings(
 	policy Policy,
 	globalSettings *GlobalSettings,

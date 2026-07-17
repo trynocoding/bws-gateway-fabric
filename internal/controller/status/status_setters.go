@@ -13,9 +13,9 @@ import (
 	"github.com/nginx/nginx-gateway-fabric/v2/internal/framework/helpers"
 )
 
-func newNginxGatewayStatusSetter(status ngfAPI.NginxGatewayStatus) Setter {
+func newBwsGatewayStatusSetter(status ngfAPI.BwsGatewayStatus) Setter {
 	return func(obj client.Object) (wasSet bool) {
-		ng := helpers.MustCastObject[*ngfAPI.NginxGateway](obj)
+		ng := helpers.MustCastObject[*ngfAPI.BwsGateway](obj)
 
 		if ConditionsEqual(ng.Status.Conditions, status.Conditions) {
 			return false

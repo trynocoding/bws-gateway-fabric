@@ -22,7 +22,7 @@ In this example, we will:
 
 ## 2. Deploy the Gateway with DNS Resolver
 
-Create the Gateway and NginxProxy configuration that enables DNS resolution for ExternalName services:
+Create the Gateway and BwsProxy configuration that enables DNS resolution for ExternalName services:
 
 ```shell
 kubectl apply -f gateway.yaml
@@ -31,7 +31,7 @@ kubectl apply -f gateway.yaml
 This creates:
 
 - A Gateway with HTTP and TLS listeners
-- An NginxProxy resource with DNS resolver configuration
+- An BwsProxy resource with DNS resolver configuration
 
 ## 3. Deploy Services
 
@@ -190,7 +190,7 @@ You should see a JSON response from httpbin.org via HTTPS.
 
 This example demonstrates key features for routing to external services:
 
-1. **DNS Resolution**: The NginxProxy resource configures DNS resolvers (8.8.8.8, 1.1.1.1) so NGINX can resolve external hostnames
+1. **DNS Resolution**: The BwsProxy resource configures DNS resolvers (8.8.8.8, 1.1.1.1) so NGINX can resolve external hostnames
 2. **Host Header Handling**: NGF automatically detects ExternalName services and sets the `Host` header to the external hostname (`httpbin.org`) instead of the Gateway hostname (`cafe.example.com`), ensuring external services receive the correct Host header
 3. **URL Rewriting**: The URLRewrite filter strips the `/external` prefix before proxying to httpbin.org, so `/external/get` becomes `/get` on the external service
 4. **Mixed Routing**: The same HTTPRoute can route to both ExternalName services and internal Kubernetes services seamlessly

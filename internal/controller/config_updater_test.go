@@ -17,16 +17,16 @@ import (
 
 func TestUpdateControlPlane(t *testing.T) {
 	t.Parallel()
-	debugLogCfg := &ngfAPI.NginxGateway{
-		Spec: ngfAPI.NginxGatewaySpec{
+	debugLogCfg := &ngfAPI.BwsGateway{
+		Spec: ngfAPI.BwsGatewaySpec{
 			Logging: &ngfAPI.Logging{
 				Level: helpers.GetPointer(ngfAPI.ControllerLogLevelDebug),
 			},
 		},
 	}
 
-	invalidLevelConfig := &ngfAPI.NginxGateway{
-		Spec: ngfAPI.NginxGatewaySpec{
+	invalidLevelConfig := &ngfAPI.BwsGateway{
+		Spec: ngfAPI.BwsGatewaySpec{
 			Logging: &ngfAPI.Logging{
 				Level: helpers.GetPointer[ngfAPI.ControllerLogLevel]("invalid"),
 			},
@@ -38,7 +38,7 @@ func TestUpdateControlPlane(t *testing.T) {
 
 	tests := []struct {
 		setLevelErr          error
-		nginxGateway         *ngfAPI.NginxGateway
+		bwsGateway           *ngfAPI.BwsGateway
 		name                 string
 		expErrString         string
 		expSetLevelCallCount int
@@ -46,24 +46,24 @@ func TestUpdateControlPlane(t *testing.T) {
 	}{
 		{
 			name:                 "change log level",
-			nginxGateway:         debugLogCfg,
+			bwsGateway:           debugLogCfg,
 			expSetLevelCallCount: 1,
 		},
 		{
 			name:                 "invalid log level",
-			nginxGateway:         invalidLevelConfig,
+			bwsGateway:           invalidLevelConfig,
 			expErrString:         `Unsupported value: "invalid"`,
 			expSetLevelCallCount: 0,
 		},
 		{
-			name:                 "nil NginxGateway",
-			nginxGateway:         nil,
+			name:                 "nil BwsGateway",
+			bwsGateway:           nil,
 			expEvent:             true,
 			expSetLevelCallCount: 1,
 		},
 		{
 			name:                 "set log level fails",
-			nginxGateway:         debugLogCfg,
+			bwsGateway:           debugLogCfg,
 			setLevelErr:          errors.New("set level failed"),
 			expErrString:         "set level failed",
 			expSetLevelCallCount: 1,
@@ -83,7 +83,7 @@ func TestUpdateControlPlane(t *testing.T) {
 
 			fakeEventRecorder := k8sEvents.NewFakeRecorder(1)
 
-			err := updateControlPlane(test.nginxGateway, logger, fakeEventRecorder, nsname, fakeLogSetter)
+			err := updateControlPlane(test.bwsGateway, logger, fakeEventRecorder, nsname, fakeLogSetter)
 
 			if test.expErrString != "" {
 				g.Expect(err).To(HaveOccurred())

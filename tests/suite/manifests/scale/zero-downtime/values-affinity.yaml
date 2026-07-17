@@ -1,4 +1,4 @@
-nginxGateway:
+bwsGateway:
   lifecycle:
     preStop:
       exec:
@@ -9,7 +9,7 @@ nginxGateway:
   terminationGracePeriodSeconds: 50
 
 
-nginx:
+bws:
   pod:
     terminationGracePeriodSeconds: 50
   container:

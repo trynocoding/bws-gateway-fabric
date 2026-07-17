@@ -158,19 +158,19 @@ func TestExecuteMainConfig_Snippets(t *testing.T) {
 
 	/*
 		Order of files:
-		/etc/nginx/includes/snippet1.conf
-		/etc/nginx/includes/snippet2.conf
-		/etc/nginx/includes/snippet3.conf
-		/etc/nginx/main-includes/main.conf
+		/etc/bws/includes/snippet1.conf
+		/etc/bws/includes/snippet2.conf
+		/etc/bws/includes/snippet3.conf
+		/etc/bws/main-includes/main.conf
 	*/
 
-	g.Expect(res[0].dest).To(Equal("/etc/nginx/includes/snippet1.conf"))
+	g.Expect(res[0].dest).To(Equal("/etc/bws/includes/snippet1.conf"))
 	g.Expect(string(res[0].data)).To(ContainSubstring("contents1"))
 
-	g.Expect(res[1].dest).To(Equal("/etc/nginx/includes/snippet2.conf"))
+	g.Expect(res[1].dest).To(Equal("/etc/bws/includes/snippet2.conf"))
 	g.Expect(string(res[1].data)).To(ContainSubstring("contents2"))
 
-	g.Expect(res[2].dest).To(Equal("/etc/nginx/includes/snippet3.conf"))
+	g.Expect(res[2].dest).To(Equal("/etc/bws/includes/snippet3.conf"))
 	g.Expect(string(res[2].data)).To(ContainSubstring("contents3"))
 
 	g.Expect(res[3].dest).To(Equal(mainIncludesConfigFile))

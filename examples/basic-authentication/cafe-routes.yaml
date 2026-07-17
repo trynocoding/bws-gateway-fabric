@@ -19,7 +19,7 @@ spec:
     filters:
       - type: ExtensionRef
         extensionRef:
-          group: gateway.nginx.org
+          group: gateway.bessystem.com
           kind: AuthenticationFilter
           name: basic-auth
   - matches:

@@ -74,7 +74,7 @@ type AuthFieldsValidator interface {
 type PolicyValidator interface {
 	// Validate validates an NGF Policy.
 	Validate(policy policies.Policy) []conditions.Condition
-	// ValidateGlobalSettings validates an NGF Policy with the NginxProxy settings.
+	// ValidateGlobalSettings validates an NGF Policy with the BwsProxy settings.
 	ValidateGlobalSettings(policy policies.Policy, globalSettings *policies.GlobalSettings) []conditions.Condition
 	// Conflicts returns true if the two Policies conflict.
 	Conflicts(a, b policies.Policy) bool

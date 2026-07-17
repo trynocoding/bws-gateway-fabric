@@ -1,4 +1,4 @@
-nginxGateway:
-  name: nginx-gateway
+bwsGateway:
+  name: bws-gateway
   snippets:
     enable: true

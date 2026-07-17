@@ -1,5 +1,5 @@
-nginxGateway:
-  name: nginx-gateway
-nginx:
+bwsGateway:
+  name: bws-gateway
+bws:
   service:
     type: NodePort

@@ -20,10 +20,10 @@ import (
 // nginx container that should not be touched by the agent. Any files
 // that we add directly into the container should be added here.
 var ignoreFiles = []string{
-	"/etc/nginx/nginx.conf",
-	"/etc/nginx/mime.types",
-	"/etc/nginx/grpc-error-locations.conf",
-	"/etc/nginx/grpc-error-pages.conf",
+	"/etc/bws/nginx.conf",
+	"/etc/bws/mime.types",
+	"/etc/bws/grpc-error-locations.conf",
+	"/etc/bws/grpc-error-pages.conf",
 	"/usr/share/nginx/html/50x.html",
 	"/usr/share/nginx/html/dashboard.html",
 	"/usr/share/nginx/html/index.html",

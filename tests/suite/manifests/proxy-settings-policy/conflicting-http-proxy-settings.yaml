@@ -1,4 +1,4 @@
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ProxySettingsPolicy
 metadata:
   name: http-proxy-settings-1
@@ -15,7 +15,7 @@ spec:
       size: "64k"
     busyBuffersSize: "128k"
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ProxySettingsPolicy
 metadata:
   name: http-proxy-settings-2
@@ -31,7 +31,7 @@ spec:
       size: "64k"
     busyBuffersSize: "128k"
 ---
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: ProxySettingsPolicy
 metadata:
   name: http-proxy-settings-3

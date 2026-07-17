@@ -24,12 +24,12 @@ type Gateway struct {
 	AttachedListenerSets map[types.NamespacedName]*ListenerSet
 	// Source is the corresponding Gateway resource.
 	Source *v1.Gateway
-	// NginxProxy is the NginxProxy referenced by this Gateway.
-	NginxProxy *NginxProxy
-	// EffectiveNginxProxy holds the result of merging the NginxProxySpec on this resource with the NginxProxySpec on
+	// BwsProxy is the BwsProxy referenced by this Gateway.
+	BwsProxy *BwsProxy
+	// EffectiveBwsProxy holds the result of merging the BwsProxySpec on this resource with the BwsProxySpec on
 	// the GatewayClass resource. This is the effective set of config that should be applied to the Gateway.
 	// If non-nil, then this config is valid.
-	EffectiveNginxProxy *EffectiveNginxProxy
+	EffectiveBwsProxy *EffectiveBwsProxy
 	// SecretRef is the namespaced name of the secret referenced by the Gateway for backend TLS.
 	SecretRef *types.NamespacedName
 	// ListenerNamespaces holds the allowed listener namespaces for this Gateway, if specified.
@@ -76,7 +76,7 @@ func buildGateways(
 	resourceResolver resolver.Resolver,
 	gc *GatewayClass,
 	refGrantResolver *referenceGrantResolver,
-	nps map[types.NamespacedName]*NginxProxy,
+	nps map[types.NamespacedName]*BwsProxy,
 ) map[types.NamespacedName]*Gateway {
 	if len(gws) == 0 {
 		return nil
@@ -85,7 +85,7 @@ func buildGateways(
 	builtGateways := make(map[types.NamespacedName]*Gateway, len(gws))
 
 	for gwNsName, gw := range gws {
-		var np *NginxProxy
+		var np *BwsProxy
 		var npNsName types.NamespacedName
 		var listenerNamespaces *v1.ListenerNamespaces
 		if gw.Spec.Infrastructure != nil && gw.Spec.Infrastructure.ParametersRef != nil {
@@ -93,16 +93,16 @@ func buildGateways(
 			np = nps[npNsName]
 		}
 
-		var gcNp *NginxProxy
+		var gcNp *BwsProxy
 		if gc != nil {
-			gcNp = gc.NginxProxy
+			gcNp = gc.BwsProxy
 		}
 
-		effectiveNginxProxy := buildEffectiveNginxProxy(gcNp, np)
+		effectiveBwsProxy := buildEffectiveBwsProxy(gcNp, np)
 
 		conds, valid, secretRefNsName := validateGateway(gw, gc, np, resourceResolver, refGrantResolver)
 
-		protectedPorts := buildProtectedPorts(effectiveNginxProxy)
+		protectedPorts := buildProtectedPorts(effectiveBwsProxy)
 
 		deploymentName := types.NamespacedName{
 			Namespace: gw.GetNamespace(),
@@ -115,26 +115,26 @@ func buildGateways(
 
 		if !valid {
 			builtGateways[gwNsName] = &Gateway{
-				Source:              gw,
-				Valid:               false,
-				NginxProxy:          np,
-				EffectiveNginxProxy: effectiveNginxProxy,
-				Conditions:          conds,
-				DeploymentName:      deploymentName,
-				SecretRef:           secretRefNsName,
-				ListenerNamespaces:  listenerNamespaces,
+				Source:             gw,
+				Valid:              false,
+				BwsProxy:           np,
+				EffectiveBwsProxy:  effectiveBwsProxy,
+				Conditions:         conds,
+				DeploymentName:     deploymentName,
+				SecretRef:          secretRefNsName,
+				ListenerNamespaces: listenerNamespaces,
 			}
 		} else {
 			gateway := &Gateway{
-				Source:              gw,
-				NginxProxy:          np,
-				EffectiveNginxProxy: effectiveNginxProxy,
-				Valid:               true,
-				Conditions:          conds,
-				DeploymentName:      deploymentName,
-				SecretRef:           secretRefNsName,
-				ListenerNamespaces:  listenerNamespaces,
-				ListenerFactory:     newListenerConfiguratorFactory(gw, resourceResolver, refGrantResolver, protectedPorts),
+				Source:             gw,
+				BwsProxy:           np,
+				EffectiveBwsProxy:  effectiveBwsProxy,
+				Valid:              true,
+				Conditions:         conds,
+				DeploymentName:     deploymentName,
+				SecretRef:          secretRefNsName,
+				ListenerNamespaces: listenerNamespaces,
+				ListenerFactory:    newListenerConfiguratorFactory(gw, resourceResolver, refGrantResolver, protectedPorts),
 			}
 			gateway.Listeners = buildListeners(gateway, gw.Spec.Listeners, gwNsName, types.NamespacedName{})
 			builtGateways[gwNsName] = gateway
@@ -147,7 +147,7 @@ func buildGateways(
 // validateGatewayRefs validates both parametersRef and TLS fields.
 func validateGatewayRefs(
 	gw *v1.Gateway,
-	npCfg *NginxProxy,
+	npCfg *BwsProxy,
 	resourceResolver resolver.Resolver,
 	refGrantResolver *referenceGrantResolver,
 ) ([]conditions.Condition, *types.NamespacedName) {
@@ -190,7 +190,7 @@ func validateGatewayRefs(
 }
 
 // validateParametersRef validates the parametersRef field of the Gateway.
-func validateParametersRef(gw *v1.Gateway, npCfg *NginxProxy) ([]conditions.Condition, string) {
+func validateParametersRef(gw *v1.Gateway, npCfg *BwsProxy) ([]conditions.Condition, string) {
 	var conds []conditions.Condition
 	var parametersRefErrMsg string
 
@@ -198,7 +198,7 @@ func validateParametersRef(gw *v1.Gateway, npCfg *NginxProxy) ([]conditions.Cond
 		path := field.NewPath("spec.infrastructure.parametersRef")
 		ref := *gw.Spec.Infrastructure.ParametersRef
 		if _, ok := supportedParamKinds[string(ref.Kind)]; !ok {
-			err := field.NotSupported(path.Child("kind"), string(ref.Kind), []string{kinds.NginxProxy})
+			err := field.NotSupported(path.Child("kind"), string(ref.Kind), []string{kinds.BwsProxy})
 			parametersRefErrMsg = helpers.CapitalizeString(err.Error())
 			conds = append(conds, conditions.NewGatewayInvalidParameters(parametersRefErrMsg))
 		} else if npCfg == nil {
@@ -267,7 +267,7 @@ func validateGatewayTLSBackend(
 func validateGateway(
 	gw *v1.Gateway,
 	gc *GatewayClass,
-	npCfg *NginxProxy,
+	npCfg *BwsProxy,
 	resourceResolver resolver.Resolver,
 	refGrantResolver *referenceGrantResolver,
 ) ([]conditions.Condition, bool, *types.NamespacedName) {
@@ -458,10 +458,10 @@ func (g *Gateway) collectSnippetsFiltersFromRoute(
 	}
 }
 
-// buildProtectedPorts creates protected ports from an EffectiveNginxProxy configuration.
-func buildProtectedPorts(effectiveNginxProxy *EffectiveNginxProxy) ProtectedPorts {
+// buildProtectedPorts creates protected ports from an EffectiveBwsProxy configuration.
+func buildProtectedPorts(effectiveBwsProxy *EffectiveBwsProxy) ProtectedPorts {
 	protectedPorts := make(ProtectedPorts)
-	if port, enabled := MetricsEnabledForNginxProxy(effectiveNginxProxy); enabled {
+	if port, enabled := MetricsEnabledForBwsProxy(effectiveBwsProxy); enabled {
 		metricsPort := config.DefaultNginxMetricsPort
 		if port != nil {
 			metricsPort = *port

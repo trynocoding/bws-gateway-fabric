@@ -1,0 +1,124 @@
+apiVersion: gateway.bessystem.com/v1alpha1
+kind: BwsGatewayFabric
+metadata:
+  name: bws-gateway-fabric-sample
+spec:
+  # Default values copied from <project_dir>/helm-charts/bws-gateway-fabric/values.yaml
+  certGenerator:
+    enable: true
+    affinity: {}
+    agentTLSSecretName: agent-tls
+    annotations: {}
+    nodeSelector: {}
+    overwrite: false
+    serverTLSSecretName: server-tls
+    tolerations: []
+    topologySpreadConstraints: []
+    ttlSecondsAfterFinished: 30
+  clusterDomain: cluster.local
+  gateways: []
+  bwsGateway:
+    affinity: {}
+    autoscaling:
+      enable: false
+      annotations: {}
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 50
+      behavior: {}
+      metrics: []
+    config:
+      logging:
+        level: info
+    configAnnotations: {}
+    extraVolumeMounts: []
+    extraVolumes: []
+    gatewayClassAnnotations: {}
+    gatewayClassName: bws
+    gatewayControllerName: gateway.bessystem.com/bws-gateway-controller
+    watchNamespaces: []
+    gwAPIExperimentalFeatures:
+      enable: false
+    gwAPIInferenceExtension:
+      enable: false
+      endpointPicker:
+        disableTLS: false
+        skipVerify: true
+    image:
+      pullPolicy: IfNotPresent
+      repository: bws-gateway-fabric
+      tag: "2.6.6-ubi"
+    kind: deployment
+    labels: {}
+    leaderElection:
+      enable: true
+      lockName: ""
+    lifecycle: {}
+    metrics:
+      enable: true
+      port: 9113
+      secure: false
+    name: ""
+    nodeSelector: {}
+    podAnnotations: {}
+    productTelemetry:
+      enable: true
+    readinessProbe:
+      enable: true
+      initialDelaySeconds: 3
+      port: 8081
+    replicas: 1
+    resources: {}
+    service:
+      annotations: {}
+      labels: {}
+    serviceAccount:
+      annotations: {}
+      imagePullSecret: ""
+      imagePullSecrets: []
+      name: ""
+    priorityClassName: ""
+    snippets:
+      enable: false
+    snippetsFilters:
+      enable: false
+    terminationGracePeriodSeconds: 30
+    tolerations: []
+    topologySpreadConstraints: []
+  bws:
+    autoscaling:
+      enable: false
+      annotations: {}
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 50
+      behavior: {}
+      metrics: []
+    config: {}
+    container:
+      hostPorts: []
+      lifecycle: {}
+      readinessProbe: {}
+      resources: {}
+      volumeMounts: []
+    debug: false
+    image:
+      pullPolicy: IfNotPresent
+      repository: bws-gateway-fabric/bws
+      tag: "2.6.6-ubi"
+    imagePullSecret: ""
+    imagePullSecrets: []
+    kind: deployment
+    patches: []
+    pod: {}
+    replicas: 1
+    service:
+      externalTrafficPolicy: Local
+      loadBalancerClass: ""
+      loadBalancerIP: ""
+      loadBalancerSourceRanges: []
+      nodePorts: []
+      patches: []
+      type: LoadBalancer

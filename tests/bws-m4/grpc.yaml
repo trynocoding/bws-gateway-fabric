@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bws-m4-grpc
+spec:
+  selector:
+    app: bws-m4-grpc
+  ports:
+    - name: grpc
+      port: 8080
+      targetPort: grpc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bws-m4-grpc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bws-m4-grpc
+  template:
+    metadata:
+      labels:
+        app: bws-m4-grpc
+    spec:
+      containers:
+        - name: grpc
+          image: ghcr.io/nginx/kic-test-grpc-server:0.2.6
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: grpc
+              containerPort: 50051
+          readinessProbe:
+            tcpSocket:
+              port: grpc
+          resources:
+            requests:
+              cpu: 10m
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GRPCRoute
+metadata:
+  name: bws-m4-grpc
+spec:
+  parentRefs:
+    - name: bws-gateway
+      sectionName: http
+  hostnames:
+    - bws.example.com
+  rules:
+    - matches:
+        - method:
+            service: helloworld.Greeter
+            method: SayHello
+      backendRefs:
+        - name: bws-m4-grpc
+          port: 8080

@@ -1,2 +1,2 @@
-// Package apis stores the API definitions for NGINX Gateway Fabric configuration.
+// Package apis stores the API definitions for BWS Gateway Fabric configuration.
 package apis

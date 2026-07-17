@@ -355,7 +355,7 @@ const (
 ### Proposed Spec for Basic Auth
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: basic-auth
@@ -435,7 +435,7 @@ spec:
     filters:
     - type: ExtensionRef
       extensionRef:
-        group: gateway.nginx.org
+        group: gateway.bessystem.com
         kind: AuthenticationFilter
         name: basic-auth
     backendRefs:
@@ -494,7 +494,7 @@ For JWT Auth, there are two options.
 This configuration will access the public JSON Web Key (JWK) from a Kubernetes secret.
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: jwt-auth
@@ -516,7 +516,7 @@ This could be a self-hosted server or a hosted identity provider (IdP).
 The `remote.uri` must use HTTPS. To verify the JWKS endpoint's server certificate with a custom CA, users can optionally reference a Secret containing the CA certificate in PEM format (key `ca.crt`) via `remote.caCertificateRefs`. If omitted, the system CA bundle is used.
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: jwt-auth
@@ -639,7 +639,7 @@ spec:
     filters:
     - type: ExtensionRef
       extensionRef:
-        group: gateway.nginx.org
+        group: gateway.bessystem.com
         kind: AuthenticationFilter
         name: jwt-auth
     backendRefs:
@@ -747,14 +747,14 @@ http {
 
 For JWT Remote authentication, NGINX will require a [resolver](https://nginx.org/en/docs/http/ngx_http_core_module.html#resolver) to be defined with one more resolver addresses.
 
-Currently, the `NginxProxy` resource is the only way to define resolvers.
+Currently, the `BwsProxy` resource is the only way to define resolvers.
 This will set the resolvers at the `http` context, which will affect all configurations that require a resolver to function.
 
-Here is an example of an `NginxProxy` with an IPAddress resolver defined:
+Here is an example of an `BwsProxy` with an IPAddress resolver defined:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha2
-kind: NginxProxy
+apiVersion: gateway.bessystem.com/v1alpha2
+kind: BwsProxy
 metadata:
   name: nginx-proxy
 spec:
@@ -933,7 +933,7 @@ This section will cover the proposed specification for JWT claim enforcement, as
 Claims can be required for both `File` and `Remote` modes.
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: jwt-auth
@@ -997,7 +997,7 @@ These are the claims we will process. This time `roles` is nested under `realm_a
 ```
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: jwt-auth
@@ -1045,8 +1045,8 @@ The table below summarizes the capabilities enabled by the current JWT Authentic
 | Enable JWT authentication and set realm | `spec.type = "JWT"`; `spec.jwt.realm` | `auth_jwt "<realm>"` | Currently does not expose defining `token` |
 | Provide JWT keys from local JWKS (Secret) | `spec.jwt.source = "File"`; `spec.jwt.file.secretRef.name`; Secret type `nginx.org/jwt`; data key `auth` | `auth_jwt_key_file /etc/nginx/secrets/jwt_auth_<namespace>_<secret-name>` | Secret must exist in same namespace and must be of type `nginx.org/jwt` |
 | Secret handling/validation for local JWKS | Secret type `nginx.org/jwt`; data key `auth`; `LocalObjectReference` | Validates presence/type/key; NGF loads JWKS into key file | Cross-namespace secrets not supported initially; future work may add `ReferenceGrant`-based access |
-| Provide JWT keys from remote JWKS | `spec.jwt.source = "Remote"`; `spec.jwt.remote.uri` (HTTPS only); `spec.jwt.remote.caCertificateRefs[]` (optional; Secret with key `ca.crt`; max 1) | `auth_jwt_key_request /_ngf-internal-<namespace>_<filter-name>_jwks_uri`; internal location `proxy_pass` to remote JWKS; `proxy_ssl_trusted_certificate` set when CA ref provided. | Requires DNS resolver via `NginxProxy.spec.dnsResolver`; URI must be HTTPS; if `caCertificateRefs` is omitted, system CA bundle is used; key caching optional |
-| Configure DNS resolver for remote JWKS | `NginxProxy.spec.dnsResolver.addresses` (separate resource) | `resolver` set at `http` context for name resolution used by `auth_jwt_key_request` | Required for remote JWKS URIs; managed outside the filter |
+| Provide JWT keys from remote JWKS | `spec.jwt.source = "Remote"`; `spec.jwt.remote.uri` (HTTPS only); `spec.jwt.remote.caCertificateRefs[]` (optional; Secret with key `ca.crt`; max 1) | `auth_jwt_key_request /_ngf-internal-<namespace>_<filter-name>_jwks_uri`; internal location `proxy_pass` to remote JWKS; `proxy_ssl_trusted_certificate` set when CA ref provided. | Requires DNS resolver via `BwsProxy.spec.dnsResolver`; URI must be HTTPS; if `caCertificateRefs` is omitted, system CA bundle is used; key caching optional |
+| Configure DNS resolver for remote JWKS | `BwsProxy.spec.dnsResolver.addresses` (separate resource) | `resolver` set at `http` context for name resolution used by `auth_jwt_key_request` | Required for remote JWKS URIs; managed outside the filter |
 | Configure JWT key cache duration | `spec.jwt.keyCache` (Duration) | `auth_jwt_key_cache <duration>` | Disabled by default to avoid stale keys |
 | Configure acceptable clock skew for `exp`/`nbf` | `spec.jwt.leeway` (Duration) | `auth_jwt_leeway <duration>` | Applies only if `exp`/`nbf` claims are present; default `0s` |
 | Require exact-match issuer (`iss`) values | `spec.jwt.require.iss: []string` | `map $jwt_claim_iss $valid_jwt_iss { ... }`; `auth_jwt_require $valid_jwt_iss` | Supports multiple allowed issuers; `iss` may be string or array in a JWT claim |
@@ -1100,13 +1100,13 @@ spec:
     - type: ExtensionRef
       extensionRef:
         # Type: Basic
-        group: gateway.nginx.org
+        group: gateway.bessystem.com
         kind: AuthenticationFilter
         name: basic-auth-1
     - type: ExtensionRef
       extensionRef:
          # Type: Basic
-        group: gateway.nginx.org
+        group: gateway.bessystem.com
         kind: AuthenticationFilter
         name: basic-auth-2
     backendRefs:
@@ -1340,7 +1340,7 @@ If we were to update the API to support this use case, the following changes wou
 Below is an example of what this new API would look like:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha2
+apiVersion: gateway.bessystem.com/v1alpha2
 kind: AuthenticationFilter
 metadata:
   name: basic-and-jwt-auth
@@ -1367,7 +1367,7 @@ If a user wanted to change this response code, or include additional headers in 
 Example AuthenticationFilter configuration:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: basic-auth
@@ -1437,7 +1437,7 @@ metadata:
   namespace: security-ns # target namespace where the Secret lives
 spec:
   from:
-  - group: gateway.nginx.org
+  - group: gateway.bessystem.com
     kind: AuthenticationFilter
     namespace: app-ns
   to:
@@ -1447,7 +1447,7 @@ spec:
 ```
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: basic-auth
@@ -1479,7 +1479,7 @@ These fields allow for more customization of how the JWT auth behaves, but aren'
 Example of what implementation of these fields might look like:
 
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
+apiVersion: gateway.bessystem.com/v1alpha1
 kind: AuthenticationFilter
 metadata:
   name: jwt-auth

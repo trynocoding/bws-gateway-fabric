@@ -882,7 +882,7 @@ func TestBuildGraph(t *testing.T) {
 		},
 	}
 
-	createGateway := func(name, nginxProxyName string) *Gateway {
+	createGateway := func(name, bwsProxyName string) *Gateway {
 		return &Gateway{
 			Source: &gatewayv1.Gateway{
 				ObjectMeta: metav1.ObjectMeta{
@@ -894,8 +894,8 @@ func TestBuildGraph(t *testing.T) {
 					Infrastructure: &gatewayv1.GatewayInfrastructure{
 						ParametersRef: &gatewayv1.LocalParametersReference{
 							Group: ngfAPIv1alpha2.GroupName,
-							Kind:  kinds.NginxProxy,
-							Name:  nginxProxyName,
+							Kind:  kinds.BwsProxy,
+							Name:  bwsProxyName,
 						},
 					},
 					AllowedListeners: &gatewayv1.AllowedListeners{
@@ -975,12 +975,12 @@ func TestBuildGraph(t *testing.T) {
 	gw2 := createGateway("gateway-2", "np-2")
 
 	// np1 is referenced by gw1 and sets the nginx error log to error.
-	np1 := &ngfAPIv1alpha2.NginxProxy{
+	np1 := &ngfAPIv1alpha2.BwsProxy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "np-1",
 			Namespace: testNs,
 		},
-		Spec: ngfAPIv1alpha2.NginxProxySpec{
+		Spec: ngfAPIv1alpha2.BwsProxySpec{
 			Logging: &ngfAPIv1alpha2.NginxLogging{
 				ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelError),
 			},
@@ -988,12 +988,12 @@ func TestBuildGraph(t *testing.T) {
 	}
 
 	// np2 is referenced by gw2 and sets the IPFamily to IPv6.
-	np2 := &ngfAPIv1alpha2.NginxProxy{
+	np2 := &ngfAPIv1alpha2.BwsProxy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "np-2",
 			Namespace: testNs,
 		},
-		Spec: ngfAPIv1alpha2.NginxProxySpec{
+		Spec: ngfAPIv1alpha2.BwsProxySpec{
 			IPFamily: helpers.GetPointer(ngfAPIv1alpha2.IPv6),
 		},
 	}
@@ -1115,12 +1115,12 @@ func TestBuildGraph(t *testing.T) {
 	}
 
 	// npGlobal is referenced by the gateway class, and we expect it to be configured and merged with np1.
-	npGlobal := &ngfAPIv1alpha2.NginxProxy{
+	npGlobal := &ngfAPIv1alpha2.BwsProxy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "np-global",
 			Namespace: testNs,
 		},
-		Spec: ngfAPIv1alpha2.NginxProxySpec{
+		Spec: ngfAPIv1alpha2.BwsProxySpec{
 			Telemetry: &ngfAPIv1alpha2.Telemetry{
 				Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 					Endpoint:   helpers.GetPointer("1.2.3.4:123"),
@@ -1136,8 +1136,8 @@ func TestBuildGraph(t *testing.T) {
 		},
 	}
 
-	// np1Effective is the combined NginxProxy of npGlobal and np1
-	np1Effective := &EffectiveNginxProxy{
+	// np1Effective is the combined BwsProxy of npGlobal and np1
+	np1Effective := &EffectiveBwsProxy{
 		Telemetry: &ngfAPIv1alpha2.Telemetry{
 			Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 				Endpoint:   helpers.GetPointer("1.2.3.4:123"),
@@ -1289,7 +1289,7 @@ func TestBuildGraph(t *testing.T) {
 			ConfigMaps: map[types.NamespacedName]*v1.ConfigMap{
 				client.ObjectKeyFromObject(cm): cm,
 			},
-			NginxProxies: map[types.NamespacedName]*ngfAPIv1alpha2.NginxProxy{
+			BwsProxies: map[types.NamespacedName]*ngfAPIv1alpha2.BwsProxy{
 				client.ObjectKeyFromObject(npGlobal): npGlobal,
 				client.ObjectKeyFromObject(np1):      np1,
 				client.ObjectKeyFromObject(np2):      np2,
@@ -1331,12 +1331,12 @@ func TestBuildGraph(t *testing.T) {
 		Source:     hr1,
 		ParentRefs: []ParentRef{
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
-				SectionName:         hr1.Spec.ParentRefs[0].SectionName,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
+				SectionName:       hr1.Spec.ParentRefs[0].SectionName,
 				Attachment: &ParentRefAttachmentStatus{
 					Attached: true,
 					AcceptedHostnames: map[string][]string{
@@ -1366,12 +1366,12 @@ func TestBuildGraph(t *testing.T) {
 		Source:     hrLS,
 		ParentRefs: []ParentRef{
 			{
-				Kind:                kinds.ListenerSet,
-				NamespacedName:      types.NamespacedName{Namespace: testNs, Name: "valid-listenerset"},
-				GatewayNsName:       types.NamespacedName{Namespace: testNs, Name: "gateway-1"},
-				EffectiveNginxProxy: np1Effective,
-				Idx:                 0,
-				SectionName:         hrLS.Spec.ParentRefs[0].SectionName,
+				Kind:              kinds.ListenerSet,
+				NamespacedName:    types.NamespacedName{Namespace: testNs, Name: "valid-listenerset"},
+				GatewayNsName:     types.NamespacedName{Namespace: testNs, Name: "gateway-1"},
+				EffectiveBwsProxy: np1Effective,
+				Idx:               0,
+				SectionName:       hrLS.Spec.ParentRefs[0].SectionName,
 				Attachment: &ParentRefAttachmentStatus{
 					Attached: true,
 					AcceptedHostnames: map[string][]string{
@@ -1425,11 +1425,11 @@ func TestBuildGraph(t *testing.T) {
 		RouteType:  RouteTypeTLS,
 		ParentRefs: []ParentRef{
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1438,11 +1438,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[0].Name,
 			},
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1451,11 +1451,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[1].Name,
 			},
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					Attached: true,
 					AcceptedHostnames: map[string][]string{
@@ -1468,11 +1468,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[2].Name,
 			},
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					Attached: true,
 					AcceptedHostnames: map[string][]string{
@@ -1485,11 +1485,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[3].Name,
 			},
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1498,11 +1498,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: helpers.GetPointer[gatewayv1.SectionName]("http-8080"),
 			},
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1534,11 +1534,11 @@ func TestBuildGraph(t *testing.T) {
 		RouteType:  RouteTypeTLS,
 		ParentRefs: []ParentRef{
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					Attached:          false,
 					AcceptedHostnames: map[string][]string{},
@@ -1547,11 +1547,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[0].Name,
 			},
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1560,11 +1560,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[1].Name,
 			},
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					Attached:          false,
 					AcceptedHostnames: map[string][]string{},
@@ -1573,11 +1573,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[2].Name,
 			},
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					Attached:          false,
 					AcceptedHostnames: map[string][]string{},
@@ -1586,11 +1586,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[3].Name,
 			},
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1599,11 +1599,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: helpers.GetPointer[gatewayv1.SectionName]("http-8080"),
 			},
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1635,11 +1635,11 @@ func TestBuildGraph(t *testing.T) {
 		RouteType:  RouteTypeTCP,
 		ParentRefs: []ParentRef{
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1648,11 +1648,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[0].Name,
 			},
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1661,11 +1661,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[1].Name,
 			},
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1674,11 +1674,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[2].Name,
 			},
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1687,11 +1687,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[3].Name,
 			},
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1700,11 +1700,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: helpers.GetPointer[gatewayv1.SectionName]("http-8080"),
 			},
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1738,11 +1738,11 @@ func TestBuildGraph(t *testing.T) {
 		RouteType:  RouteTypeUDP,
 		ParentRefs: []ParentRef{
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1751,11 +1751,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[0].Name,
 			},
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1764,11 +1764,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[1].Name,
 			},
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1777,11 +1777,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[2].Name,
 			},
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1790,11 +1790,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: &gw1.Source.Spec.Listeners[3].Name,
 			},
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1803,11 +1803,11 @@ func TestBuildGraph(t *testing.T) {
 				SectionName: helpers.GetPointer[gatewayv1.SectionName]("http-8080"),
 			},
 			{
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				Idx:                 0,
-				EffectiveNginxProxy: np1Effective,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				Idx:               0,
+				EffectiveBwsProxy: np1Effective,
 				Attachment: &ParentRefAttachmentStatus{
 					AcceptedHostnames: map[string][]string{},
 					Attached:          false,
@@ -1848,12 +1848,12 @@ func TestBuildGraph(t *testing.T) {
 		Source:     gr,
 		ParentRefs: []ParentRef{
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
-				SectionName:         gr.Spec.ParentRefs[0].SectionName,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
+				SectionName:       gr.Spec.ParentRefs[0].SectionName,
 				Attachment: &ParentRefAttachmentStatus{
 					Attached: true,
 					AcceptedHostnames: map[string][]string{
@@ -1881,12 +1881,12 @@ func TestBuildGraph(t *testing.T) {
 		Source:     hr3,
 		ParentRefs: []ParentRef{
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
-				SectionName:         hr3.Spec.ParentRefs[0].SectionName,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
+				SectionName:       hr3.Spec.ParentRefs[0].SectionName,
 				Attachment: &ParentRefAttachmentStatus{
 					Attached: true,
 					AcceptedHostnames: map[string][]string{
@@ -1937,12 +1937,12 @@ func TestBuildGraph(t *testing.T) {
 		Source:     ir,
 		ParentRefs: []ParentRef{
 			{
-				Idx:                 0,
-				Kind:                kinds.Gateway,
-				NamespacedName:      client.ObjectKeyFromObject(gw1.Source),
-				GatewayNsName:       client.ObjectKeyFromObject(gw1.Source),
-				EffectiveNginxProxy: np1Effective,
-				SectionName:         ir.Spec.ParentRefs[0].SectionName,
+				Idx:               0,
+				Kind:              kinds.Gateway,
+				NamespacedName:    client.ObjectKeyFromObject(gw1.Source),
+				GatewayNsName:     client.ObjectKeyFromObject(gw1.Source),
+				EffectiveBwsProxy: np1Effective,
+				SectionName:       ir.Spec.ParentRefs[0].SectionName,
 				Attachment: &ParentRefAttachmentStatus{
 					Attached: true,
 					AcceptedHostnames: map[string][]string{
@@ -1972,7 +1972,7 @@ func TestBuildGraph(t *testing.T) {
 				Source:     gc,
 				Valid:      true,
 				Conditions: []conditions.Condition{conditions.NewGatewayClassResolvedRefs()},
-				NginxProxy: &NginxProxy{
+				BwsProxy: &BwsProxy{
 					Source: npGlobal,
 					Valid:  true,
 				},
@@ -2124,14 +2124,14 @@ func TestBuildGraph(t *testing.T) {
 							},
 						},
 					},
-					NginxProxy: &NginxProxy{
+					BwsProxy: &BwsProxy{
 						Source: np1,
 						Valid:  true,
 					},
 					ListenerNamespaces: &gatewayv1.ListenerNamespaces{
 						From: helpers.GetPointer(gatewayv1.NamespacesFromSame),
 					},
-					EffectiveNginxProxy: &EffectiveNginxProxy{
+					EffectiveBwsProxy: &EffectiveBwsProxy{
 						Telemetry: &ngfAPIv1alpha2.Telemetry{
 							Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 								Endpoint:   helpers.GetPointer("1.2.3.4:123"),
@@ -2209,14 +2209,14 @@ func TestBuildGraph(t *testing.T) {
 						},
 					},
 					Valid: true,
-					NginxProxy: &NginxProxy{
+					BwsProxy: &BwsProxy{
 						Source: np2,
 						Valid:  true,
 					},
 					ListenerNamespaces: &gatewayv1.ListenerNamespaces{
 						From: helpers.GetPointer(gatewayv1.NamespacesFromSame),
 					},
-					EffectiveNginxProxy: &EffectiveNginxProxy{
+					EffectiveBwsProxy: &EffectiveBwsProxy{
 						Telemetry: &ngfAPIv1alpha2.Telemetry{
 							Exporter: &ngfAPIv1alpha2.TelemetryExporter{
 								Endpoint:   helpers.GetPointer("1.2.3.4:123"),
@@ -2327,7 +2327,7 @@ func TestBuildGraph(t *testing.T) {
 			BackendTLSPolicies: map[types.NamespacedName]*BackendTLSPolicy{
 				client.ObjectKeyFromObject(btp.Source): &btp,
 			},
-			ReferencedNginxProxies: map[types.NamespacedName]*NginxProxy{
+			ReferencedBwsProxies: map[types.NamespacedName]*BwsProxy{
 				client.ObjectKeyFromObject(npGlobal): {
 					Source: npGlobal,
 					Valid:  true,
@@ -2433,8 +2433,8 @@ func TestBuildGraph(t *testing.T) {
 		Spec: gatewayv1.GatewayClassSpec{
 			ControllerName: controllerName,
 			ParametersRef: &gatewayv1.ParametersReference{
-				Group:     gatewayv1.Group("gateway.nginx.org"),
-				Kind:      gatewayv1.Kind(kinds.NginxProxy),
+				Group:     gatewayv1.Group("gateway.bessystem.com"),
+				Kind:      gatewayv1.Kind(kinds.BwsProxy),
 				Name:      "np-global",
 				Namespace: helpers.GetPointer(gatewayv1.Namespace(testNs)),
 			},
@@ -2662,13 +2662,13 @@ func TestIsReferenced(t *testing.T) {
 		},
 	}
 
-	npNotReferenced := &ngfAPIv1alpha2.NginxProxy{
+	npNotReferenced := &ngfAPIv1alpha2.BwsProxy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "nginx-proxy-not-ref",
 		},
 	}
 
-	npReferenced := &ngfAPIv1alpha2.NginxProxy{
+	npReferenced := &ngfAPIv1alpha2.BwsProxy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "nginx-proxy-ref",
 		},
@@ -2701,7 +2701,7 @@ func TestIsReferenced(t *testing.T) {
 					}),
 			},
 		},
-		ReferencedNginxProxies: map[types.NamespacedName]*NginxProxy{
+		ReferencedBwsProxies: map[types.NamespacedName]*BwsProxy{
 			client.ObjectKeyFromObject(npReferenced): {
 				Source: npReferenced,
 			},
@@ -2854,15 +2854,15 @@ func TestIsReferenced(t *testing.T) {
 			expected: false,
 		},
 
-		// NginxProxy tests
+		// BwsProxy tests
 		{
-			name:     "NginxProxy is referenced",
+			name:     "BwsProxy is referenced",
 			resource: npReferenced,
 			graph:    graph,
 			expected: true,
 		},
 		{
-			name:     "NginxProxy is not referenced",
+			name:     "BwsProxy is not referenced",
 			resource: npNotReferenced,
 			graph:    graph,
 			expected: false,

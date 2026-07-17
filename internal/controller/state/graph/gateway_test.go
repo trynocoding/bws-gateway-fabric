@@ -428,12 +428,12 @@ func TestBuildGateway(t *testing.T) {
 		return lastCreatedGateway
 	}
 
-	validGwNp := &ngfAPIv1alpha2.NginxProxy{
+	validGwNp := &ngfAPIv1alpha2.BwsProxy{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test",
 			Name:      "valid-gw-np",
 		},
-		Spec: ngfAPIv1alpha2.NginxProxySpec{
+		Spec: ngfAPIv1alpha2.BwsProxySpec{
 			Logging: &ngfAPIv1alpha2.NginxLogging{ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelError)},
 			Metrics: &ngfAPIv1alpha2.Metrics{
 				Disable: helpers.GetPointer(false),
@@ -443,10 +443,10 @@ func TestBuildGateway(t *testing.T) {
 	}
 	validGwNpRef := &v1.LocalParametersReference{
 		Group: ngfAPIv1alpha2.GroupName,
-		Kind:  kinds.NginxProxy,
+		Kind:  kinds.BwsProxy,
 		Name:  validGwNp.Name,
 	}
-	invalidGwNp := &ngfAPIv1alpha2.NginxProxy{
+	invalidGwNp := &ngfAPIv1alpha2.BwsProxy{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test",
 			Name:      "invalid-gw-np",
@@ -454,7 +454,7 @@ func TestBuildGateway(t *testing.T) {
 	}
 	invalidGwNpRef := &v1.LocalParametersReference{
 		Group: ngfAPIv1alpha2.GroupName,
-		Kind:  kinds.NginxProxy,
+		Kind:  kinds.BwsProxy,
 		Name:  invalidGwNp.Name,
 	}
 	invalidKindRef := &v1.LocalParametersReference{
@@ -464,16 +464,16 @@ func TestBuildGateway(t *testing.T) {
 	}
 	npDoesNotExistRef := &v1.LocalParametersReference{
 		Group: ngfAPIv1alpha2.GroupName,
-		Kind:  kinds.NginxProxy,
+		Kind:  kinds.BwsProxy,
 		Name:  "does-not-exist",
 	}
 
-	validGcNp := &ngfAPIv1alpha2.NginxProxy{
+	validGcNp := &ngfAPIv1alpha2.BwsProxy{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test",
 			Name:      "valid-gc-np",
 		},
-		Spec: ngfAPIv1alpha2.NginxProxySpec{
+		Spec: ngfAPIv1alpha2.BwsProxySpec{
 			IPFamily: helpers.GetPointer(ngfAPIv1alpha2.Dual),
 		},
 	}
@@ -487,7 +487,7 @@ func TestBuildGateway(t *testing.T) {
 
 	validGCWithNp := &GatewayClass{
 		Valid: true,
-		NginxProxy: &NginxProxy{
+		BwsProxy: &BwsProxy{
 			Source: validGcNp,
 			Valid:  true,
 		},
@@ -692,11 +692,11 @@ func TestBuildGateway(t *testing.T) {
 						Name:      controller.CreateNginxResourceName("gateway-valid-np", gcName),
 					},
 					Valid: true,
-					NginxProxy: &NginxProxy{
+					BwsProxy: &BwsProxy{
 						Source: validGwNp,
 						Valid:  true,
 					},
-					EffectiveNginxProxy: &EffectiveNginxProxy{
+					EffectiveBwsProxy: &EffectiveBwsProxy{
 						Logging: &ngfAPIv1alpha2.NginxLogging{
 							ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelError),
 						},
@@ -708,7 +708,7 @@ func TestBuildGateway(t *testing.T) {
 					Conditions: []conditions.Condition{conditions.NewGatewayResolvedRefs()},
 				},
 			},
-			name: "valid http listener with valid NginxProxy; GatewayClass has no NginxProxy",
+			name: "valid http listener with valid BwsProxy; GatewayClass has no BwsProxy",
 		},
 		{
 			gateway: createGateway(gatewayCfg{
@@ -737,11 +737,11 @@ func TestBuildGateway(t *testing.T) {
 						Name:      controller.CreateNginxResourceName("gateway-valid-np", gcName),
 					},
 					Valid: true,
-					NginxProxy: &NginxProxy{
+					BwsProxy: &BwsProxy{
 						Source: validGwNp,
 						Valid:  true,
 					},
-					EffectiveNginxProxy: &EffectiveNginxProxy{
+					EffectiveBwsProxy: &EffectiveBwsProxy{
 						Logging: &ngfAPIv1alpha2.NginxLogging{
 							ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelError),
 						},
@@ -754,7 +754,7 @@ func TestBuildGateway(t *testing.T) {
 					Conditions: []conditions.Condition{conditions.NewGatewayResolvedRefs()},
 				},
 			},
-			name: "valid http listener with valid NginxProxy; GatewayClass has valid NginxProxy too",
+			name: "valid http listener with valid BwsProxy; GatewayClass has valid BwsProxy too",
 		},
 		{
 			gateway:      createGateway(gatewayCfg{name: "gateway1", listeners: []v1.Listener{foo80Listener1}}),
@@ -779,12 +779,12 @@ func TestBuildGateway(t *testing.T) {
 						Name:      controller.CreateNginxResourceName("gateway1", gcName),
 					},
 					Valid: true,
-					EffectiveNginxProxy: &EffectiveNginxProxy{
+					EffectiveBwsProxy: &EffectiveBwsProxy{
 						IPFamily: helpers.GetPointer(ngfAPIv1alpha2.Dual),
 					},
 				},
 			},
-			name: "valid http listener; GatewayClass has valid NginxProxy",
+			name: "valid http listener; GatewayClass has valid BwsProxy",
 		},
 		{
 			gateway:      createGateway(gatewayCfg{name: "gateway1", listeners: []v1.Listener{crossNamespaceSecretListener}}),
@@ -1554,11 +1554,11 @@ func TestBuildGateway(t *testing.T) {
 					Conditions: []conditions.Condition{
 						conditions.NewGatewayInvalidParameters(
 							"Spec.infrastructure.parametersRef.kind: Unsupported value: \"Invalid\": " +
-								"supported values: \"NginxProxy\"",
+								"supported values: \"BwsProxy\"",
 						),
 						conditions.NewGatewayRefInvalid(
 							"Spec.infrastructure.parametersRef.kind: Unsupported value: \"Invalid\": " +
-								"supported values: \"NginxProxy\"",
+								"supported values: \"BwsProxy\"",
 						),
 					},
 				},
@@ -1604,7 +1604,7 @@ func TestBuildGateway(t *testing.T) {
 					},
 				},
 			},
-			name: "referenced NginxProxy doesn't exist",
+			name: "referenced BwsProxy doesn't exist",
 		},
 		{
 			gateway: createGateway(
@@ -1634,8 +1634,8 @@ func TestBuildGateway(t *testing.T) {
 						Namespace: "test",
 						Name:      controller.CreateNginxResourceName("gateway1", gcName),
 					},
-					Valid: true, // invalid NginxProxy does not invalidate Gateway.
-					NginxProxy: &NginxProxy{
+					Valid: true, // invalid BwsProxy does not invalidate Gateway.
+					BwsProxy: &BwsProxy{
 						Source: invalidGwNp,
 						ErrMsgs: field.ErrorList{
 							field.Required(field.NewPath("somePath"), "someField"), // fake error
@@ -1648,7 +1648,7 @@ func TestBuildGateway(t *testing.T) {
 					},
 				},
 			},
-			name: "invalid NginxProxy",
+			name: "invalid BwsProxy",
 		},
 		{
 			gateway: createGateway(
@@ -1666,7 +1666,7 @@ func TestBuildGateway(t *testing.T) {
 						Name:      controller.CreateNginxResourceName("gateway1", gcName),
 					},
 					Valid: false,
-					NginxProxy: &NginxProxy{
+					BwsProxy: &BwsProxy{
 						Source: invalidGwNp,
 						ErrMsgs: field.ErrorList{
 							field.Required(field.NewPath("somePath"), "someField"), // fake error
@@ -1680,7 +1680,7 @@ func TestBuildGateway(t *testing.T) {
 					),
 				},
 			},
-			name: "invalid gatewayclass and invalid NginxProxy",
+			name: "invalid gatewayclass and invalid BwsProxy",
 		},
 		{
 			name: "invalid gateway; gateway addresses type unspecified",
@@ -1764,11 +1764,11 @@ func TestBuildGateway(t *testing.T) {
 						Name:      controller.CreateNginxResourceName("gateway-valid-np", gcName),
 					},
 					Valid: true,
-					NginxProxy: &NginxProxy{
+					BwsProxy: &BwsProxy{
 						Source: validGwNp,
 						Valid:  true,
 					},
-					EffectiveNginxProxy: &EffectiveNginxProxy{
+					EffectiveBwsProxy: &EffectiveBwsProxy{
 						Logging: &ngfAPIv1alpha2.NginxLogging{
 							ErrorLevel: helpers.GetPointer(ngfAPIv1alpha2.NginxLogLevelError),
 						},
@@ -1818,16 +1818,16 @@ func TestBuildGateway(t *testing.T) {
 						Name:      controller.CreateNginxResourceName("gateway-valid-np", gcName),
 					},
 					Valid: true,
-					EffectiveNginxProxy: &EffectiveNginxProxy{
+					EffectiveBwsProxy: &EffectiveBwsProxy{
 						IPFamily: helpers.GetPointer(ngfAPIv1alpha2.Dual),
 					},
 					Conditions: []conditions.Condition{
 						conditions.NewGatewayAcceptedUnsupportedField("spec.defaultScope: Forbidden: DefaultScope"),
 						conditions.NewGatewayInvalidParameters(
-							"Spec.infrastructure.parametersRef.kind: Unsupported value: \"wrong-kind\": supported values: \"NginxProxy\"",
+							"Spec.infrastructure.parametersRef.kind: Unsupported value: \"wrong-kind\": supported values: \"BwsProxy\"",
 						),
 						conditions.NewGatewayRefInvalid(
-							"Spec.infrastructure.parametersRef.kind: Unsupported value: \"wrong-kind\": supported values: \"NginxProxy\"",
+							"Spec.infrastructure.parametersRef.kind: Unsupported value: \"wrong-kind\": supported values: \"BwsProxy\"",
 						),
 					},
 				},
@@ -1965,7 +1965,7 @@ func TestBuildGateway(t *testing.T) {
 			}: secretDiffNamespace,
 		})
 
-	nginxProxies := map[types.NamespacedName]*NginxProxy{
+	bwsProxies := map[types.NamespacedName]*BwsProxy{
 		client.ObjectKeyFromObject(validGwNp): {Valid: true, Source: validGwNp},
 		client.ObjectKeyFromObject(validGcNp): {Valid: true, Source: validGcNp},
 		client.ObjectKeyFromObject(invalidGwNp): {
@@ -1979,7 +1979,7 @@ func TestBuildGateway(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			g := NewWithT(t)
 			resolver := newReferenceGrantResolver(test.refGrants)
-			result := buildGateways(test.gateway, resourceResolver, test.gatewayClass, resolver, nginxProxies)
+			result := buildGateways(test.gateway, resourceResolver, test.gatewayClass, resolver, bwsProxies)
 
 			// Verify ListenerFactory field separately since it's a complex internal struct
 			// Directly comparing the ListenerFactory internal fields is unnecessary as it is tested
@@ -2008,7 +2008,7 @@ func TestValidateGatewayParametersRef(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		np       *NginxProxy
+		np       *BwsProxy
 		gw       *v1.Gateway
 		expConds []conditions.Condition
 	}{
@@ -2026,11 +2026,11 @@ func TestValidateGatewayParametersRef(t *testing.T) {
 			expConds: []conditions.Condition{
 				conditions.NewGatewayInvalidParameters(
 					"Spec.infrastructure.parametersRef.kind: Unsupported value: \"wrong-kind\": " +
-						"supported values: \"NginxProxy\"",
+						"supported values: \"BwsProxy\"",
 				),
 				conditions.NewGatewayRefInvalid(
 					"Spec.infrastructure.parametersRef.kind: Unsupported value: \"wrong-kind\": " +
-						"supported values: \"NginxProxy\"",
+						"supported values: \"BwsProxy\"",
 				),
 			},
 		},
@@ -2041,7 +2041,7 @@ func TestValidateGatewayParametersRef(t *testing.T) {
 					Infrastructure: &v1.GatewayInfrastructure{
 						ParametersRef: &v1.LocalParametersReference{
 							Group: ngfAPIv1alpha2.GroupName,
-							Kind:  kinds.NginxProxy,
+							Kind:  kinds.BwsProxy,
 							Name:  "np",
 						},
 					},
@@ -2054,8 +2054,8 @@ func TestValidateGatewayParametersRef(t *testing.T) {
 		},
 		{
 			name: "invalid nginx proxy",
-			np: &NginxProxy{
-				Source: &ngfAPIv1alpha2.NginxProxy{},
+			np: &BwsProxy{
+				Source: &ngfAPIv1alpha2.BwsProxy{},
 				ErrMsgs: field.ErrorList{
 					field.Required(field.NewPath("somePath"), "someField"), // fake error
 				},
@@ -2066,7 +2066,7 @@ func TestValidateGatewayParametersRef(t *testing.T) {
 					Infrastructure: &v1.GatewayInfrastructure{
 						ParametersRef: &v1.LocalParametersReference{
 							Group: ngfAPIv1alpha2.GroupName,
-							Kind:  kinds.NginxProxy,
+							Kind:  kinds.BwsProxy,
 							Name:  "np",
 						},
 					},
@@ -2079,8 +2079,8 @@ func TestValidateGatewayParametersRef(t *testing.T) {
 		},
 		{
 			name: "valid",
-			np: &NginxProxy{
-				Source: &ngfAPIv1alpha2.NginxProxy{},
+			np: &BwsProxy{
+				Source: &ngfAPIv1alpha2.BwsProxy{},
 				Valid:  true,
 			},
 			gw: &v1.Gateway{
@@ -2088,7 +2088,7 @@ func TestValidateGatewayParametersRef(t *testing.T) {
 					Infrastructure: &v1.GatewayInfrastructure{
 						ParametersRef: &v1.LocalParametersReference{
 							Group: ngfAPIv1alpha2.GroupName,
-							Kind:  kinds.NginxProxy,
+							Kind:  kinds.BwsProxy,
 							Name:  "np",
 						},
 					},
