@@ -92,7 +92,7 @@ if [[ "${BWS_AGENT_DISABLED:-false}" == "true" ]]; then
 fi
 
 echo "starting BWS Agent ..."
-nginx-agent "$@" &
+bws-agent "$@" &
 agent_pid=$!
 
 set +e

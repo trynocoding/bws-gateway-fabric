@@ -99,7 +99,7 @@ func getDefaultResources() []runtime.Object {
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{
 						{
-							Name:  "nginx",
+							Name:  "bws",
 							Image: "nginx:v1.0.0",
 						},
 					},

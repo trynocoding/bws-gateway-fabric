@@ -1101,7 +1101,7 @@ func (p *NginxProvisioner) buildNginxContainer(
 	image, pullPolicy := p.buildImage(nProxyCfg)
 
 	return corev1.Container{
-		Name:            "nginx",
+		Name:            "bws",
 		Image:           image,
 		ImagePullPolicy: pullPolicy,
 		Ports:           containerPorts,
@@ -1120,7 +1120,7 @@ func (p *NginxProvisioner) buildNginxContainer(
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{MountPath: "/etc/nginx-agent", Name: "nginx-agent"},
-			{MountPath: "/var/run/secrets/ngf", Name: "nginx-agent-tls"},
+			{MountPath: "/var/run/secrets/ngf", Name: "bws-agent-tls"},
 			{MountPath: "/var/run/secrets/ngf/serviceaccount", Name: "token"},
 			{MountPath: "/var/log/nginx-agent", Name: "nginx-agent-log"},
 			{MountPath: "/var/lib/nginx-agent", Name: "nginx-agent-lib"},
@@ -1168,7 +1168,7 @@ func (p *NginxProvisioner) buildBaseVolumes(names resourceNames) []corev1.Volume
 			},
 		},
 		{
-			Name: "nginx-agent-tls",
+			Name: "bws-agent-tls",
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName: names.agentTLS,
@@ -1213,7 +1213,7 @@ func (p *NginxProvisioner) buildInitContainers(nProxyCfg *graph.EffectiveNginxPr
 			Image:           p.cfg.GatewayPodConfig.Image,
 			ImagePullPolicy: pullPolicy,
 			Command: []string{
-				"/usr/bin/gateway",
+				"/usr/bin/bws-gateway",
 				"initialize",
 				"--source", "/agent/nginx-agent.conf",
 				"--destination", "/etc/nginx-agent",
@@ -1468,7 +1468,7 @@ func (p *NginxProvisioner) configureInferenceExtension(
 	containerResources corev1.ResourceRequirements,
 ) {
 	command := []string{
-		"/usr/bin/gateway",
+		"/usr/bin/bws-gateway",
 		"endpoint-picker",
 	}
 

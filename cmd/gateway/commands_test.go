@@ -60,7 +60,7 @@ func TestCommonFlagsValidation(t *testing.T) {
 		{
 			name: "valid flags",
 			args: []string{
-				"--gateway-ctlr-name=gateway.nginx.org/nginx-gateway",
+				"--gateway-ctlr-name=gateway.bessystem.com/bws-gateway",
 				"--gatewayclass=nginx",
 			},
 			wantErr: false,
@@ -95,7 +95,7 @@ func TestCommonFlagsValidation(t *testing.T) {
 		{
 			name: "gatewayclass is not set",
 			args: []string{
-				"--gateway-ctlr-name=gateway.nginx.org/nginx-gateway",
+				"--gateway-ctlr-name=gateway.bessystem.com/bws-gateway",
 			},
 			wantErr:           true,
 			expectedErrPrefix: `required flag(s) "gatewayclass" not set`,
@@ -103,7 +103,7 @@ func TestCommonFlagsValidation(t *testing.T) {
 		{
 			name: "gatewayclass is set to empty string",
 			args: []string{
-				"--gateway-ctlr-name=gateway.nginx.org/nginx-gateway",
+				"--gateway-ctlr-name=gateway.bessystem.com/bws-gateway",
 				"--gatewayclass=",
 			},
 			wantErr:           true,
@@ -112,7 +112,7 @@ func TestCommonFlagsValidation(t *testing.T) {
 		{
 			name: "gatewayclass is invalid",
 			args: []string{
-				"--gateway-ctlr-name=gateway.nginx.org/nginx-gateway",
+				"--gateway-ctlr-name=gateway.bessystem.com/bws-gateway",
 				"--gatewayclass=@",
 			},
 			wantErr:           true,
@@ -134,8 +134,8 @@ func TestControllerCmdFlagValidation(t *testing.T) {
 		{
 			name: "valid flags",
 			args: []string{
-				"--gateway-ctlr-name=gateway.nginx.org/nginx-gateway", // common and required flag
-				"--gatewayclass=nginx",                                // common and required flag
+				"--gateway-ctlr-name=gateway.bessystem.com/bws-gateway", // common and required flag
+				"--gatewayclass=nginx", // common and required flag
 				"--config=nginx-gateway-config",
 				"--service=nginx-gateway",
 				"--agent-tls-secret=agent-tls",
@@ -171,8 +171,8 @@ func TestControllerCmdFlagValidation(t *testing.T) {
 		{
 			name: "valid flags, non-required not set",
 			args: []string{
-				"--gateway-ctlr-name=gateway.nginx.org/nginx-gateway", // common and required flag
-				"--gatewayclass=nginx",                                // common and required flag,
+				"--gateway-ctlr-name=gateway.bessystem.com/bws-gateway", // common and required flag
+				"--gatewayclass=nginx", // common and required flag,
 			},
 			wantErr: false,
 		},
@@ -538,6 +538,45 @@ func TestControllerCmdFlagValidation(t *testing.T) {
 			t.Parallel()
 			cmd := createControllerCommand()
 			testFlag(t, cmd, test)
+		})
+	}
+}
+
+func TestUnsupportedProductFlags(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		flag        string
+		expectedErr string
+	}{
+		{
+			name:        "NGINX Plus",
+			flag:        "--nginx-plus",
+			expectedErr: "NGINX Plus is not supported by BWS Gateway Fabric",
+		},
+		{
+			name:        "NGINX One Console",
+			flag:        "--nginx-one-dataplane-key-secret=dataplane-key",
+			expectedErr: "NGINX One Console is not supported by BWS Gateway Fabric",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			g := NewWithT(t)
+			cmd := createControllerCommand()
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs([]string{
+				"--gateway-ctlr-name=gateway.bessystem.com/bws-gateway-controller",
+				"--gatewayclass=bws",
+				test.flag,
+			})
+
+			err := cmd.Execute()
+			g.Expect(err).To(MatchError(test.expectedErr))
 		})
 	}
 }

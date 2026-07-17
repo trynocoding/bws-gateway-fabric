@@ -1,30 +1,31 @@
-# M3 keeps the upstream NGF API and product names intentionally. Only the
-# data-plane image and pod storage are changed for BWS.
+# M4.1 keeps the upstream Helm top-level fields and custom resources while switching visible product identity.
 nginxGateway:
-  name: bws-m3-controller
+  name: bws-gateway-fabric
   watchNamespaces:
-    - bws-m3
-  gatewayClassName: bws-poc
-  gatewayControllerName: gateway.nginx.org/nginx-gateway-controller
+    - bws-m4
+  gatewayClassName: bws
+  gatewayControllerName: gateway.bessystem.com/bws-gateway-controller
   leaderElection:
     enable: true
-    lockName: bws-m3-leader-election
+    lockName: bws-gateway-leader-election
+  productTelemetry:
+    enable: false
   snippets:
     enable: true
   image:
-    repository: ghcr.io/nginx/nginx-gateway-fabric
-    tag: 2.6.7
-    pullPolicy: IfNotPresent
+    repository: bws-gateway-fabric
+    tag: m4-local
+    pullPolicy: Never
 
 nginx:
   plus: false
   replicas: 2
   image:
     repository: bws-gateway-fabric/bws
-    tag: m3-local
+    tag: m4-local
     pullPolicy: Never
   service:
-    type: NodePort
+    type: ClusterIP
   pod:
     terminationGracePeriodSeconds: 30
     volumes:

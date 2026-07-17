@@ -512,7 +512,7 @@ func buildPlusAPIRequest(action *pb.NGINXPlusAction, instanceID string) *pb.Mana
 	}
 }
 
-// validatePodImageVersion checks if the pod's nginx container image version matches the expected version
+// validatePodImageVersion checks if the pod's data plane container image version matches the expected version
 // from its deployment. Returns an error if versions don't match.
 func (cs *commandService) validatePodImageVersion(
 	parent types.NamespacedName,
@@ -522,10 +522,12 @@ func (cs *commandService) validatePodImageVersion(
 	var nginxImage string
 	var found bool
 
-	getNginxContainerImage := func(containers []v1.Container) (string, bool) {
-		for _, c := range containers {
-			if c.Name == "nginx" {
-				return c.Image, true
+	getDataPlaneContainerImage := func(containers []v1.Container) (string, bool) {
+		for _, name := range []string{"bws", "nginx"} {
+			for _, c := range containers {
+				if c.Name == name {
+					return c.Image, true
+				}
 			}
 		}
 		return "", false
@@ -540,19 +542,19 @@ func (cs *commandService) validatePodImageVersion(
 		if err := cs.k8sReader.Get(ctx, parent, ds); err != nil {
 			return fmt.Errorf("failed to get DaemonSet %s: %w", parent.String(), err)
 		}
-		nginxImage, found = getNginxContainerImage(ds.Spec.Template.Spec.Containers)
+		nginxImage, found = getDataPlaneContainerImage(ds.Spec.Template.Spec.Containers)
 	case nginxTypes.DeploymentType:
 		deploy := &appsv1.Deployment{}
 		if err := cs.k8sReader.Get(ctx, parent, deploy); err != nil {
 			return fmt.Errorf("failed to get Deployment %s: %w", parent.String(), err)
 		}
-		nginxImage, found = getNginxContainerImage(deploy.Spec.Template.Spec.Containers)
+		nginxImage, found = getDataPlaneContainerImage(deploy.Spec.Template.Spec.Containers)
 	default:
 		return fmt.Errorf("unknown parentType: %s", parentType)
 	}
 
 	if !found {
-		return fmt.Errorf("nginx container not found in %s %q", parentType, parent.Name)
+		return fmt.Errorf("BWS data plane container not found in %s %q", parentType, parent.Name)
 	}
 
 	if nginxImage != expectedImage {

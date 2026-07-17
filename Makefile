@@ -46,6 +46,7 @@ PREFIX ?= nginx-gateway-fabric## The name of the NGF image. For example, nginx-g
 NGINX_PREFIX ?= $(PREFIX)/nginx## The name of the nginx image. For example: nginx-gateway-fabric/nginx
 NGINX_PLUS_PREFIX ?= $(PREFIX)/nginx-plus## The name of the nginx plus image. For example: nginx-gateway-fabric/nginx-plus
 BWS_PREFIX ?= $(PREFIX)/bws## The name of the BWS data plane image.
+BWS_CONTROL_PLANE_PREFIX ?= bws-gateway-fabric## The name of the BWS Gateway Fabric control plane image.
 BWS_AGENT_DIR ?= $(abspath $(SELF_DIR)../bws-agent)## Path to the BWS Agent source repository.
 BWS_AGENT_BINARY_DIR ?= $(BWS_AGENT_DIR)/build## Directory containing the built BWS Agent binary.
 BWS_PACKAGE ?= $(abspath $(SELF_DIR)../bws-3.2.0-LINUX-X64.tar_94b299d8d6b5c686ffbe0ee912c79cbb304b93dc.gz)## Path to the BWS distribution archive.
@@ -121,6 +122,13 @@ build-bws-image: check-for-docker build-bws-agent ## Build the BWS data plane im
 		--build-arg BWS_INSTALL_DEBUG_TOOLS=$(BWS_INSTALL_DEBUG_TOOLS) \
 		-f $(SELF_DIR)build/Dockerfile.bws \
 		-t $(strip $(BWS_PREFIX)):$(strip $(TAG)) \
+		$(strip $(SELF_DIR))
+
+.PHONY: build-bws-control-plane-image
+build-bws-control-plane-image: check-for-docker build ## Build the BWS Gateway Fabric control plane image.
+	docker build --platform linux/$(GOARCH) --build-arg BUILD_AGENT=$(BUILD_AGENT) \
+		-f $(SELF_DIR)build/Dockerfile.bws-gateway \
+		-t $(strip $(BWS_CONTROL_PLANE_PREFIX)):$(strip $(TAG)) \
 		$(strip $(SELF_DIR))
 
 .PHONY: build-nginx-image

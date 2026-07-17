@@ -26,10 +26,10 @@ import (
 
 // These flags are shared by multiple commands.
 const (
-	domain                = "gateway.nginx.org"
+	domain                = "gateway.bessystem.com"
 	gatewayClassFlag      = "gatewayclass"
 	gatewayClassNameUsage = `The name of the GatewayClass resource. ` +
-		`Every NGINX Gateway Fabric must have a unique corresponding GatewayClass resource.`
+		`Every BWS Gateway Fabric must have a unique corresponding GatewayClass resource.`
 	gatewayCtlrNameFlag     = "gateway-ctlr-name"
 	gatewayCtlrNameUsageFmt = `The name of the Gateway controller. ` +
 		`The controller name must be of the form: DOMAIN/PATH. The controller's domain is '%s'`
@@ -55,7 +55,7 @@ type usageReportParams struct {
 
 func createRootCommand() *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:           "gateway",
+		Use:           "bws-gateway",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -150,7 +150,7 @@ func createControllerCommand() *cobra.Command {
 		disableLeaderElection  bool
 		leaderElectionLockName = stringValidatingValue{
 			validator: validateResourceName,
-			value:     "nginx-gateway-leader-election-lock",
+			value:     "bws-gateway-leader-election-lock",
 		}
 
 		gwExperimentalFeatures bool
@@ -195,8 +195,15 @@ func createControllerCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "controller",
-		Short: "Run the NGINX Gateway Fabric control plane",
+		Short: "Run the BWS Gateway Fabric control plane",
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			if plus {
+				return errors.New("NGINX Plus is not supported by BWS Gateway Fabric")
+			}
+			if nginxOneConsoleDataplaneKeySecretName.value != "" {
+				return errors.New("NGINX One Console is not supported by BWS Gateway Fabric")
+			}
+
 			atom := zap.NewAtomicLevel()
 
 			logger := ctlrZap.New(ctlrZap.Level(atom))
@@ -204,7 +211,7 @@ func createControllerCommand() *cobra.Command {
 
 			commit, date, dirty := getBuildInfo()
 			logger.Info(
-				"Starting the NGINX Gateway Fabric control plane",
+				"Starting the BWS Gateway Fabric control plane",
 				"version", version,
 				"commit", commit,
 				"date", date,
@@ -337,23 +344,23 @@ func createControllerCommand() *cobra.Command {
 	cmd.Flags().Var(
 		&serviceName,
 		serviceFlag,
-		`The name of the Service that fronts this NGINX Gateway Fabric Pod.`+
+		`The name of the Service that fronts this BWS Gateway Fabric Pod.`+
 			` Lives in the same Namespace as the controller.`,
 	)
 
 	cmd.Flags().Var(
 		&agentTLSSecretName,
 		agentTLSSecretFlag,
-		`The name of the base Secret containing TLS CA, certificate, and key for the NGINX Agent to securely `+
-			`communicate with the NGINX Gateway Fabric control plane. Must exist in the same namespace that the `+
-			`NGINX Gateway Fabric control plane is running in (default namespace: nginx-gateway).`,
+		`The name of the base Secret containing TLS CA, certificate, and key for the BWS Agent to securely `+
+			`communicate with the BWS Gateway Fabric control plane. Must exist in the same namespace that the `+
+			`BWS Gateway Fabric control plane is running in (default namespace: bws-gateway).`,
 	)
 
 	cmd.Flags().Var(
 		&nginxOneConsoleDataplaneKeySecretName,
 		nginxOneDataplaneKeySecretFlag,
 		`The name of the Secret containing the NGINX One Console's dataplane key. Must exist in the same namespace that `+
-			`the NGINX Gateway Fabric control plane is running in (default namespace: nginx-gateway).`,
+			`the BWS Gateway Fabric control plane is running in (default namespace: bws-gateway).`,
 	)
 
 	cmd.Flags().Var(
@@ -413,9 +420,9 @@ func createControllerCommand() *cobra.Command {
 		&disableLeaderElection,
 		leaderElectionDisableFlag,
 		false,
-		"Disable leader election. Leader election is used to avoid multiple replicas of the NGINX Gateway Fabric"+
+		"Disable leader election. Leader election is used to avoid multiple replicas of BWS Gateway Fabric"+
 			" reporting the status of the Gateway API resources. If disabled, "+
-			"all replicas of NGINX Gateway Fabric will update the statuses of the Gateway API resources.",
+			"all replicas of BWS Gateway Fabric will update the statuses of the Gateway API resources.",
 	)
 
 	cmd.Flags().Var(
@@ -443,7 +450,7 @@ func createControllerCommand() *cobra.Command {
 		&gwExperimentalFeatures,
 		gwAPIExperimentalFlag,
 		false,
-		"Enable the experimental features of Gateway API which are supported by NGINX Gateway Fabric. "+
+		"Enable the experimental features of Gateway API which are supported by BWS Gateway Fabric. "+
 			"Requires the Gateway APIs installed from the experimental channel.",
 	)
 
@@ -461,14 +468,14 @@ func createControllerCommand() *cobra.Command {
 		&nginxDockerSecrets,
 		nginxDockerSecretFlag,
 		"The name of the NGINX docker registry Secret(s). Must exist in the same namespace "+
-			"that the NGINX Gateway Fabric control plane is running in (default namespace: nginx-gateway).",
+			"that the BWS Gateway Fabric control plane is running in (default namespace: bws-gateway).",
 	)
 
 	cmd.Flags().Var(
 		&usageReportParams.SecretName,
 		usageReportSecretFlag,
 		"The name of the Secret containing the JWT for NGINX Plus usage reporting. Must exist in the same namespace "+
-			"that the NGINX Gateway Fabric control plane is running in (default namespace: nginx-gateway).",
+			"that the BWS Gateway Fabric control plane is running in (default namespace: bws-gateway).",
 	)
 
 	cmd.Flags().Var(
@@ -494,16 +501,16 @@ func createControllerCommand() *cobra.Command {
 		&usageReportParams.ClientSSLSecretName,
 		usageReportClientSSLSecretFlag,
 		"The name of the Secret containing the client certificate and key for authenticating with NGINX Instance Manager. "+
-			"Must exist in the same namespace that the NGINX Gateway Fabric control plane is running in "+
-			"(default namespace: nginx-gateway).",
+			"Must exist in the same namespace that the BWS Gateway Fabric control plane is running in "+
+			"(default namespace: bws-gateway).",
 	)
 
 	cmd.Flags().Var(
 		&usageReportParams.CASecretName,
 		usageReportCASecretFlag,
 		"The name of the Secret containing the NGINX Instance Manager CA certificate. "+
-			"Must exist in the same namespace that the NGINX Gateway Fabric control plane is running in "+
-			"(default namespace: nginx-gateway).",
+			"Must exist in the same namespace that the BWS Gateway Fabric control plane is running in "+
+			"(default namespace: bws-gateway).",
 	)
 
 	cmd.Flags().BoolVar(
@@ -545,6 +552,25 @@ func createControllerCommand() *cobra.Command {
 		`Comma-separated list of namespaces to watch for resources. If not set, all namespaces are watched. `+
 			`The controller's own namespace is always watched.`,
 	)
+
+	// Keep the upstream flags temporarily for wire and source compatibility, but remove unsupported product entries
+	// from the BWS CLI surface. The backing code will be deleted with the M4 API cleanup.
+	for _, flag := range []string{
+		plusFlag,
+		nginxOneDataplaneKeySecretFlag,
+		nginxOneTelemetryEndpointHostFlag,
+		nginxOneTelemetryEndpointPortFlag,
+		nginxOneTLSSkipVerifyFlag,
+		usageReportSecretFlag,
+		usageReportEndpointFlag,
+		usageReportResolverFlag,
+		usageReportSkipVerifyFlag,
+		usageReportClientSSLSecretFlag,
+		usageReportCASecretFlag,
+		usageReportEnforceInitialReportFlag,
+	} {
+		utilruntime.Must(cmd.Flags().MarkHidden(flag))
+	}
 
 	return cmd
 }
@@ -633,23 +659,23 @@ func createGenerateCertsCommand() *cobra.Command {
 	cmd.Flags().Var(
 		&serverTLSSecretName,
 		serverTLSSecretFlag,
-		`The name of the Secret containing TLS CA, certificate, and key for the NGINX Gateway Fabric control plane `+
-			`to securely communicate with the NGINX Agent. Must exist in the same namespace that the `+
-			`NGINX Gateway Fabric control plane is running in (default namespace: nginx-gateway).`,
+		`The name of the Secret containing TLS CA, certificate, and key for the BWS Gateway Fabric control plane `+
+			`to securely communicate with the BWS Agent. Must exist in the same namespace that the `+
+			`BWS Gateway Fabric control plane is running in (default namespace: bws-gateway).`,
 	)
 
 	cmd.Flags().Var(
 		&agentTLSSecretName,
 		agentTLSSecretFlag,
-		`The name of the base Secret containing TLS CA, certificate, and key for the NGINX Agent to securely `+
-			`communicate with the NGINX Gateway Fabric control plane. Must exist in the same namespace that the `+
-			`NGINX Gateway Fabric control plane is running in (default namespace: nginx-gateway).`,
+		`The name of the base Secret containing TLS CA, certificate, and key for the BWS Agent to securely `+
+			`communicate with the BWS Gateway Fabric control plane. Must exist in the same namespace that the `+
+			`BWS Gateway Fabric control plane is running in (default namespace: bws-gateway).`,
 	)
 
 	cmd.Flags().Var(
 		&serviceName,
 		serviceFlag,
-		`The name of the Service that fronts the NGINX Gateway Fabric Pod.`+
+		`The name of the Service that fronts the BWS Gateway Fabric Pod.`+
 			` Lives in the same Namespace as the controller.`,
 	)
 

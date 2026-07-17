@@ -102,7 +102,7 @@
       "type": "object"
     },
     "nginx": {
-      "description": "The nginx section contains the configuration for all NGINX data plane deployments\ninstalled by the NGINX Gateway Fabric control plane.",
+      "description": "The nginx section retains the upstream field name during M4.1 and configures BWS data plane deployments.",
       "properties": {
         "autoscaling": {
           "description": "Autoscaling configuration for the NGINX data plane.",
@@ -532,8 +532,8 @@
               "title": "pullPolicy"
             },
             "repository": {
-              "default": "ghcr.io/nginx/nginx-gateway-fabric/nginx",
-              "description": "The NGINX image to use.",
+              "default": "bws-gateway-fabric/bws",
+              "description": "The BWS data plane image to use.",
               "title": "repository",
               "type": "string"
             },
@@ -563,7 +563,7 @@
         },
         "kind": {
           "default": "deployment",
-          "description": "The kind of NGINX deployment.",
+          "description": "The kind of BWS deployment.",
           "enum": [
             "deployment",
             "daemonSet"
@@ -614,10 +614,11 @@
           "type": "array"
         },
         "plus": {
-          "default": false,
-          "description": "Is NGINX Plus image being used.",
-          "title": "plus",
-          "type": "boolean"
+          "const": false,
+          "default": "false",
+          "description": "NGINX Plus is unsupported by BWS Gateway Fabric and must remain disabled.",
+          "required": [],
+          "title": "plus"
         },
         "pod": {
           "description": "The pod configuration for the NGINX data plane pod. This is applied globally to all Gateways managed by this\ninstance of NGINX Gateway Fabric.",
@@ -627,7 +628,7 @@
         },
         "replicas": {
           "default": 1,
-          "description": "The number of replicas of the NGINX Deployment. This value is ignored if autoscaling.enable is true.",
+          "description": "The number of replicas of the BWS Deployment. This value is ignored if autoscaling.enable is true.",
           "title": "replicas",
           "type": "integer"
         },
@@ -892,15 +893,15 @@
           "type": "object"
         },
         "gatewayClassName": {
-          "default": "nginx",
+          "default": "bws",
           "description": "The name of the GatewayClass that will be created as part of this release. Every NGINX Gateway\nFabric must have a unique corresponding GatewayClass resource. NGINX Gateway Fabric only processes resources that\nbelong to its class - i.e. have the \"gatewayClassName\" field resource equal to the class.",
           "title": "gatewayClassName",
           "type": "string"
         },
         "gatewayControllerName": {
-          "default": "gateway.nginx.org/nginx-gateway-controller",
-          "description": "The name of the Gateway controller. The controller name must be of the form: DOMAIN/PATH. The controller's domain\nis gateway.nginx.org.",
-          "pattern": "^gateway.nginx.org/.*",
+          "default": "gateway.bessystem.com/bws-gateway-controller",
+          "description": "The name of the Gateway controller. The controller name must be of the form: DOMAIN/PATH. The controller's domain\nis gateway.bessystem.com. The legacy gateway.nginx.org domain remains accepted during M4 migration.",
+          "pattern": "^(gateway\\.bessystem\\.com|gateway\\.nginx\\.org)/.*",
           "required": [],
           "title": "gatewayControllerName"
         },
@@ -951,7 +952,7 @@
           "type": "object"
         },
         "image": {
-          "description": "The image configuration for the NGINX Gateway Fabric control plane.",
+          "description": "The image configuration for the BWS Gateway Fabric control plane.",
           "properties": {
             "pullPolicy": {
               "default": "IfNotPresent",
@@ -964,8 +965,8 @@
               "title": "pullPolicy"
             },
             "repository": {
-              "default": "ghcr.io/nginx/nginx-gateway-fabric",
-              "description": "The NGINX Gateway Fabric image to use",
+              "default": "bws-gateway-fabric",
+              "description": "The BWS Gateway Fabric image to use.",
               "title": "repository",
               "type": "string"
             },
@@ -1046,7 +1047,7 @@
           "type": "object"
         },
         "name": {
-          "default": "",
+          "default": "bws-gateway-fabric",
           "description": "The name of the NGINX Gateway Fabric deployment - if not present, then by default uses release name given during installation.",
           "title": "name",
           "type": "string"
@@ -1072,7 +1073,7 @@
         "productTelemetry": {
           "properties": {
             "enable": {
-              "default": true,
+              "default": false,
               "description": "Enable the collection of product telemetry.",
               "title": "enable",
               "type": "boolean"

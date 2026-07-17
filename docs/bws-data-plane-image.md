@@ -15,7 +15,7 @@ make build-bws-image \
   TAG=m2-local
 ```
 
-The build compiles BWS Agent with `CGO_ENABLED=0`, validates the archive against the recorded SHA-256, and uses Rocky
+The build compiles the `bws-agent` executable with `CGO_ENABLED=0`, validates the archive against the recorded SHA-256, and uses Rocky
 Linux 8 as the glibc runtime. The BWS archive is supplied as a read-only named build context and is not copied into this
 repository or retained in an image layer. The packaged dynamic-module dependencies, NGF NJS files, and NGF bootstrap
 configuration are included in the image.

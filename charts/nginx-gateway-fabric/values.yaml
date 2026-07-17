@@ -12,7 +12,7 @@ nginxGateway:
   kind: deployment
 
   # -- The name of the NGINX Gateway Fabric deployment - if not present, then by default uses release name given during installation.
-  name: ""
+  name: bws-gateway-fabric
 
   # -- List of namespaces to watch for resources. If not set, all namespaces are watched.
   # The controller's own namespace is always included.
@@ -25,7 +25,7 @@ nginxGateway:
   # -- The name of the GatewayClass that will be created as part of this release. Every NGINX Gateway
   # Fabric must have a unique corresponding GatewayClass resource. NGINX Gateway Fabric only processes resources that
   # belong to its class - i.e. have the "gatewayClassName" field resource equal to the class.
-  gatewayClassName: nginx
+  gatewayClassName: bws
 
   # -- Set of custom annotations for the NGINX Gateway Fabric pods.
   podAnnotations: {}
@@ -37,12 +37,12 @@ nginxGateway:
   gatewayClassAnnotations: {}
 
   # @schema
-  # pattern: ^gateway.nginx.org/.*
+  # pattern: ^(gateway\.bessystem\.com|gateway\.nginx\.org)/.*
   # required: true
   # @schema
   # -- The name of the Gateway controller. The controller name must be of the form: DOMAIN/PATH. The controller's domain
-  # is gateway.nginx.org.
-  gatewayControllerName: gateway.nginx.org/nginx-gateway-controller
+  # is gateway.bessystem.com. The legacy gateway.nginx.org domain remains accepted during M4 migration.
+  gatewayControllerName: gateway.bessystem.com/bws-gateway-controller
 
   # The dynamic configuration for the control plane that is contained in the NginxGateway resource.
   config:
@@ -148,10 +148,10 @@ nginxGateway:
     # -- Minimum consecutive successes for the probe to be considered successful after having failed.
     successThreshold: 1
 
-  # -- The image configuration for the NGINX Gateway Fabric control plane.
+  # -- The image configuration for the BWS Gateway Fabric control plane.
   image:
-    # -- The NGINX Gateway Fabric image to use
-    repository: ghcr.io/nginx/nginx-gateway-fabric
+    # -- The BWS Gateway Fabric image to use.
+    repository: bws-gateway-fabric
     tag: 2.6.7
     # @schema
     # enum:
@@ -163,7 +163,7 @@ nginxGateway:
 
   productTelemetry:
     # -- Enable the collection of product telemetry.
-    enable: true
+    enable: false
 
   # @schema
   # type: object
@@ -299,18 +299,17 @@ nginxGateway:
     # the generated NGINX config for HTTPRoute and GRPCRoute resources.
     enable: false
 
-# -- The nginx section contains the configuration for all NGINX data plane deployments
-# installed by the NGINX Gateway Fabric control plane.
+# -- The nginx section retains the upstream field name during M4.1 and configures BWS data plane deployments.
 nginx:
   # @schema
   # enum:
   #   - deployment
   #   - daemonSet
   # @schema
-  # -- The kind of NGINX deployment.
+  # -- The kind of BWS deployment.
   kind: deployment
 
-  # -- The number of replicas of the NGINX Deployment. This value is ignored if autoscaling.enable is true.
+  # -- The number of replicas of the BWS Deployment. This value is ignored if autoscaling.enable is true.
   replicas: 1
 
   # -- Custom patches to apply to the NGINX Deployment/DaemonSet.
@@ -360,8 +359,8 @@ nginx:
     #       type: AverageValue
     #       averageValue: "400Mi"
   image:
-    # -- The NGINX image to use.
-    repository: ghcr.io/nginx/nginx-gateway-fabric/nginx
+    # -- The BWS data plane image to use.
+    repository: bws-gateway-fabric/bws
     tag: 2.6.7
     # @schema
     # enum:
@@ -371,7 +370,10 @@ nginx:
     # @schema
     pullPolicy: IfNotPresent
 
-  # -- Is NGINX Plus image being used.
+  # @schema
+  # const: false
+  # @schema
+  # -- NGINX Plus is unsupported by BWS Gateway Fabric and must remain disabled.
   plus: false
 
   # -- Configuration for NGINX One Console.

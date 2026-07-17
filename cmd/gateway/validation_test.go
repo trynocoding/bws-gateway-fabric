@@ -15,17 +15,17 @@ func TestValidateGatewayControllerName(t *testing.T) {
 	}{
 		{
 			name:   "valid",
-			value:  "gateway.nginx.org/nginx-gateway",
+			value:  "gateway.bessystem.com/bws-gateway",
 			expErr: false,
 		},
 		{
 			name:   "valid - with subpath",
-			value:  "gateway.nginx.org/nginx-gateway/my-gateway",
+			value:  "gateway.bessystem.com/bws-gateway/my-gateway",
 			expErr: false,
 		},
 		{
 			name:   "valid - with complex subpath",
-			value:  "gateway.nginx.org/nginx-gateway/my-gateway/v1",
+			value:  "gateway.bessystem.com/bws-gateway/my-gateway/v1",
 			expErr: false,
 		},
 		{
@@ -35,12 +35,12 @@ func TestValidateGatewayControllerName(t *testing.T) {
 		},
 		{
 			name:   "invalid - lacks path",
-			value:  "gateway.nginx.org",
+			value:  "gateway.bessystem.com",
 			expErr: true,
 		},
 		{
 			name:   "invalid - lacks path, only slash is present",
-			value:  "gateway.nginx.org/",
+			value:  "gateway.bessystem.com/",
 			expErr: true,
 		},
 		{

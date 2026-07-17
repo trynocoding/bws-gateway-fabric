@@ -29,11 +29,11 @@ const (
 )
 
 var subject = pkix.Name{
-	CommonName:         "nginx-gateway",
+	CommonName:         "bws-gateway",
 	Country:            []string{"US"},
 	Locality:           []string{"SEA"},
-	Organization:       []string{"F5"},
-	OrganizationalUnit: []string{"NGINX"},
+	Organization:       []string{"BES"},
+	OrganizationalUnit: []string{"BWS"},
 }
 
 type certificateConfig struct {

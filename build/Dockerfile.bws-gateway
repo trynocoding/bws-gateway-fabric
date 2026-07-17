@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1.23
+
+FROM golang:1.26 AS ca-certs-provider
+
+FROM scratch
+
+COPY --from=ca-certs-provider --link /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --chmod=0755 build/out/gateway /usr/bin/bws-gateway
+
+ARG BUILD_AGENT
+ENV BUILD_AGENT=${BUILD_AGENT}
+ENV BUILD_OS=linux
+
+LABEL org.opencontainers.image.title="BWS Gateway Fabric control plane" \
+    org.opencontainers.image.description="BWS implementation of the Kubernetes Gateway API"
+
+USER 101:1001
+ENTRYPOINT ["/usr/bin/bws-gateway"]

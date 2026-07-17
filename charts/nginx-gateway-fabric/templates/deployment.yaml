@@ -154,7 +154,7 @@ spec:
           value: {{ .Values.nginxGateway.image.repository }}:{{ default .Chart.AppVersion .Values.nginxGateway.image.tag }}
         image: {{ .Values.nginxGateway.image.repository }}:{{ default .Chart.AppVersion .Values.nginxGateway.image.tag }}
         imagePullPolicy: {{ .Values.nginxGateway.image.pullPolicy }}
-        name: nginx-gateway
+        name: bws-gateway
         {{- if .Values.nginxGateway.lifecycle }}
         lifecycle:
         {{- toYaml .Values.nginxGateway.lifecycle | nindent 10 }}
@@ -194,7 +194,7 @@ spec:
           runAsUser: 101
           runAsGroup: 1001
         volumeMounts:
-        - name: nginx-agent-tls
+        - name: bws-agent-tls
           mountPath: /var/run/secrets/ngf
         {{- with .Values.nginxGateway.extraVolumeMounts -}}
         {{ toYaml . | nindent 8 }}
@@ -224,7 +224,7 @@ spec:
       {{- toYaml .Values.nginxGateway.nodeSelector | nindent 8 }}
       {{- end }}
       volumes:
-      - name: nginx-agent-tls
+      - name: bws-agent-tls
         secret:
           secretName: {{ .Values.certGenerator.serverTLSSecretName }}
       {{- with .Values.nginxGateway.extraVolumes -}}

@@ -32,7 +32,7 @@ RUN --mount=type=bind,from=bws-package,source=/${BWS_PACKAGE_FILE},target=/tmp/b
     && sed -i 's|^\./bws "$@"$|exec ./bws "$@"|' /opt/bws/bin/bws.sh \
     && grep -Fx 'exec ./bws "$@"' /opt/bws/bin/bws.sh
 
-COPY --chmod=0755 --from=bws-agent /nginx-agent /usr/bin/nginx-agent
+COPY --chmod=0755 --from=bws-agent /bws-agent /usr/bin/bws-agent
 COPY --chmod=0755 build/bws-entrypoint.sh /agent/entrypoint.sh
 COPY ${NGINX_CONF_DIR}/nginx.conf /etc/nginx/nginx.conf
 COPY ${NGINX_CONF_DIR}/grpc-error-locations.conf /etc/nginx/grpc-error-locations.conf
@@ -85,7 +85,7 @@ RUN cp /opt/bws/conf/mime.types /etc/nginx/mime.types \
 LABEL org.nginx.ngf.image.build.agent="${BUILD_AGENT}" \
     org.bws.image.debug-tools="${BWS_INSTALL_DEBUG_TOOLS}" \
     org.opencontainers.image.title="BWS Gateway Fabric data plane" \
-    org.opencontainers.image.description="BES WebServer data plane with BWS Agent for NGINX Gateway Fabric"
+    org.opencontainers.image.description="BES WebServer data plane with BWS Agent for BWS Gateway Fabric"
 
 EXPOSE 80 443 8081
 

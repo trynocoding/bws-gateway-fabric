@@ -2434,7 +2434,7 @@ func TestBuildNginxResourceObjects_InferenceExtension(t *testing.T) {
 	deployment := findDeployment(objects)
 
 	expectedCommands := []string{
-		"/usr/bin/gateway",
+		"/usr/bin/bws-gateway",
 		"endpoint-picker",
 		"--endpoint-picker-disable-tls",
 		"--endpoint-picker-tls-skip-verify",
@@ -2795,7 +2795,7 @@ func TestBuildNginxResourceObjects_WAF(t *testing.T) {
 
 	// Validate NGINX container (first container)
 	nginxContainer := template.Spec.Containers[0]
-	g.Expect(nginxContainer.Name).To(Equal("nginx"))
+	g.Expect(nginxContainer.Name).To(Equal("bws"))
 	g.Expect(nginxContainer.Image).To(Equal(fmt.Sprintf("%s:1.0.0", defaultNginxPlusWAFImagePath)))
 
 	// Check NGINX container has WAF volume mounts
