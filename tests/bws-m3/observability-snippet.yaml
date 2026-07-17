@@ -1,0 +1,14 @@
+apiVersion: gateway.nginx.org/v1alpha1
+kind: SnippetsPolicy
+metadata:
+  name: bws-m3-access-log
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: bws-gateway
+  snippets:
+    - context: http
+      value: |
+        log_format bws_m3 '$remote_addr - $host "$request" $status $body_bytes_sent';
+        access_log /dev/stdout bws_m3;

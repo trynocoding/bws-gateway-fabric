@@ -6,8 +6,9 @@ control plane, mounts the BWS license as a read-only Secret, and provisions a BW
 ## Prerequisites
 
 - Kubernetes 1.31 or newer with the NGF v2.6.7 CRDs installed.
-- `kubectl`, Helm, OpenSSL, Docker, and a cluster image-loading mechanism.
+- `kubectl`, Helm, OpenSSL, Docker, Python 3, and a cluster image-loading mechanism.
 - The local `bws-gateway-fabric/bws:m3-local` image available to every cluster node.
+- Registry access to pull the temporary `python:3.12-alpine` WebSocket test backend.
 - A valid `bws.lic.txt`. The scripts never place it in the repository or an image layer.
 
 Build and tag the image from the workspace root:
@@ -26,6 +27,7 @@ image into the `k8s.io` namespace. For a remote or multi-node cluster, push it t
 BWS_LICENSE_FILE=/secure/path/bws.lic.txt ./tests/bws-m3/deploy.sh
 ./tests/bws-m3/verify.sh
 ./tests/bws-m3/verify-resilience.sh
+./tests/bws-m3/verify-extended.sh
 ```
 
 For environments where the license should never be copied to a temporary file, create `bws-m3/bws-license` first with
@@ -39,6 +41,12 @@ invalid snippet. The verifier restores the original route and removes the invali
 The resilience verifier expects the two replicas configured in `values.yaml`. It deletes one data-plane Pod, restarts
 the control plane and waits for both Agents to reconnect, then performs a rolling restart while continuously sending
 requests through the HTTP NodePort.
+
+The extended verifier applies a temporary access-log policy and Python standard-library WebSocket echo backend, then
+removes both on exit. It validates the generated NJS and WebSocket proxy directives with `bws -t`, performs a live
+WebSocket upgrade and bidirectional echo, negotiates HTTP/2 on the TLS listener, checks the Agent's
+stub_status-derived Prometheus and container metrics on port 9113, and confirms that BWS access and error logs are
+visible through `kubectl logs`.
 
 The Secret is mounted as a directory, not with `subPath`, so Kubernetes can project updated license bytes. The current
 entrypoint copies the license only at process startup; a true online license rotation still requires a second valid

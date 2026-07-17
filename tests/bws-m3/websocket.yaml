@@ -1,0 +1,127 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bws-m3-websocket
+data:
+  server.py: |
+    import base64
+    import hashlib
+    import socketserver
+
+    GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+
+    def receive_exact(sock, length):
+        data = b""
+        while len(data) < length:
+            chunk = sock.recv(length - len(data))
+            if not chunk:
+                raise ConnectionError("unexpected end of stream")
+            data += chunk
+        return data
+
+    class Handler(socketserver.BaseRequestHandler):
+        def handle(self):
+            request = b""
+            while b"\r\n\r\n" not in request:
+                request += self.request.recv(4096)
+            headers = {}
+            for line in request.decode().split("\r\n")[1:]:
+                if ":" in line:
+                    name, value = line.split(":", 1)
+                    headers[name.lower()] = value.strip()
+            accept = base64.b64encode(
+                hashlib.sha1((headers["sec-websocket-key"] + GUID).encode()).digest()
+            ).decode()
+            self.request.sendall(
+                (
+                    "HTTP/1.1 101 Switching Protocols\r\n"
+                    "Upgrade: websocket\r\n"
+                    "Connection: Upgrade\r\n"
+                    f"Sec-WebSocket-Accept: {accept}\r\n\r\n"
+                ).encode()
+            )
+            first, second = receive_exact(self.request, 2)
+            length = second & 0x7F
+            if length == 126:
+                length = int.from_bytes(receive_exact(self.request, 2), "big")
+            elif length == 127:
+                length = int.from_bytes(receive_exact(self.request, 8), "big")
+            mask = receive_exact(self.request, 4) if second & 0x80 else b""
+            payload = receive_exact(self.request, length)
+            if mask:
+                payload = bytes(value ^ mask[index % 4] for index, value in enumerate(payload))
+            if first & 0x0F != 1:
+                raise ValueError("expected a text frame")
+            if len(payload) >= 126:
+                raise ValueError("test payload is too large")
+            self.request.sendall(bytes((0x81, len(payload))) + payload)
+
+    with socketserver.ThreadingTCPServer(("0.0.0.0", 8080), Handler) as server:
+        server.serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bws-m3-websocket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bws-m3-websocket
+  template:
+    metadata:
+      labels:
+        app: bws-m3-websocket
+    spec:
+      containers:
+        - name: websocket
+          image: python:3.12-alpine
+          imagePullPolicy: IfNotPresent
+          command: [python3, /app/server.py]
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: http
+          volumeMounts:
+            - name: script
+              mountPath: /app
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: bws-m3-websocket
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bws-m3-websocket
+spec:
+  selector:
+    app: bws-m3-websocket
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: bws-m3-websocket
+spec:
+  parentRefs:
+    - name: bws-gateway
+      sectionName: http
+    - name: bws-gateway
+      sectionName: https
+  hostnames:
+    - bws.example.com
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /ws
+      backendRefs:
+        - name: bws-m3-websocket
+          port: 80
