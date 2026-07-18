@@ -52,7 +52,7 @@ const (
 	unusableGatewayIPAddress = "198.51.100.0"
 
 	// Default namespaces for log collection
-	ngfNamespace   = "nginx-gateway"
+	ngfNamespace   = "bws-m4-system"
 	infraNamespace = "gateway-conformance-infra"
 )
 
@@ -78,12 +78,12 @@ func TestConformance(t *testing.T) {
 	opts.UsableNetworkAddresses = []gatewayv1.GatewaySpecAddress{{Type: &ipaddressType, Value: "192.0.2.1"}}
 
 	opts.Implementation = conf_v1.Implementation{
-		Organization: "nginx",
-		Project:      "nginx-gateway-fabric",
-		URL:          "https://github.com/nginx/nginx-gateway-fabric",
+		Organization: "bessystem",
+		Project:      "bws-gateway-fabric",
+		URL:          "https://github.com/trynocoding/bws-gateway-fabric",
 		Version:      *flags.ImplementationVersion,
 		Contact: []string{
-			"https://github.com/nginx/nginx-gateway-fabric/discussions/new/choose",
+			"https://github.com/trynocoding/bws-gateway-fabric/discussions/new/choose",
 		},
 	}
 
@@ -127,12 +127,12 @@ func TestInferenceExtensionConformance(t *testing.T) {
 	opts := inference_conformance.DefaultOptions(t)
 
 	opts.Implementation = conf_v1.Implementation{
-		Organization: "nginx",
-		Project:      "nginx-gateway-fabric",
-		URL:          "https://github.com/nginx/nginx-gateway-fabric",
+		Organization: "bessystem",
+		Project:      "bws-gateway-fabric",
+		URL:          "https://github.com/trynocoding/bws-gateway-fabric",
 		Version:      *flags.ImplementationVersion,
 		Contact: []string{
-			"https://github.com/nginx/nginx-gateway-fabric/discussions/new/choose",
+			"https://github.com/trynocoding/bws-gateway-fabric/discussions/new/choose",
 		},
 	}
 
@@ -175,10 +175,10 @@ func collectNGFLogsOnFailure(t *testing.T, g Gomega) {
 		}
 
 		// Get NGF container logs
-		collectLogs(t, g, rm, ngfNamespace, "nginx-gateway")
+		collectLogs(t, g, rm, ngfNamespace, "bws-gateway")
 
-		// Get NGINX container logs
-		collectLogs(t, g, rm, infraNamespace, "nginx")
+		// Get BWS container logs
+		collectLogs(t, g, rm, infraNamespace, "bws")
 	}
 }
 

@@ -29,6 +29,9 @@ conformance-profile-inference.yaml
 # Binary and Artifacts
 build/.out
 build/out
+build/*.kubeconfig
+build/bws-m4-conformance.log
+build/bws-m4-conformance-profile.yaml
 dist/
 
 # Test artifacts

@@ -10,6 +10,8 @@ bwsGateway:
     lockName: bws-gateway-leader-election
   productTelemetry:
     enable: false
+  gwAPIExperimentalFeatures:
+    enable: true
   snippets:
     enable: true
   image:
@@ -19,6 +21,25 @@ bwsGateway:
 
 bws:
   replicas: 2
+  autoscaling:
+    enable: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 30
+    targetMemoryUtilizationPercentage: 90
+    behavior:
+      scaleUp:
+        stabilizationWindowSeconds: 0
+        policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 15
+      scaleDown:
+        stabilizationWindowSeconds: 0
+        policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 15
   image:
     repository: bws-gateway-fabric/bws
     tag: m4-local
@@ -35,6 +56,13 @@ bws:
             - key: bws.lic.txt
               path: bws.lic.txt
   container:
+    resources:
+      requests:
+        cpu: 20m
+        memory: 1Gi
+      limits:
+        cpu: "1"
+        memory: 2Gi
     lifecycle:
       preStop:
         exec:

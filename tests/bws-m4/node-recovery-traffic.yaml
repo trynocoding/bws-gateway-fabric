@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bws-m4-node-traffic
+spec:
+  restartPolicy: Never
+  nodeSelector:
+    kubernetes.io/hostname: bws-m4-isolated-control-plane
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+  containers:
+    - name: traffic
+      image: bws-gateway-fabric/bws:m4-local
+      imagePullPolicy: Never
+      command:
+        - /bin/sh
+        - -c
+        - |
+          while :; do
+              response="$(curl -fsS --connect-timeout 1 --max-time 2 \
+                  -H 'Host: bws.example.com' \
+                  http://bws-gateway-bws.bws-m4.svc/ 2>/dev/null)"
+              case "${response}" in
+                  *"Server name: coffee-"*) break ;;
+              esac
+              sleep 0.25
+          done
+          successes=0
+          failures=0
+          touch /tmp/run
+          touch /tmp/ready
+          while test -e /tmp/run; do
+              response="$(curl -fsS --connect-timeout 1 --max-time 2 \
+                  -H 'Host: bws.example.com' \
+                  http://bws-gateway-bws.bws-m4.svc/ 2>/dev/null)"
+              case "${response}" in
+                  *"Server name: coffee-"*) successes=$((successes + 1)) ;;
+                  *)
+                      failures=$((failures + 1))
+                      date -u +%Y-%m-%dT%H:%M:%SZ >>/tmp/failures
+                      ;;
+              esac
+              sleep 0.05
+          done
+          echo "${successes} ${failures}" >/tmp/result
+          exec sleep infinity
+      readinessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - test -e /tmp/ready
+        periodSeconds: 1
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi

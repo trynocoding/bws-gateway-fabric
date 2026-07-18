@@ -12,6 +12,7 @@ readonly control_image_repository="${BWS_CONTROL_IMAGE_REPOSITORY:-bws-gateway-f
 readonly control_image_tag="${BWS_CONTROL_IMAGE_TAG:-m4-local}"
 readonly data_image_repository="${BWS_DATA_IMAGE_REPOSITORY:-bws-gateway-fabric/bws}"
 readonly data_image_tag="${BWS_DATA_IMAGE_TAG:-m4-local}"
+readonly workload_image="${BWS_M4_WORKLOAD_IMAGE:-nginxdemos/nginx-hello:plain-text}"
 readonly image_pull_policy="${BWS_IMAGE_PULL_POLICY:-Never}"
 
 for command in helm kubectl openssl; do
@@ -70,6 +71,8 @@ helm upgrade --install "${release}" "${repo_dir}/charts/bws-gateway-fabric" \
     --timeout 5m
 
 kubectl -n "${namespace}" apply -f "${script_dir}/../bws-m3/workloads.yaml"
+kubectl -n "${namespace}" set image deployment/coffee "coffee=${workload_image}" >/dev/null
+kubectl -n "${namespace}" set image deployment/tea "tea=${workload_image}" >/dev/null
 kubectl -n "${namespace}" apply -f "${script_dir}/gateway.yaml"
 kubectl -n "${namespace}" rollout status deployment/coffee --timeout=2m
 kubectl -n "${namespace}" rollout status deployment/tea --timeout=2m

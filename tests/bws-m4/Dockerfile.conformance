@@ -1,0 +1,5 @@
+FROM golang:1.26
+
+COPY build/conformance.test /usr/local/bin/conformance.test
+
+WORKDIR /work

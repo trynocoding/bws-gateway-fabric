@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coffee-recovery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coffee
+      role: recovery
+  template:
+    metadata:
+      labels:
+        app: coffee
+        role: recovery
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: coffee
+      containers:
+        - name: coffee
+          image: bws-m4/nginx-hello:plain-text
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 10m
