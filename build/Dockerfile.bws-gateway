@@ -2,7 +2,7 @@
 
 FROM golang:1.26 AS ca-certs-provider
 
-FROM scratch
+FROM scratch AS local
 
 COPY --from=ca-certs-provider --link /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --chmod=0755 build/out/gateway /usr/bin/bws-gateway
