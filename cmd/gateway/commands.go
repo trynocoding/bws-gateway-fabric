@@ -86,7 +86,7 @@ func createControllerCommand() *cobra.Command {
 		productTelemetryDisableFlag         = "product-telemetry-disable"
 		gwAPIExperimentalFlag               = "gateway-api-experimental-features"
 		gwAPIInferenceExtensionFlag         = "gateway-api-inference-extension"
-		nginxDockerSecretFlag               = "nginx-docker-secret" //nolint:gosec // not credentials
+		dockerSecretFlag                    = "docker-secret" //nolint:gosec // not credentials
 		usageReportSecretFlag               = "usage-report-secret"
 		usageReportEndpointFlag             = "usage-report-endpoint"
 		usageReportResolverFlag             = "usage-report-resolver"
@@ -96,7 +96,7 @@ func createControllerCommand() *cobra.Command {
 		usageReportEnforceInitialReportFlag = "usage-report-enforce-initial-report"
 		snippetsFiltersFlag                 = "snippets-filters"
 		snippetsFlag                        = "snippets"
-		nginxSCCFlag                        = "nginx-scc"
+		ngfSCCFlag                          = "scc"
 		watchNamespacesFlag                 = "watch-namespaces"
 	)
 
@@ -443,7 +443,7 @@ func createControllerCommand() *cobra.Command {
 		&plus,
 		plusFlag,
 		false,
-		"Use NGINX Plus",
+		"Use NGINX Plus. Not supported by BWS Gateway Fabric.",
 	)
 
 	cmd.Flags().BoolVar(
@@ -466,15 +466,15 @@ func createControllerCommand() *cobra.Command {
 
 	cmd.Flags().Var(
 		&nginxDockerSecrets,
-		nginxDockerSecretFlag,
-		"The name of the NGINX docker registry Secret(s). Must exist in the same namespace "+
+		dockerSecretFlag,
+		"The name of the docker registry Secret(s). Must exist in the same namespace "+
 			"that the BWS Gateway Fabric control plane is running in (default namespace: bws-gateway).",
 	)
 
 	cmd.Flags().Var(
 		&usageReportParams.SecretName,
 		usageReportSecretFlag,
-		"The name of the Secret containing the JWT for NGINX Plus usage reporting. Must exist in the same namespace "+
+		"The name of the Secret containing the JWT for usage reporting. Must exist in the same namespace "+
 			"that the BWS Gateway Fabric control plane is running in (default namespace: bws-gateway).",
 	)
 
@@ -541,8 +541,8 @@ func createControllerCommand() *cobra.Command {
 
 	cmd.Flags().Var(
 		&nginxSCCName,
-		nginxSCCFlag,
-		`The name of the SecurityContextConstraints to be used with the NGINX data plane Pods.`+
+		ngfSCCFlag,
+		`The name of the SecurityContextConstraints to be used with the BWS data plane Pods.`+
 			` Only applicable in OpenShift.`,
 	)
 
@@ -772,7 +772,7 @@ func createInitializeCommand() *cobra.Command {
 		&plus,
 		plusFlag,
 		false,
-		"Use NGINX Plus",
+		"Use NGINX Plus. Not supported by BWS Gateway Fabric.",
 	)
 
 	cmd.MarkFlagsRequiredTogether(srcFlag, destFlag)

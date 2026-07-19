@@ -1253,10 +1253,11 @@ func TestBuildNginxResourceObjects_DaemonSet(t *testing.T) {
 	// Verify agent ConfigMap contains WAF logs-nap feature
 	agentCM := findAgentConfigMap(objects)
 	g.Expect(agentCM).ToNot(BeNil())
-	// Verify agent features - should have base + logs-nap (WAF)
+	// Verify agent features - WAF is disabled for BWS, so logs-nap should not appear even when
+	// the upstream test fixtures request it.
 	g.Expect(agentCM.Data[configmaps.AgentConfKey]).To(ContainSubstring("- configuration"))
 	g.Expect(agentCM.Data[configmaps.AgentConfKey]).To(ContainSubstring("- certificates"))
-	g.Expect(agentCM.Data[configmaps.AgentConfKey]).To(ContainSubstring("- logs-nap"))
+	g.Expect(agentCM.Data[configmaps.AgentConfKey]).ToNot(ContainSubstring("- logs-nap"))
 
 	ds := findDaemonSet(objects)
 	g.Expect(ds).ToNot(BeNil())
@@ -2783,10 +2784,10 @@ func TestBuildNginxResourceObjects_WAF(t *testing.T) {
 	g.Expect(dep).ToNot(BeNil())
 	g.Expect(agentCM).ToNot(BeNil())
 
-	// Verify agent ConfigMap contains WAF logs-nap feature
+	// Verify agent ConfigMap features. WAF is disabled for BWS, so logs-nap must not appear.
 	g.Expect(agentCM.Data[configmaps.AgentConfKey]).To(ContainSubstring("- configuration"))
 	g.Expect(agentCM.Data[configmaps.AgentConfKey]).To(ContainSubstring("- certificates"))
-	g.Expect(agentCM.Data[configmaps.AgentConfKey]).To(ContainSubstring("- logs-nap"))
+	g.Expect(agentCM.Data[configmaps.AgentConfKey]).ToNot(ContainSubstring("- logs-nap"))
 
 	template := dep.Spec.Template
 

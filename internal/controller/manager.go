@@ -111,7 +111,7 @@ func StartManager(cfg config.Config) error {
 		return fmt.Errorf("cannot build runtime manager: %w", err)
 	}
 
-	recorderName := fmt.Sprintf("nginx-gateway-fabric-%s", cfg.GatewayClassName)
+	recorderName := fmt.Sprintf("bws-gateway-fabric-%s", cfg.GatewayClassName)
 	recorder := mgr.GetEventRecorder(recorderName)
 
 	logLevelSetter := newMultiLogLevelSetter(newZapLogLevelSetter(cfg.AtomicLevel))

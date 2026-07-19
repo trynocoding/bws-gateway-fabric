@@ -588,9 +588,7 @@ func (p *NginxProvisioner) buildAgentConfigMap(
 	}
 
 	if nProxyCfg != nil {
-		if graph.WAFEnabledForBwsProxy(nProxyCfg) {
-			agentFields["WafEnabled"] = true
-		}
+		agentFields["WafEnabled"] = false
 
 		if nProxyCfg.Logging != nil && nProxyCfg.Logging.AgentLevel != nil {
 			agentFields["LogLevel"] = *nProxyCfg.Logging.AgentLevel

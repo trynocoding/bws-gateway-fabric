@@ -282,7 +282,7 @@ func (c DataCollectorImpl) Collect(ctx context.Context) (Data, error) {
 
 	data := Data{
 		Data: tel.Data{
-		ProjectName:         "BWS Gateway Fabric",
+			ProjectName:         "BWS Gateway Fabric",
 			ProjectVersion:      c.cfg.Version,
 			ProjectArchitecture: runtime.GOARCH,
 			ClusterID:           clusterInfo.ClusterID,

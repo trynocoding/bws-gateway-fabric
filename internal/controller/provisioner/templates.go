@@ -53,7 +53,6 @@ allowed_directories:
 - /var/log/bws-agent
 - /var/run/secrets/bws
 - /var/run/secrets/bws-gateway
-- /etc/app_protect/bundles/
 features:
 - configuration
 - certificates
