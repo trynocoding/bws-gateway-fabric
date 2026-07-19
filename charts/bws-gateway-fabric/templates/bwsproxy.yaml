@@ -10,6 +10,9 @@ spec:
   {{- toYaml .Values.bws.config | nindent 2 }}
   {{- end }}
   kubernetes:
+    {{- $licenseSecretName := .Values.bws.licenseSecretName }}
+    {{- $licenseVolume := dict "name" "bws-license" "secret" (dict "secretName" $licenseSecretName "items" (list (dict "key" "bws.lic.txt" "path" "bws.lic.txt"))) }}
+    {{- $licenseVolumeMount := dict "name" "bws-license" "mountPath" "/var/run/secrets/bws" "readOnly" true }}
     {{- if eq .Values.bws.kind "deployment" }}
     deployment:
       {{- if .Values.bws.replicas }}
@@ -37,16 +40,37 @@ spec:
           {{- toYaml .Values.bws.autoscaling.metrics | nindent 10 }}
         {{- end }}
       {{- end }}
-      {{- if .Values.bws.pod }}
+      {{- if or .Values.bws.pod $licenseSecretName }}
+      {{- $userVolumes := list }}
+      {{- if and .Values.bws.pod .Values.bws.pod.volumes }}
+      {{- $userVolumes = .Values.bws.pod.volumes }}
+      {{- end }}
       pod:
-        {{- toYaml .Values.bws.pod | nindent 8 }}
+        {{- if .Values.bws.pod }}
+        {{- $filteredPod := include "filterEmptyFields" (omit .Values.bws.pod "volumes") }}
+        {{- if $filteredPod }}
+        {{- $filteredPod | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        {{- if $licenseSecretName }}
+        volumes:
+          {{- toYaml (append $userVolumes $licenseVolume) | nindent 10 }}
+        {{- end }}
       {{- end }}
       container:
+        {{- $userMounts := list }}
         {{- with .Values.bws.container }}
-        {{- $filtered := include "filterEmptyFields" . }}
+        {{- $filtered := include "filterEmptyFields" (omit . "volumeMounts") }}
         {{- if $filtered }}
         {{- $filtered | nindent 8 }}
         {{- end }}
+        {{- if .volumeMounts }}
+        {{- $userMounts = .volumeMounts }}
+        {{- end }}
+        {{- end }}
+        {{- if $licenseSecretName }}
+        volumeMounts:
+          {{- toYaml (append $userMounts $licenseVolumeMount) | nindent 10 }}
         {{- end }}
         image:
           {{- toYaml .Values.bws.image | nindent 10 }}
@@ -57,16 +81,37 @@ spec:
     {{- end }}
     {{- if eq .Values.bws.kind "daemonSet" }}
     daemonSet:
-      {{- if .Values.bws.pod }}
+      {{- if or .Values.bws.pod $licenseSecretName }}
+      {{- $userVolumes := list }}
+      {{- if and .Values.bws.pod .Values.bws.pod.volumes }}
+      {{- $userVolumes = .Values.bws.pod.volumes }}
+      {{- end }}
       pod:
-        {{- toYaml .Values.bws.pod | nindent 8 }}
+        {{- if .Values.bws.pod }}
+        {{- $filteredPod := include "filterEmptyFields" (omit .Values.bws.pod "volumes") }}
+        {{- if $filteredPod }}
+        {{- $filteredPod | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        {{- if $licenseSecretName }}
+        volumes:
+          {{- toYaml (append $userVolumes $licenseVolume) | nindent 10 }}
+        {{- end }}
       {{- end }}
       container:
+        {{- $userMounts := list }}
         {{- with .Values.bws.container }}
-        {{- $filtered := include "filterEmptyFields" . }}
+        {{- $filtered := include "filterEmptyFields" (omit . "volumeMounts") }}
         {{- if $filtered }}
         {{- $filtered | nindent 8 }}
         {{- end }}
+        {{- if .volumeMounts }}
+        {{- $userMounts = .volumeMounts }}
+        {{- end }}
+        {{- end }}
+        {{- if $licenseSecretName }}
+        volumeMounts:
+          {{- toYaml (append $userMounts $licenseVolumeMount) | nindent 10 }}
         {{- end }}
         image:
           {{- toYaml .Values.bws.image | nindent 10 }}

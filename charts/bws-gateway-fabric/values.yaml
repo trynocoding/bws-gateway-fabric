@@ -312,6 +312,12 @@ bws:
   # -- The number of replicas of the BWS Deployment. This value is ignored if autoscaling.enable is true.
   replicas: 1
 
+  # -- The name of the Secret containing the BWS license file. When set, the license key
+  # `bws.lic.txt` from that Secret is mounted read-only at `/var/run/secrets/bws` for the BWS container.
+  # If not set, you must provide the license through other means (for example, by using `bws.pod.volumes` and
+  # `bws.container.volumeMounts`). The BWS data plane Pod will fail to start if the license is missing.
+  licenseSecretName: ""
+
   # -- Custom patches to apply to the BWS Deployment/DaemonSet.
   patches: []
   # -- Example:
