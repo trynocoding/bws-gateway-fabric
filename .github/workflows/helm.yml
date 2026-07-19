@@ -1,15 +1,23 @@
 name: Helm Testing
 
+# Note: This workflow currently supports only the BWS data plane image.
+# The 'image' input is retained for compatibility with the upstream caller matrix.
+
 on:
   workflow_call:
     inputs:
       image:
+        description: 'Data plane image identifier (ignored; BWS is always used)'
         required: true
         type: string
       k8s-version:
         required: true
         type: string
       tag:
+        required: false
+        type: string
+        default: ''
+      license-secret:
         required: false
         type: string
         default: ''
@@ -21,7 +29,7 @@ jobs:
   helm-tests-local:
     name: Helm Tests Local
     runs-on: ubuntu-24.04
-    if: ${{ github.event_name != 'schedule' && (!github.event.pull_request.head.repo.fork || inputs.image != 'plus') }}
+    if: ${{ github.event_name != 'schedule' }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -37,12 +45,12 @@ jobs:
       - name: Docker Buildx
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
 
-      - name: NGF Docker meta
-        id: ngf-meta
+      - name: BWS Gateway Fabric Docker meta
+        id: bws-gateway-meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
           images: |
-            name=ghcr.io/nginx/nginx-gateway-fabric
+            name=ghcr.io/trynocoding/bws-gateway-fabric
           tags: |
             type=semver,pattern={{version}},value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
             type=edge
@@ -50,12 +58,12 @@ jobs:
             type=ref,event=pr
             type=ref,event=branch,suffix=-rc,enable=${{ startsWith(github.ref, 'refs/heads/release') && inputs.tag == '' }}
 
-      - name: NGINX Docker meta
-        id: nginx-meta
+      - name: BWS data plane Docker meta
+        id: bws-meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
           images: |
-            name=ghcr.io/nginx/nginx-gateway-fabric/${{ inputs.image == 'plus' && 'nginx-plus' || inputs.image }}
+            name=ghcr.io/trynocoding/bws-gateway-fabric/bws
           tags: |
             type=semver,pattern={{version}},value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
             type=edge
@@ -63,25 +71,25 @@ jobs:
             type=ref,event=pr
             type=ref,event=branch,suffix=-rc,enable=${{ startsWith(github.ref, 'refs/heads/release') && inputs.tag == '' }}
 
-      - name: Build NGF Docker Image
+      - name: Build BWS Gateway Fabric Docker Image
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           file: build/Dockerfile
-          tags: ${{ steps.ngf-meta.outputs.tags }}
+          tags: ${{ steps.bws-gateway-meta.outputs.tags }}
           context: "."
           target: goreleaser
           load: true
-          cache-from: type=gha,scope=ngf
+          cache-from: type=gha,scope=bws-gateway
           pull: true
 
-      - name: Build NGINX Docker Image
+      - name: Build BWS Data Plane Docker Image
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
-          file: build/Dockerfile${{ inputs.image == 'nginx' && '.nginx' || '' }}${{ inputs.image == 'plus' && '.nginxplus' || ''}}
-          tags: ${{ steps.nginx-meta.outputs.tags }}
+          file: build/Dockerfile.bws
+          tags: ${{ steps.bws-meta.outputs.tags }}
           context: "."
           load: true
-          cache-from: type=gha,scope=${{ inputs.image }}
+          cache-from: type=gha,scope=bws-data-plane
           pull: true
           build-args: |
             NJS_DIR=internal/controller/nginx/modules/src
@@ -100,17 +108,14 @@ jobs:
         id: k8s
         run: |
           kind create cluster --name ${{ github.run_id }} --image=kindest/node:${{ inputs.k8s-version }}
-          kind load docker-image ${{ join(fromJSON(steps.ngf-meta.outputs.json).tags, ' ') }} ${{ join(fromJSON(steps.nginx-meta.outputs.json).tags, ' ') }} --name ${{ github.run_id }}
+          kind load docker-image ${{ join(fromJSON(steps.bws-gateway-meta.outputs.json).tags, ' ') }} ${{ join(fromJSON(steps.bws-meta.outputs.json).tags, ' ') }} --name ${{ github.run_id }}
           kubectl kustomize config/crd/gateway-api/standard | kubectl apply -f -
-          kubectl create namespace nginx-gateway
+          kubectl create namespace bws-gateway
 
-      - name: Create plus secret
-        if: ${{ inputs.image == 'plus' }}
-        env:
-          PLUS_LICENSE: ${{ secrets.JWT_PLUS_REPORTING }}
+      - name: Create BWS license secret
         run: |
-          echo "${PLUS_LICENSE}" > license.jwt
-          kubectl create secret generic nplus-license --from-file license.jwt -n nginx-gateway
+          echo "placeholder" > bws.lic.txt
+          kubectl create secret generic bws-license --from-file bws.lic.txt -n bws-gateway
 
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -123,12 +128,13 @@ jobs:
 
       - name: Install Chart
         run: |
-          ct install --config .ct.yaml --namespace nginx-gateway --helm-extra-set-args="--set=bwsGateway.image.tag=${{ steps.ngf-meta.outputs.version }} \
-          --set=bws.image.repository=ghcr.io/nginx/nginx-gateway-fabric/nginx${{ inputs.image == 'plus' && '-plus' || ''}} \
-          --set=bws.image.tag=${{ steps.nginx-meta.outputs.version }} \
+          ct install --config .ct.yaml --namespace bws-gateway --helm-extra-set-args="--set=bwsGateway.image.tag=${{ steps.bws-gateway-meta.outputs.version }} \
+          --set=bws.image.repository=ghcr.io/trynocoding/bws-gateway-fabric/bws \
+          --set=bws.image.tag=${{ steps.bws-meta.outputs.version }} \
           --set=bwsGateway.image.pullPolicy=Never \
           --set=bws.image.pullPolicy=Never \
-          --set=bwsGateway.productTelemetry.enable=false"
+          --set=bwsGateway.productTelemetry.enable=false \
+          --set=bws.licenseSecretName=bws-license"
 
   helm-test-remote:
     name: Helm Tests Remote
@@ -153,16 +159,12 @@ jobs:
         run: |
           kind create cluster --name ${{ github.run_id }} --image=kindest/node:${{ inputs.k8s-version }}
           kubectl kustomize config/crd/gateway-api/standard | kubectl apply -f -
-          kubectl create namespace nginx-gateway
+          kubectl create namespace bws-gateway
 
-      - name: Create plus secrets
-        if: ${{ inputs.image == 'plus' }}
-        env:
-          PLUS_LICENSE: ${{ secrets.JWT_PLUS_REPORTING }}
+      - name: Create BWS license secret
         run: |
-          echo "${PLUS_LICENSE}" > license.jwt
-          kubectl create secret docker-registry nginx-plus-registry-secret --docker-server=private-registry.nginx.com --docker-username=${{ secrets.JWT_PLUS_REGISTRY }} --docker-password=none -n nginx-gateway
-          kubectl create secret generic nplus-license --from-file license.jwt -n nginx-gateway
+          echo "placeholder" > bws.lic.txt
+          kubectl create secret generic bws-license --from-file bws.lic.txt -n bws-gateway
 
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -175,7 +177,7 @@ jobs:
 
       - name: Install Chart
         run: |
-          ct install --config .ct.yaml --all --namespace nginx-gateway --helm-extra-set-args="--set=bwsGateway.image.tag=nightly \
+          ct install --config .ct.yaml --all --namespace bws-gateway --helm-extra-set-args="--set=bwsGateway.image.tag=nightly \
           --set=bws.image.tag=nightly \
           --set=bwsGateway.productTelemetry.enable=false \
-          ${{ inputs.image == 'plus' && '--set=bws.imagePullSecret=nginx-plus-registry-secret --set=bws.image.repository=private-registry.nginx.com/nginx-gateway-fabric/nginx-plus' || '' }}"
+          --set=bws.licenseSecretName=bws-license"

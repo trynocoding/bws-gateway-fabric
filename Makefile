@@ -5,14 +5,12 @@ CHART_DIR = $(SELF_DIR)charts/bws-gateway-fabric
 NGINX_CONF_DIR = internal/controller/nginx/conf
 NJS_DIR = internal/controller/nginx/modules/src
 KIND_CONFIG_FILE = $(SELF_DIR)config/cluster/kind-cluster.yaml
-NGINX_DOCKER_BUILD_PLUS_ARGS = --secret id=nginx-repo.crt,src=$(SELF_DIR)nginx-repo.crt --secret id=nginx-repo.key,src=$(SELF_DIR)nginx-repo.key
-NGINX_DOCKER_BUILD_NAP_WAF_ARGS = --build-arg INCLUDE_NAP_WAF=true
 BUILD_AGENT = local
 
-PROD_TELEMETRY_ENDPOINT = oss.edge.df.f5.com:443
+PROD_TELEMETRY_ENDPOINT = ## Production telemetry endpoint. Leave empty to disable product telemetry reporting.
 # the telemetry related variables below are also configured in goreleaser.yml
 TELEMETRY_REPORT_PERIOD = 24h
-TELEMETRY_ENDPOINT=# if empty, NGF will report telemetry in its logs at debug level.
+TELEMETRY_ENDPOINT=# if empty, BWS Gateway Fabric will report telemetry in its logs at debug level.
 TELEMETRY_ENDPOINT_INSECURE = false
 
 ENABLE_EXPERIMENTAL ?= false
@@ -42,39 +40,28 @@ CHART_TESTING_VERSION = v3.14.0
 HELM_SCHEMA_VERSION = 0.23.2
 
 # variables that can be overridden by the user
-PREFIX ?= nginx-gateway-fabric## The name of the NGF image. For example, nginx-gateway-fabric
-NGINX_PREFIX ?= $(PREFIX)/nginx## The name of the nginx image. For example: nginx-gateway-fabric/nginx
-NGINX_PLUS_PREFIX ?= $(PREFIX)/nginx-plus## The name of the nginx plus image. For example: nginx-gateway-fabric/nginx-plus
+PREFIX ?= bws-gateway-fabric## The name of the BWS Gateway Fabric image. For example, bws-gateway-fabric
 BWS_PREFIX ?= $(PREFIX)/bws## The name of the BWS data plane image.
-BWS_CONTROL_PLANE_PREFIX ?= bws-gateway-fabric## The name of the BWS Gateway Fabric control plane image.
+BWS_CONTROL_PLANE_PREFIX ?= $(PREFIX)## The name of the BWS Gateway Fabric control plane image.
 BWS_AGENT_DIR ?= $(abspath $(SELF_DIR)../bws-agent)## Path to the BWS Agent source repository.
 BWS_AGENT_BINARY_DIR ?= $(BWS_AGENT_DIR)/build## Directory containing the built BWS Agent binary.
 BWS_PACKAGE ?= $(abspath $(SELF_DIR)../bws-3.2.0-LINUX-X64.tar_94b299d8d6b5c686ffbe0ee912c79cbb304b93dc.gz)## Path to the BWS distribution archive.
 BWS_PACKAGE_SHA256 ?= 885a2ea9fb91b6837971259dac118854fc5d3b6236a432819f8f1dac6e7fd95f## Expected BWS archive SHA-256.
 BWS_INSTALL_DEBUG_TOOLS ?= true## Install development troubleshooting tools in the BWS image.
-BUILD_OS ?= ## The OS of the nginx image. Possible values: ubi and empty string, which defaults to alpine.
-NGINX_SERVICE_TYPE ?= NodePort## The type of the nginx service. Possible values: NodePort, LoadBalancer, ClusterIP
+BUILD_OS ?= ## The OS of the BWS data plane image. Possible values: ubi and empty string, which defaults to rocky.
+NGINX_SERVICE_TYPE ?= NodePort## The type of the bws service. Possible values: NodePort, LoadBalancer, ClusterIP
 PULL_POLICY ?= Never## The pull policy of the images. Possible values: Always, IfNotPresent, Never
 TAG ?= $(VERSION:v%=%)## The tag of the image. For example, 1.1.0
 TARGET ?= local## The target of the build. Possible values: local and container
 OUT_DIR ?= build/out## The folder where the binary will be stored
 GOARCH ?= amd64## The architecture of the image and/or binary. For example: amd64 or arm64
 GOOS ?= linux## The OS of the image and/or binary. For example: linux or darwin
-PLUS_ENABLED ?= false
-PLUS_LICENSE_FILE ?= $(SELF_DIR)license.jwt
-REGISTRY_JWT_FILE ?= $(SELF_DIR)dockerconfig.jwt## Path to the JWT file for the NGINX private registry
-NGINX_IMAGE_PULL_SECRET ?= nginx-plus-registry-secret## Image pull secret name for the NGINX Plus registry
-PLUS_USAGE_ENDPOINT ?=## The N+ usage endpoint. For development, please set to the N1 staging endpoint.
 HELM_PARAMETERS ?=## Optional extra parameters for the Helm install
-# HELM_WAF_PARAMETERS = --set bwsGateway.plmStorage.url=f5-waf-seaweed-filer.nap5-helm-policy.svc.cluster.local:9333 --set bwsGateway.plmStorage.credentialsSecretName=nap5-helm-policy/f5-waf-seaweedfs-auth --set bwsGateway.plmStorage.tls.caSecretName=nap5-helm-policy/f5-waf-seaweedfs-ca-cert --set bwsGateway.plmStorage.tls.clientSSLSecretName=nap5-helm-policy/f5-waf-seaweedfs-client-cert --set bwsGateway.plmStorage.tls.insecureSkipVerify=true
 
 override NGINX_DOCKER_BUILD_OPTIONS += --build-arg NJS_DIR=$(NJS_DIR) --build-arg NGINX_CONF_DIR=$(NGINX_CONF_DIR) --build-arg BUILD_AGENT=$(BUILD_AGENT)
 
 .DEFAULT_GOAL := help
 
-ifneq (,$(findstring plus,$(MAKECMDGOALS)))
-   PLUS_ENABLED = true
-endif
 
 .PHONY: help
 help: Makefile ## Display this help
@@ -82,30 +69,21 @@ help: Makefile ## Display this help
 	@grep -hE '^(override )?[a-zA-Z_-]+ \??\+?= .*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = " \\??\\+?= .*?## "; printf "\nVariables:\n\n"}; {gsub(/override /, "", $$1); printf "	 \033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: build-prod-images
-build-prod-images: build-prod-ngf-image build-prod-nginx-image ## Build the NGF and nginx docker images for production
-
-.PHONY: build-prod-images-with-plus
-build-prod-images-with-plus: build-prod-ngf-image build-prod-nginx-plus-image ## Build the NGF and NGINX Plus docker images for production
+build-prod-images: build-prod-control-plane-image build-prod-bws-image ## Build the BWS Gateway Fabric and BWS data plane docker images for production
 
 .PHONY: build-images
-build-images: build-ngf-image build-nginx-image ## Build the NGF and nginx docker images
+build-images: build-control-plane-image build-bws-image ## Build the BWS Gateway Fabric and BWS data plane docker images
 
-.PHONY: build-images-with-plus
-build-images-with-plus: build-ngf-image build-nginx-plus-image ## Build the NGF and NGINX Plus docker images
+.PHONY: build-prod-control-plane-image
+build-prod-control-plane-image: TELEMETRY_ENDPOINT=$(PROD_TELEMETRY_ENDPOINT)
+build-prod-control-plane-image: build-control-plane-image ## Build the BWS Gateway Fabric control plane docker image for production
 
-.PHONY: build-images-nap-waf
-build-images-with-nap-waf: build-ngf-image build-nginx-plus-image-with-nap-waf ## Build the NGF and NGINX Plus with WAF docker images
+.PHONY: build-control-plane-image
+build-control-plane-image: check-for-docker build ## Build the BWS Gateway Fabric control plane docker image
+	docker build --platform linux/$(GOARCH) --build-arg BUILD_AGENT=$(BUILD_AGENT) --target $(strip $(TARGET)) -f $(SELF_DIR)build/Dockerfile.bws-gateway -t $(strip $(BWS_CONTROL_PLANE_PREFIX)):$(strip $(TAG)) $(strip $(SELF_DIR))
 
-.PHONY: build-prod-ngf-image
-build-prod-ngf-image: TELEMETRY_ENDPOINT=$(PROD_TELEMETRY_ENDPOINT)
-build-prod-ngf-image: build-ngf-image ## Build the NGF docker image for production
-
-.PHONY: build-ngf-image
-build-ngf-image: check-for-docker build ## Build the NGF docker image
-	docker build --platform linux/$(GOARCH) --build-arg BUILD_AGENT=$(BUILD_AGENT) --target $(strip $(TARGET)) -f $(SELF_DIR)build/$(if $(BUILD_OS),$(BUILD_OS)/)Dockerfile -t $(strip $(PREFIX)):$(strip $(TAG)) $(strip $(SELF_DIR))
-
-.PHONY: build-prod-nginx-image
-build-prod-nginx-image: build-nginx-image ## Build the custom nginx image for production
+.PHONY: build-prod-bws-image
+build-prod-bws-image: build-bws-image ## Build the BWS data plane image for production
 
 .PHONY: build-bws-agent
 build-bws-agent:
@@ -123,41 +101,6 @@ build-bws-image: check-for-docker build-bws-agent ## Build the BWS data plane im
 		-f $(SELF_DIR)build/Dockerfile.bws \
 		-t $(strip $(BWS_PREFIX)):$(strip $(TAG)) \
 		$(strip $(SELF_DIR))
-
-.PHONY: build-bws-control-plane-image
-build-bws-control-plane-image: check-for-docker build ## Build the BWS Gateway Fabric control plane image.
-	docker build --platform linux/$(GOARCH) --build-arg BUILD_AGENT=$(BUILD_AGENT) \
-		-f $(SELF_DIR)build/Dockerfile.bws-gateway \
-		-t $(strip $(BWS_CONTROL_PLANE_PREFIX)):$(strip $(TAG)) \
-		$(strip $(SELF_DIR))
-
-.PHONY: build-nginx-image
-build-nginx-image: check-for-docker ## Build the custom nginx image
-	docker build --platform linux/$(GOARCH) $(strip $(NGINX_DOCKER_BUILD_OPTIONS)) -f $(SELF_DIR)build/$(if $(BUILD_OS),$(BUILD_OS)/)Dockerfile.nginx -t $(strip $(NGINX_PREFIX)):$(strip $(TAG)) $(strip $(SELF_DIR))
-
-.PHONY: build-prod-nginx-plus-image
-build-prod-nginx-plus-image: build-nginx-plus-image ## Build the custom nginx plus image for production
-
-.PHONY: build-nginx-plus-image
-build-nginx-plus-image: check-for-docker ## Build the custom nginx plus image
-	docker build --platform linux/$(GOARCH) $(strip $(NGINX_DOCKER_BUILD_OPTIONS)) $(strip $(NGINX_DOCKER_BUILD_PLUS_ARGS))  -f $(SELF_DIR)build/$(if $(BUILD_OS),$(BUILD_OS)/)Dockerfile.nginxplus -t $(strip $(NGINX_PLUS_PREFIX)):$(strip $(TAG)) $(strip $(SELF_DIR))
-
-.PHONY: build-nginx-plus-image-with-nap-waf
-build-nginx-plus-image-with-nap-waf: check-for-docker ## Build the custom nginx plus image with NAP WAF. Note that arm is NOT supported.
-	@if [ $(GOARCH) = "arm64" ]; then \
-		echo "\033[0;31mIMPORTANT:\033[0m The nginx-plus-waf image cannot be built for arm64 architecture and will be built for amd64."; \
-	fi
-	docker build --platform linux/amd64 $(strip $(NGINX_DOCKER_BUILD_OPTIONS)) $(strip $(NGINX_DOCKER_BUILD_PLUS_ARGS)) $(strip $(NGINX_DOCKER_BUILD_NAP_WAF_ARGS)) -f $(SELF_DIR)build/$(if $(BUILD_OS),$(BUILD_OS)/)Dockerfile.nginxplus -t $(strip $(NGINX_PLUS_PREFIX)):$(strip $(TAG)) $(strip $(SELF_DIR))
-
-.PHONY: build-nginx-plus-image-with-nap-waf-dev
-build-nginx-plus-image-with-nap-waf-dev: check-for-docker check-nap-waf-repo-url ## Build the custom nginx plus image with NAP WAF from dev repo. Requires NAP_WAF_REPO_URL env var.
-	NGINX_PLUS_PREFIX=$(NGINX_PLUS_PREFIX) TAG=$(TAG) GOARCH=amd64 NJS_DIR=$(NJS_DIR) NGINX_CONF_DIR=$(NGINX_CONF_DIR) BUILD_AGENT=$(BUILD_AGENT) $(SELF_DIR)scripts/build-nap-dev-image.sh
-
-.PHONY: check-nap-waf-repo-url
-check-nap-waf-repo-url:
-ifndef NAP_WAF_REPO_URL
-	$(error NAP_WAF_REPO_URL must be set. Example: export NAP_WAF_REPO_URL=https://your.artifactory.server/path/to/repo)
-endif
 
 .PHONY: check-for-docker
 check-for-docker: ## Check if Docker is installed
@@ -285,56 +228,22 @@ lint-helm: ## Run the helm chart linter
 	docker run --pull always --rm -v $(CURDIR):/nginx-gateway-fabric -w /nginx-gateway-fabric quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION) ct lint --config .ct.yaml
 
 .PHONY: load-images
-load-images: ## Load NGF and NGINX images on configured kind cluster.
-	kind load docker-image $(PREFIX):$(TAG) $(NGINX_PREFIX):$(TAG)
+load-images: ## Load BWS Gateway Fabric and BWS data plane images on configured kind cluster.
+	kind load docker-image $(BWS_CONTROL_PLANE_PREFIX):$(TAG) $(BWS_PREFIX):$(TAG)
 
-.PHONY: load-images-with-plus
-load-images-with-plus: ## Load NGF and NGINX Plus images on configured kind cluster.
-	kind load docker-image $(PREFIX):$(TAG) $(NGINX_PLUS_PREFIX):$(TAG)
-
-.PHONY: install-ngf-local-build
-install-ngf-local-build: build-images load-images helm-install-local ## Install NGF from local build on configured kind cluster.
-
-.PHONY: install-ngf-local-build-with-plus
-install-ngf-local-build-with-plus: check-for-plus-usage-endpoint build-images-with-plus load-images-with-plus helm-install-local-with-plus ## Install NGF with NGINX Plus from local build on configured kind cluster.
-
-.PHONY: install-ngf-local-build-with-waf
-install-ngf-local-build-with-waf: check-for-plus-usage-endpoint build-images-with-nap-waf load-images-with-plus helm-install-local-with-waf ## Install NGF with NGINX Plus from local build on configured kind cluster.
+.PHONY: install-bws-local-build
+install-bws-local-build: build-bws-control-plane-image build-bws-image load-images helm-install-local ## Install BWS Gateway Fabric from local build on configured kind cluster.
 
 .PHONY: helm-install-local
-helm-install-local: install-gateway-crds ## Helm install NGF on configured kind cluster with local images. To build, load, and install with helm run make install-ngf-local-build.
+helm-install-local: install-gateway-crds ## Helm install BWS Gateway Fabric on configured kind cluster with local images. To build, load, and install with helm run make install-bws-local-build.
 	@if [ "$(ENABLE_INFERENCE_EXTENSION)" = "true" ]; then \
 		$(MAKE) install-inference-crds; \
 	fi
-	helm install nginx-gateway $(CHART_DIR) --set bws.image.repository=$(NGINX_PREFIX) --create-namespace --wait --set bwsGateway.image.pullPolicy=$(PULL_POLICY) --set bws.service.type=$(NGINX_SERVICE_TYPE) --set bwsGateway.image.repository=$(PREFIX) --set bwsGateway.image.tag=$(TAG) --set bws.image.tag=$(TAG) --set bws.image.pullPolicy=$(PULL_POLICY) --set bwsGateway.gwAPIExperimentalFeatures.enable=$(ENABLE_EXPERIMENTAL) -n nginx-gateway $(HELM_PARAMETERS)
-
-.PHONY: helm-install-local-with-plus
-helm-install-local-with-plus: check-for-plus-usage-endpoint install-gateway-crds ## Helm install NGF with NGINX Plus on configured kind cluster with local images. To build, load, and install with helm run make install-ngf-local-build-with-plus.
-	@if [ "$(ENABLE_INFERENCE_EXTENSION)" = "true" ]; then \
-		$(MAKE) install-inference-crds; \
-	fi
-	kubectl create namespace nginx-gateway || true
-	kubectl -n nginx-gateway create secret generic nplus-license --from-file $(PLUS_LICENSE_FILE) || true
-	helm install nginx-gateway $(CHART_DIR) --set bws.image.repository=$(NGINX_PLUS_PREFIX) --wait --set bwsGateway.image.pullPolicy=$(PULL_POLICY) --set bws.service.type=$(NGINX_SERVICE_TYPE) --set bwsGateway.image.repository=$(PREFIX) --set bwsGateway.image.tag=$(TAG) --set bws.image.tag=$(TAG) --set bws.image.pullPolicy=$(PULL_POLICY) --set bwsGateway.gwAPIExperimentalFeatures.enable=$(ENABLE_EXPERIMENTAL) -n nginx-gateway --set bws.plus=true --set bws.usage.endpoint=$(PLUS_USAGE_ENDPOINT) $(HELM_PARAMETERS)
-
-.PHONY: helm-install-local-with-waf
-helm-install-local-with-waf: check-for-plus-usage-endpoint install-gateway-crds ## Helm install NGF with NGINX Plus on configured kind cluster with local images. To build, load, and install with helm run make install-ngf-local-build-with-plus.
-	@if [ "$(ENABLE_INFERENCE_EXTENSION)" = "true" ]; then \
-		$(MAKE) install-inference-crds; \
-	fi
-	kubectl create namespace nginx-gateway || true
-	kubectl -n nginx-gateway create secret generic nplus-license --from-file $(PLUS_LICENSE_FILE) || true
-	helm install nginx-gateway $(CHART_DIR) --set bws.image.repository=$(NGINX_PLUS_PREFIX) --wait --set bwsGateway.image.pullPolicy=$(PULL_POLICY) --set bws.service.type=$(NGINX_SERVICE_TYPE) --set bwsGateway.image.repository=$(PREFIX) --set bwsGateway.image.tag=$(TAG) --set bws.image.tag=$(TAG) --set bws.image.pullPolicy=$(PULL_POLICY) --set bwsGateway.gwAPIExperimentalFeatures.enable=$(ENABLE_EXPERIMENTAL) -n nginx-gateway --set bws.plus=true --set bws.usage.endpoint=$(PLUS_USAGE_ENDPOINT) $(HELM_WAF_PARAMETERS) $(HELM_PARAMETERS)
-
-.PHONY: check-for-plus-usage-endpoint
-check-for-plus-usage-endpoint: ## Checks that the PLUS_USAGE_ENDPOINT is set in the environment. This env var is required when deploying or testing with N+.
-ifndef PLUS_USAGE_ENDPOINT
-	$(error PLUS_USAGE_ENDPOINT must be defined in your environment)
-endif
+	helm install bws-gateway $(CHART_DIR) --set bws.image.repository=$(BWS_PREFIX) --create-namespace --wait --set bwsGateway.image.pullPolicy=$(PULL_POLICY) --set bws.service.type=$(NGINX_SERVICE_TYPE) --set bwsGateway.image.repository=$(BWS_CONTROL_PLANE_PREFIX) --set bwsGateway.image.tag=$(TAG) --set bws.image.tag=$(TAG) --set bws.image.pullPolicy=$(PULL_POLICY) --set bwsGateway.gwAPIExperimentalFeatures.enable=$(ENABLE_EXPERIMENTAL) -n bws-gateway $(HELM_PARAMETERS)
 
 .PHONY: create-image-pull-secret
-create-image-pull-secret: ## Creates the nginx-plus-registry-secret image pull secret in the nginx-gateway namespace using dockerconfig.jwt
-	kubectl create namespace nginx-gateway || true
+create-image-pull-secret: ## Creates the bws-registry-secret image pull secret in the bws-gateway namespace using dockerconfig.jwt
+	kubectl create namespace bws-gateway || true
 	test -f $(REGISTRY_JWT_FILE) || { echo "Error: $(REGISTRY_JWT_FILE) not found"; exit 1; }; \
 	JWT=$$(tr -d '[:space:]' < $(REGISTRY_JWT_FILE)); \
 	test -n "$$JWT" || { echo "Error: $(REGISTRY_JWT_FILE) is empty"; exit 1; }; \
@@ -342,7 +251,7 @@ create-image-pull-secret: ## Creates the nginx-plus-registry-secret image pull s
 		--docker-server=private-registry.nginx.com \
 		--docker-username=$$JWT \
 		--docker-password=none \
-		-n nginx-gateway \
+		-n bws-gateway \
 		--dry-run=client -o yaml | kubectl apply -f -
 
 # Debug Targets
@@ -356,24 +265,10 @@ debug-build-dlv-image: check-for-docker ## Build the dlv debugger image.
 	docker build --platform linux/$(GOARCH) -f debug/Dockerfile -t dlv-debug:edge .
 
 .PHONY: debug-build-images
-debug-build-images: debug-build build-ngf-image build-nginx-image debug-build-dlv-image ## Build all images used in debugging.
-
-.PHONY: debug-build-images-with-plus
-debug-build-images-with-plus: debug-build build-ngf-image build-nginx-plus-image debug-build-dlv-image ## Build all images with NGINX plus used in debugging.
-
-.PHONY: debug-load-images
-debug-load-images: load-images ## Load all images used in debugging to kind cluster.
-	kind load docker-image dlv-debug:edge
-
-.PHONY: debug-load-images-with-plus
-debug-load-images-with-plus: load-images-with-plus ## Load all images with NGINX Plus used in debugging to kind cluster.
-	kind load docker-image dlv-debug:edge
+debug-build-images: debug-build build-bws-control-plane-image build-bws-image debug-build-dlv-image ## Build all images used in debugging.
 
 .PHONY: debug-install-local-build
-debug-install-local-build: debug-build-images debug-load-images helm-install-local ## Install NGF from local build using debug NGF binary on configured kind cluster.
-
-.PHONY: debug-install-local-build-with-plus
-debug-install-local-build-with-plus: debug-build-images-with-plus debug-load-images-with-plus helm-install-local-with-plus ## Install NGF with NGINX Plus from local build using debug NGF binary on configured kind cluster.
+debug-install-local-build: debug-build-images debug-load-images helm-install-local ## Install BWS Gateway Fabric from local build using debug binary on configured kind cluster.
 
 .PHONY: dev-all
 dev-all: deps fmt njs-fmt vet lint unit-test njs-unit-test ## Run all the development checks

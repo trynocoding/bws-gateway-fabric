@@ -277,7 +277,7 @@ func createNGFInstallConfig(cfg setupConfig, extraInstallArgs ...string) framewo
 		extraInstallArgs = append(
 			extraInstallArgs,
 			"--set", "bwsGateway.config.logging.level=debug",
-			"--set", "nginx.config.logging.agentLevel=debug",
+			"--set", "bws.config.logging.agentLevel=debug",
 		)
 	}
 
@@ -287,7 +287,7 @@ func createNGFInstallConfig(cfg setupConfig, extraInstallArgs ...string) framewo
 			Expect(framework.CreateImagePullSecret(resourceManager, ngfNamespace, *nginxImageJWTFileName)).To(Succeed())
 			extraInstallArgs = append(
 				extraInstallArgs,
-				"--set", "nginx.imagePullSecret="+framework.PlusImagePullSecretName,
+				"--set", "bws.imagePullSecret="+framework.PlusImagePullSecretName,
 			)
 		}
 	}

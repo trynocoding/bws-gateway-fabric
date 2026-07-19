@@ -360,24 +360,21 @@ func setImageArgs(cfg InstallationConfig) []string {
 	}
 
 	if cfg.NginxImageRepository != "" {
-		args = append(args, formatValueSet("nginx.image.repository", cfg.NginxImageRepository)...)
+		args = append(args, formatValueSet("bws.image.repository", cfg.NginxImageRepository)...)
 		if cfg.ImageTag != "" {
-			args = append(args, formatValueSet("nginx.image.tag", cfg.ImageTag)...)
+			args = append(args, formatValueSet("bws.image.tag", cfg.ImageTag)...)
 		}
 		if cfg.ImagePullPolicy != "" {
-			args = append(args, formatValueSet("nginx.image.pullPolicy", cfg.ImagePullPolicy)...)
-		}
-		if cfg.Plus {
-			args = append(args, formatValueSet("nginx.plus", "true")...)
+			args = append(args, formatValueSet("bws.image.pullPolicy", cfg.ImagePullPolicy)...)
 		}
 	}
 
 	if cfg.ServiceType != "" {
-		args = append(args, formatValueSet("nginx.service.type", cfg.ServiceType)...)
+		args = append(args, formatValueSet("bws.service.type", cfg.ServiceType)...)
 	}
 
 	if cfg.NginxImagePullSecret != "" {
-		args = append(args, formatValueSet("nginx.imagePullSecret", cfg.NginxImagePullSecret)...)
+		args = append(args, formatValueSet("bws.imagePullSecret", cfg.NginxImagePullSecret)...)
 	}
 
 	return args
@@ -386,7 +383,7 @@ func setImageArgs(cfg InstallationConfig) []string {
 func setPlusUsageEndpointArg(cfg InstallationConfig) []string {
 	var args []string
 	if cfg.Plus && cfg.PlusUsageEndpoint != "" {
-		args = append(args, formatValueSet("nginx.usage.endpoint", cfg.PlusUsageEndpoint)...)
+		args = append(args, formatValueSet("bws.usage.endpoint", cfg.PlusUsageEndpoint)...)
 	}
 
 	return args
