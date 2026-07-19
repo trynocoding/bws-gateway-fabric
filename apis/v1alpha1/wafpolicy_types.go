@@ -9,6 +9,8 @@ import (
 // for Gateways and Routes by referencing compiled WAF policy bundles. Bundles can be fetched directly from an
 // HTTP/HTTPS URL (type: HTTP), from an NGINX Instance Manager instance (type: NIM), or from an F5 NGINX One
 // Console instance (type: N1C).
+// WAFPolicy is not exposed as a BWS Gateway Fabric CRD; the type is retained only for internal upstream
+// compatibility while WAF functionality is disabled. The generated CRD is removed by the generate-crds target.
 type WAFPolicy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
