@@ -52,9 +52,13 @@ spec:
         {{- $filteredPod | nindent 8 }}
         {{- end }}
         {{- end }}
-        {{- if $licenseSecretName }}
+        {{- if or $userVolumes $licenseSecretName }}
         volumes:
-          {{- toYaml (append $userVolumes $licenseVolume) | nindent 10 }}
+          {{- $vols := $userVolumes }}
+          {{- if $licenseSecretName }}
+          {{- $vols = append $userVolumes $licenseVolume }}
+          {{- end }}
+          {{- toYaml $vols | nindent 10 }}
         {{- end }}
       {{- end }}
       container:
@@ -68,9 +72,13 @@ spec:
         {{- $userMounts = .volumeMounts }}
         {{- end }}
         {{- end }}
-        {{- if $licenseSecretName }}
+        {{- if or $userMounts $licenseSecretName }}
         volumeMounts:
-          {{- toYaml (append $userMounts $licenseVolumeMount) | nindent 10 }}
+          {{- $mounts := $userMounts }}
+          {{- if $licenseSecretName }}
+          {{- $mounts = append $userMounts $licenseVolumeMount }}
+          {{- end }}
+          {{- toYaml $mounts | nindent 10 }}
         {{- end }}
         image:
           {{- toYaml .Values.bws.image | nindent 10 }}
@@ -93,9 +101,13 @@ spec:
         {{- $filteredPod | nindent 8 }}
         {{- end }}
         {{- end }}
-        {{- if $licenseSecretName }}
+        {{- if or $userVolumes $licenseSecretName }}
         volumes:
-          {{- toYaml (append $userVolumes $licenseVolume) | nindent 10 }}
+          {{- $vols := $userVolumes }}
+          {{- if $licenseSecretName }}
+          {{- $vols = append $userVolumes $licenseVolume }}
+          {{- end }}
+          {{- toYaml $vols | nindent 10 }}
         {{- end }}
       {{- end }}
       container:
@@ -109,9 +121,13 @@ spec:
         {{- $userMounts = .volumeMounts }}
         {{- end }}
         {{- end }}
-        {{- if $licenseSecretName }}
+        {{- if or $userMounts $licenseSecretName }}
         volumeMounts:
-          {{- toYaml (append $userMounts $licenseVolumeMount) | nindent 10 }}
+          {{- $mounts := $userMounts }}
+          {{- if $licenseSecretName }}
+          {{- $mounts = append $userMounts $licenseVolumeMount }}
+          {{- end }}
+          {{- toYaml $mounts | nindent 10 }}
         {{- end }}
         image:
           {{- toYaml .Values.bws.image | nindent 10 }}
