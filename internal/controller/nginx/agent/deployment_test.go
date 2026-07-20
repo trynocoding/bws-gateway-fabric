@@ -130,6 +130,8 @@ func TestSetAndGetFiles_VolumeIgnoreFiles(t *testing.T) {
 	}
 
 	// Should contain files that match volume mount paths
+	g.Expect(unmanagedFiles).To(ContainElement("/etc/bws/bws.conf"))
+	g.Expect(unmanagedFiles).ToNot(ContainElement("/etc/bws/nginx.conf"))
 	g.Expect(unmanagedFiles).To(ContainElement("/var/log/nginx/access.log"))
 	g.Expect(unmanagedFiles).To(ContainElement("/var/log/nginx/error.log"))
 	g.Expect(unmanagedFiles).To(ContainElement("/etc/ssl/certs/cert.pem"))

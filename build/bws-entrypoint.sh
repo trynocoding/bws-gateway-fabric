@@ -4,7 +4,7 @@ set -euo pipefail
 
 readonly bws_launcher="${BWS_LAUNCHER:-/opt/bws/bin/bws.sh}"
 readonly bws_prefix="${BWS_PREFIX:-/opt/bws}"
-readonly bws_config="${BWS_CONFIG:-/etc/bws/nginx.conf}"
+readonly bws_config="${BWS_CONFIG:-/etc/bws/bws.conf}"
 readonly bws_license="${BWS_LICENSE_FILE:-/var/run/secrets/bws/bws.lic.txt}"
 readonly bws_runtime_license="${BWS_RUNTIME_LICENSE_FILE:-${bws_prefix}/license/bws.lic.txt}"
 readonly bws_pid_file="${BWS_PID_FILE:-/var/run/bws/bws.pid}"

@@ -62,7 +62,8 @@ validate_dataplane_pods() {
         kubectl -n "${namespace}" exec "${pod}" -c bws -- sh -c '
             test -s /var/run/secrets/bws-gateway/tls.crt
             test -s /var/run/secrets/bws/bws.lic.txt
-            test -s /etc/bws/nginx.conf
+            test -s /etc/bws/bws.conf
+            test ! -e /etc/bws/nginx.conf
             test -s /etc/bws-agent/bws-agent.conf
             test -s /var/run/bws/bws.pid
             test ! -e /etc/nginx
@@ -73,7 +74,7 @@ validate_dataplane_pods() {
             test ! -e /var/log/nginx-agent
             /usr/bin/bws-agent -v | grep -q "bws-agent version"
             /opt/bws/bin/bws.sh -V 2>&1 | grep -q "BES WebServer 3.2.0.242"
-            /opt/bws/bin/bws.sh -p /opt/bws -c /etc/bws/nginx.conf -t
+            /opt/bws/bin/bws.sh -p /opt/bws -c /etc/bws/bws.conf -t
         ' || return 1
     done
 }

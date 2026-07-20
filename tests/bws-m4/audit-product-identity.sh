@@ -11,7 +11,7 @@ readonly control_image="${BWS_CONTROL_IMAGE:-bws-gateway-fabric:m4-local}"
 readonly data_image="${BWS_DATA_IMAGE:-bws-gateway-fabric/bws:m4-local}"
 readonly live_scan="${BWS_M4_LIVE_SCAN:-true}"
 readonly product_pattern='gateway\.nginx\.org|NGINX Gateway Fabric|nginxGateway|kind:[[:space:]]+Nginx(Gateway|Proxy)|product-type[^[:alnum:]]+ngf|ngf-product-telemetry|ghcr\.io/nginx/nginx-gateway-fabric|app\.kubernetes\.io/(name|part-of):[[:space:]]+nginx-gateway-fabric|nginx-debug|Successfully configured nginx'
-readonly technical_pattern='nginx\.org/|github\.com/nginx/nginx-gateway-fabric|NGINX .*directive|NGINX (configuration|config|worker|error log|default|snippets|context)|nginx worker|nginx_gateway_fabric_nginx_process_requests_total|nginx_http_|nginx\.conf|/usr/share/nginx|internal/controller/nginx|NGINX stub status|NGINX Plus API'
+readonly technical_pattern='nginx\.org/|github\.com/nginx/nginx-gateway-fabric|NGINX .*directive|NGINX (configuration|config|worker|error log|default|snippets|context)|nginx worker|nginx_gateway_fabric_nginx_process_requests_total|nginx_http_|/usr/share/nginx|internal/controller/nginx|NGINX stub status|NGINX Plus API'
 
 readonly work_dir="$(mktemp -d)"
 readonly rendered_file="${work_dir}/rendered.yaml"
@@ -92,7 +92,7 @@ if [[ "${live_scan}" == "true" ]]; then
         'find / \( -iname "*nginx*" -o -iname "*ngf*" \) 2>/dev/null | sort')
     for path in "${old_paths[@]}"; do
         case "${path}" in
-            /etc/bws/nginx.conf|/usr/share/nginx)
+            /usr/share/nginx)
                 ;;
             *)
                 echo "unclassified nginx/ngf filesystem path: ${path}" >&2
@@ -117,4 +117,4 @@ else
     echo "validated: image metadata/history, Helm rendering, CRDs, and RBAC (live scan disabled)"
 fi
 echo "classified technical nginx/ngf residual lines: ${technical_count}"
-echo "allowed examples: nginx directives/docs, nginx_* metric contracts, nginx.conf, internal source paths, and /usr/share/nginx"
+echo "allowed examples: nginx directives/docs, nginx_* metric contracts, internal source paths, and /usr/share/nginx"

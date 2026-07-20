@@ -10,7 +10,7 @@ readonly gateway="bws-gateway"
 readonly chart_dir="${repo_dir}/charts/bws-gateway-fabric"
 readonly crd_dir="${repo_dir}/config/crd/bases"
 readonly rendered_file="$(mktemp)"
-readonly old_path_pattern="/etc/nginx-agent|/etc/nginx(/|[[:space:]\"'])|/var/run/nginx|/var/cache/nginx|/var/lib/nginx-agent|/var/log/nginx-agent"
+readonly old_path_pattern="/etc/nginx-agent|/etc/nginx(/|[[:space:]\"'])|/etc/bws/nginx\\.conf|/var/run/nginx|/var/cache/nginx|/var/lib/nginx-agent|/var/log/nginx-agent"
 readonly legacy_api_pattern="gateway\\.nginx\\.org|kind: Nginx(Gateway|Proxy)|nginx(gateways|proxies)|wafpolicies"
 
 cleanup() {
@@ -103,9 +103,18 @@ if grep -q 'nginx' <<<"${volume_names}"; then
     exit 1
 fi
 
-while IFS= read -r pod; do
+mapfile -t pods < <(kubectl -n "${namespace}" get pods \
+    -l "gateway.networking.k8s.io/gateway-name=${gateway}" \
+    -o go-template='{{range .items}}{{if not .metadata.deletionTimestamp}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}')
+if [[ "${#pods[@]}" -ne 2 ]]; then
+    echo "expected two active BWS data-plane Pods, got ${#pods[@]}" >&2
+    exit 1
+fi
+
+for pod in "${pods[@]}"; do
     kubectl -n "${namespace}" exec "${pod}" -c bws -- sh -c '
-        test -s /etc/bws/nginx.conf
+        test -s /etc/bws/bws.conf
+        test ! -e /etc/bws/nginx.conf
         test -s /etc/bws-agent/bws-agent.conf
         test -s /var/run/bws/bws.pid
         test -d /var/cache/bws
@@ -118,9 +127,7 @@ while IFS= read -r pod; do
         test ! -e /var/lib/nginx-agent
         test ! -e /var/log/nginx-agent
     '
-done < <(kubectl -n "${namespace}" get pods \
-    -l "gateway.networking.k8s.io/gateway-name=${gateway}" \
-    -o name)
+done
 
 recent_logs="$(
     kubectl -n "${control_namespace}" logs deployment/bws-m4-bws-gateway-fabric --since=10m 2>/dev/null || true

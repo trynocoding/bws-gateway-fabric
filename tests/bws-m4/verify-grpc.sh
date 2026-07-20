@@ -52,7 +52,7 @@ kubectl -n "${namespace}" rollout status "deployment/${dataplane_deployment}" --
 
 kubectl -n "${namespace}" exec "${pod}" -c bws -- sh -c '
     grep -Rqs "grpc_pass grpc://" /etc/bws/conf.d
-    /opt/bws/bin/bws.sh -p /opt/bws -c /etc/bws/nginx.conf -t
+    /opt/bws/bin/bws.sh -p /opt/bws -c /etc/bws/bws.conf -t
 ' >/dev/null
 
 kubectl -n "${namespace}" port-forward "service/${service}" "${port}:80" >/dev/null 2>&1 &

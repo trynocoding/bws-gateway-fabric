@@ -34,7 +34,7 @@ RUN --mount=type=bind,from=bws-package,source=/${BWS_PACKAGE_FILE},target=/tmp/b
 
 COPY --chmod=0755 --from=bws-agent /bws-agent /usr/bin/bws-agent
 COPY --chmod=0755 build/bws-entrypoint.sh /agent/entrypoint.sh
-COPY ${NGINX_CONF_DIR}/nginx.conf /etc/bws/nginx.conf
+COPY ${NGINX_CONF_DIR}/nginx.conf /etc/bws/bws.conf
 COPY ${NGINX_CONF_DIR}/grpc-error-locations.conf /etc/bws/grpc-error-locations.conf
 COPY ${NGINX_CONF_DIR}/grpc-error-pages.conf /etc/bws/grpc-error-pages.conf
 COPY ${NJS_DIR}/ /opt/bws/modules/njs/

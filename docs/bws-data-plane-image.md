@@ -57,7 +57,7 @@ The image runs as UID `101`, GID `1001`. The entrypoint starts BWS with:
 ```shell
 /opt/bws/bin/bws.sh \
   -p /opt/bws \
-  -c /etc/bws/nginx.conf \
+  -c /etc/bws/bws.conf \
   -g "daemon off;"
 ```
 

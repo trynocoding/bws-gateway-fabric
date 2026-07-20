@@ -110,7 +110,7 @@ for pod in "${pods[@]}"; do
         grep -q "ssl_preread on;" /etc/bws/stream-conf.d/stream.conf
         grep -q "listen 8443;" /etc/bws/stream-conf.d/stream.conf
         grep -q "proxy_pass" /etc/bws/stream-conf.d/stream.conf
-        /opt/bws/bin/bws.sh -p /opt/bws -c /etc/bws/nginx.conf -t
+        /opt/bws/bin/bws.sh -p /opt/bws -c /etc/bws/bws.conf -t
     ' >/dev/null
 done
 

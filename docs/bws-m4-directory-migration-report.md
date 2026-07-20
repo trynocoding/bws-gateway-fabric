@@ -2,6 +2,8 @@
 
 Date: 2026-07-17
 Result: Passed
+Follow-up: on 2026-07-20 the main configuration was migrated from `/etc/bws/nginx.conf` to `/etc/bws/bws.conf` and
+revalidated in the three-node isolated Kind cluster.
 
 ## Scope
 
@@ -35,13 +37,14 @@ remain scheduled for M4.3.
 | Control-plane restart | Passed | Traffic continued and both Agents recorded a new connection |
 | Rolling restart | Passed | 312 continuous requests completed with zero failures |
 | Directory contract | Passed | Source, Helm rendering, ConfigMap, volume names, and live filesystems passed static checks |
+| Main configuration identity | Passed | Both active replicas use `/etc/bws/bws.conf`; `/etc/bws/nginx.conf` is absent |
 | Product log identity | Passed | Recent control/data-plane logs contained no old user-visible product identity |
 
 ## Runtime contract
 
 The running data plane uses:
 
-- `/etc/bws` for generated BWS configuration and certificates;
+- `/etc/bws` for generated BWS configuration and certificates, with `/etc/bws/bws.conf` as the main configuration;
 - `/var/run/bws` for PID and sockets;
 - `/var/cache/bws` for cache, temporary files, logs, and the writable license copy;
 - `/etc/bws-agent`, `/var/lib/bws-agent`, and `/var/log/bws-agent` for Agent configuration and state;

@@ -20,7 +20,7 @@ import (
 // nginx container that should not be touched by the agent. Any files
 // that we add directly into the container should be added here.
 var ignoreFiles = []string{
-	"/etc/bws/nginx.conf",
+	"/etc/bws/bws.conf",
 	"/etc/bws/mime.types",
 	"/etc/bws/grpc-error-locations.conf",
 	"/etc/bws/grpc-error-pages.conf",

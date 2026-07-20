@@ -139,10 +139,10 @@ kubectl -n "${namespace}" rollout status "deployment/${dataplane_deployment}" --
 
 # Validate the generated NJS and WebSocket proxy configuration with the real BWS binary.
 kubectl -n "${namespace}" exec -c bws "${pod}" -- bash -c '
-    grep -q "js_import modules/njs/httpmatches.js" /etc/bws/nginx.conf
+	grep -q "js_import modules/njs/httpmatches.js" /etc/bws/bws.conf
     grep -q "map \$http_upgrade \$connection_upgrade" /etc/bws/conf.d/http.conf
     grep -q "proxy_set_header Upgrade" /etc/bws/conf.d/http.conf
-    /opt/bws/bin/bws.sh -p /opt/bws -c /etc/bws/nginx.conf -t
+	/opt/bws/bin/bws.sh -p /opt/bws -c /etc/bws/bws.conf -t
 ' >/dev/null
 
 kubectl -n "${namespace}" apply -f "${script_dir}/observability-snippet.yaml" >/dev/null

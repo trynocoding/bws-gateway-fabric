@@ -89,7 +89,7 @@ type Generator interface {
 //
 // It generates files to be written to the folders above, which must exist and available for writing.
 //
-// It also expects that the main NGINX configuration file nginx.conf is located in configFolder and nginx.conf
+// It also expects that the main BWS configuration file bws.conf is located in configFolder and bws.conf
 // includes (https://nginx.org/en/docs/ngx_core_module.html#include) the files from other folders.
 type GeneratorImpl struct {
 	usageReportConfig *ngfConfig.UsageReportConfig

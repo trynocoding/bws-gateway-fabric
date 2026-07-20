@@ -1,7 +1,8 @@
 # BWS M4.4 productization verification report
 
-Status: the currently executable native-capability regression batch is complete, updated on 2026-07-18. This report
-records the M4.4 isolated stream/TLSRoute, HPA, worker-recovery, and Gateway API conformance regressions. HTTP/3 is
+Status: the currently executable native-capability regression batch is complete, updated on 2026-07-20. This report
+records the M4.4 isolated stream/TLSRoute, HPA, worker-recovery, Gateway API conformance, and BWS main-configuration
+identity regressions. HTTP/3 is
 outside the native NGF v2.6.7 capability boundary. The 24-hour, image-security, and complete license matrix gates are
 deferred by the current priority decision and are not marked as passed.
 
@@ -12,11 +13,11 @@ deferred by the current priority decision and are not marked as passed.
   replicas ran on separate workers. Gateway API `v1.5.1` experimental CRDs and Metrics Server `v0.8.1` were installed;
   `metrics.k8s.io` and `kubectl top` were available.
 - Control plane: `bws-gateway-fabric:m4-local`, image ID and local digest
-  `sha256:05f9abc0a61b43f00d74b7d71a9721ab0f28fee1b2f073356ff4b14a2898ce88`.
+  `sha256:06296f10fb6dd8a64115091e96ba3e916ab23cf14d147bf0249108822802d7ae`.
 - Data plane: `bws-gateway-fabric/bws:m4-local`, image ID and local digest
-  `sha256:390fbe2e45db2a741618b7d7954e9e0a68c4a54ef75142e7ee874200a10f2dd5`.
-- Live container config IDs were `sha256:fa1610a...` for the control plane and `sha256:23e70b7a...` for both data-plane
-  replicas after Helm revision 2 and a forced data-plane rollout.
+  `sha256:35ee59330d71187db17d4906f8eca32b66aa3ab63e0a3fbfbbfb79f870eb1c01`.
+- Live container config IDs were `sha256:cefdc6e1cda56...` for the control plane and `sha256:9322a30836139...` for both
+  data-plane replicas after the main-configuration migration rollout.
 - BWS reports `BES WebServer 3.2.0.242`. Its configure arguments include HTTP/2, HTTP/3, stream, stream TLS,
   stream TLS preread, stub_status, NJS, and the packaged BWS modules.
 
@@ -35,14 +36,16 @@ deferred by the current priority decision and are not marked as passed.
 | Pod/control-plane recovery | Passed | `verify-resilience.sh`: 305 requests, zero failures, Pod replacement, control-plane restart, two-Agent reconnect, rolling restart |
 | Helm/CRD/API contract | Passed | `verify-contract.sh` |
 | Product identity | Passed | `audit-product-identity.sh` |
+| BWS main configuration | Passed | Both replicas started with `-c /etc/bws/bws.conf`, passed real `bws -t`, and contained no `/etc/bws/nginx.conf` |
 | Missing license | Passed negative case | Image exited 1 with `BWS license is missing or empty` |
 | Generated/static checks | Passed | `make generate-all`, Helm lint, diff check, shell syntax/shellcheck, focused Go and CEL tests |
 
 The identity audit found no unclassified old product identity. It classified 65 aggregate `nginx`/`ngf` line matches
 across rendered and image evidence; the Helm/CRD/RBAC rendering contained 56. These are nginx directive and context
-names, `nginx.org` documentation, `nginx_*` metric contracts, `nginx.conf`, internal upstream Go/source paths, and the
+names, `nginx.org` documentation, `nginx_*` metric contracts, internal upstream Go/source paths, and the
 retained `/usr/share/nginx` static-resource path. Old API groups/kinds, product labels, image repositories, runtime
 directories, user-visible NGF branding, `product-type=ngf`, `nginx-debug`, NGINX Plus OIDC/JWT, and WAF APIs are rejected.
+The live filesystem and contract verifiers also reject the legacy `/etc/bws/nginx.conf` filename.
 
 ## Support and release-gate matrix
 
