@@ -3,7 +3,7 @@ kind: Gateway
 metadata:
   name: grpcroute-listener-hostname-matching
 spec:
-  gatewayClassName: nginx
+  gatewayClassName: bws
   listeners:
   - name: listener-1
     port: 80

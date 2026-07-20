@@ -3,7 +3,7 @@ kind: Gateway
 metadata:
   name: external-gateway
 spec:
-  gatewayClassName: nginx
+  gatewayClassName: bws
   infrastructure:
     parametersRef:
       group: gateway.bessystem.com
