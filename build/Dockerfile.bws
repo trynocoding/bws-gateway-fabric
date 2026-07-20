@@ -72,6 +72,7 @@ RUN cp /opt/bws/conf/mime.types /etc/bws/mime.types \
     && ln -s /var/cache/bws/license /opt/bws/license \
     && ln -s /var/cache/bws/logs /opt/bws/logs \
     && ln -s /var/cache/bws/temp /opt/bws/temp \
+    && ln -s /etc/pki/tls/certs/ca-bundle.crt /etc/ssl/cert.pem \
     && chown -R 101:1001 \
         /etc/bws \
         /etc/bws-agent \

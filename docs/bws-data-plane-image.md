@@ -67,6 +67,19 @@ processes. Set `BWS_AGENT_DISABLED=true` only for image-level smoke tests that i
 The bootstrap configuration exposes `GET /readyz` on port `8081`. NGF replaces the generated configuration after the
 Agent connects.
 
+## System CA bundle
+
+The control plane references the well-known system CA bundle path `/etc/ssl/cert.pem` when a BackendTLSPolicy selects
+`wellKnownCACertificates: System` (and when an AuthenticationFilter JWT remote has no explicit CA). The Rocky Linux
+base image ships the bundle at `/etc/pki/tls/certs/ca-bundle.crt`, so the image provides a compatibility symlink:
+
+```text
+/etc/ssl/cert.pem -> /etc/pki/tls/certs/ca-bundle.crt
+```
+
+Do not remove this symlink; without it, `bws -t` fails with `cannot load certificate "/etc/ssl/cert.pem"` and the
+Agent rolls back every generated configuration that uses system CA verification.
+
 ## Local smoke test
 
 The following mirrors the NGF non-root and read-only-root-filesystem settings:
